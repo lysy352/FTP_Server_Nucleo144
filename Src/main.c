@@ -77,7 +77,18 @@ void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+#ifdef __GNUC__
+	#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+	#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
 
+PUTCHAR_PROTOTYPE
+{
+  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xFFFF);
+
+  return ch;
+}
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -326,7 +337,6 @@ void StartDefaultTask(void const * argument)
   {
     osDelay(1000);
 	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-	HAL_UART_Transmit(&huart3, "TEST", 5, 100);
   }
   /* USER CODE END 5 */ 
 }
