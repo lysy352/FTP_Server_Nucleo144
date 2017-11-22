@@ -326,6 +326,7 @@ void StartDefaultTask(void const * argument)
   {
     osDelay(1000);
 	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+	HAL_UART_Transmit(&huart3, "TEST", 5, 100);
   }
   /* USER CODE END 5 */ 
 }
