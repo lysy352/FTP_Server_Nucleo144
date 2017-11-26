@@ -55,7 +55,7 @@
 #include "usb_host.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "memory_access.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -332,12 +332,21 @@ void StartDefaultTask(void const * argument)
   MX_USB_HOST_Init();
 
   /* USER CODE BEGIN 5 */
+  mount_usb();
+
+  FIL* file = open_file("0:123.txt");
+  char buffer[24];
+  read_file(file, &buffer, 24);
+  printf("%s\n", buffer);
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1000);
+  	osDelay(1000);
 	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+	printf("XXX\r\n");
   }
+  unmount_usb();
   /* USER CODE END 5 */ 
 }
 

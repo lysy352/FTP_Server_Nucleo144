@@ -61,7 +61,7 @@ ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 * -- Insert your variables declaration here --
 */ 
 /* USER CODE BEGIN 0 */
-
+#include "memory_access.h"
 /* USER CODE END 0 */
 
 /*
@@ -109,6 +109,7 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
     
   case HOST_USER_DISCONNECTION:
   Appli_state = APPLICATION_DISCONNECT;
+
   break;
     
   case HOST_USER_CLASS_ACTIVE:
@@ -117,6 +118,7 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
 
   case HOST_USER_CONNECTION:
   Appli_state = APPLICATION_START;
+
   break;
 
   default:
