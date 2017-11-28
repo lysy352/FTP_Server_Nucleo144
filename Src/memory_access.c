@@ -11,24 +11,22 @@ int _is_full_path(TCHAR *path) {
 }
 
 TCHAR *_get_full_path(TCHAR *path) {
-	TCHAR *new_path;
-	if(_is_full_path(path)) {
-		new_path = malloc(sizeof(TCHAR)*MAX_PATH);
-		strcpy(new_path, path);
-	} else {
-		TCHAR *new_path = malloc(sizeof(TCHAR)*MAX_PATH);
+	TCHAR *new_path = malloc(sizeof(TCHAR)*MAX_PATH);
 
-		strcpy(new_path, path);
+	if(_is_full_path(path)) {
+		strcpy(new_path, USBHPath);
+		strcat(new_path, path[1]);
+	} else {
+		strcpy(new_path, current_dir);
 		strcat(new_path, "/");
 		strcat(new_path, path);
 	}
 	return new_path;
-
 }
 
 int mount_usb() {
 	fs = malloc(sizeof(FATFS));
-	if(f_mount(fs, USBHPath, 100) != FR_OK) {
+	if(f_mount(fs, USBHPath, 1) != FR_OK) {
 		printf("usb mount error\r\n");
 		free(fs);
 		return -1;
@@ -42,7 +40,7 @@ int mount_usb() {
 }
 
 int unmount_usb() {
-	if(f_mount(0, "", 0) != FR_OK) {
+	if(f_mount(0, USBHPath, 0) != FR_OK) {
 		printf("usb unmount error\r\n");
 		return -1;
 	}
@@ -161,6 +159,7 @@ int delete_file(TCHAR *filename) {
 		free(full_path);
 		return -1;
 	}
+	
 	printf("deleted file: %s\r\n", full_path);
 	free(full_path);
 	return 1;
