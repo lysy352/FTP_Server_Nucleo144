@@ -1,10 +1,3 @@
-/*
- * memory_access.h
- *
- *  Created on: 23.11.2017
- *      Author: Dawid
- */
-
 #ifndef MEMORY_ACCESS_H_
 #define MEMORY_ACCESS_H_
 
@@ -16,23 +9,23 @@ int mount_usb();
 
 int unmount_usb();
 
-TCHAR *get_current_directory();
+char *get_current_directory();
 
-TCHAR *change_directory(TCHAR *path) ;
+char *change_directory(char *path) ;
 
-TCHAR *list_directory() ;
+char *list_directory() ;
 
 FIL *open_file(char *filename);
-
 
 FIL *create_file(char *filename) ;
 
 void close_file(FIL *file) ;
-int write_to_file(FIL *file, char *buf, int size);
 
-int read_file(FIL *file, char *buf, int size) ;
+uint16_t write_to_file(FIL *file, char *buf, uint16_t size);
 
-int delete_file(TCHAR *filename);
+uint16_t read_file(FIL *file, char *buf, uint16_t size) ;
+
+int delete_file(char *filename);
 
 #define MAX_PATH 128
 #define MAX_LIST 1024

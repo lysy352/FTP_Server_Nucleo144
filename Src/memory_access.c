@@ -1,25 +1,23 @@
 #include "memory_access.h"
 
 FATFS *fs;
-TCHAR *current_dir;
+char *current_dir;
 
-int _is_full_path(TCHAR *path) {
+int _is_full_path(char *path) {
 	if(path[0] == '/') {
 		return 1;
 	}
 	return 0;
 }
 
-TCHAR *_get_full_path(TCHAR *path) {
-	TCHAR *new_path = malloc(sizeof(TCHAR)*MAX_PATH);
-
+char *_get_full_path(char *path) {
+	char *new_path;
 	if(_is_full_path(path)) {
-		strcpy(new_path, USBHPath);
-		strcat(new_path, path[1]);
+		new_path = malloc(sizeof(char)*strlen(path));
+		sprintf(new_path, "%s/", path);
 	} else {
-		strcpy(new_path, current_dir);
-		strcat(new_path, "/");
-		strcat(new_path, path);
+		new_path = malloc(sizeof(char)*(strlen(current_dir) + strlen(path) + 2));
+		sprintf(new_path, "%s%s/", current_dir, path);
 	}
 	return new_path;
 }
@@ -32,8 +30,8 @@ int mount_usb() {
 		return -1;
 	}
 
-	current_dir = malloc(sizeof(TCHAR)*MAX_PATH);
-	strcpy(current_dir, USBHPath);
+	current_dir = malloc(sizeof(char)*2);
+	strcpy(current_dir, "/");
 
 	printf("Mounted USB\r\n");
 	return 1;
@@ -51,12 +49,12 @@ int unmount_usb() {
 	return 1;
 }
 
-TCHAR *get_current_directory() {
+char *get_current_directory() {
 	return current_dir;
 }
 
-TCHAR *change_directory(TCHAR *path) {
-	TCHAR *full_path = _get_full_path(path);
+char *change_directory(char *path) {
+	char *full_path = _get_full_path(path);
 
 	DIR dir;
 	if(f_opendir(&dir, full_path) != FR_OK) {
@@ -71,14 +69,14 @@ TCHAR *change_directory(TCHAR *path) {
 	return current_dir;
 }
 
-TCHAR *list_directory() {
+char *list_directory() {
 	DIR dir;
 	if(f_opendir(&dir, current_dir) != FR_OK) {
 		printf("cannot open directory %s\r\n", current_dir);
 		return NULL;
 	}
 
-	TCHAR *list = malloc(sizeof(TCHAR)*MAX_LIST);
+	char *list = malloc(sizeof(char)*MAX_LIST);
 	list[0] = 0;
 	FILINFO finfo;
 	while(1) {
@@ -100,7 +98,7 @@ TCHAR *list_directory() {
 }
 
 FIL *open_file(char *filename) {
-	TCHAR *path = _get_full_path(filename);
+	char *path = _get_full_path(filename);
 		FIL *file = malloc(sizeof(FIL));
 
 		if(f_open(file, path, FA_OPEN_EXISTING | FA_READ) != FR_OK ) {
@@ -113,9 +111,8 @@ FIL *open_file(char *filename) {
 		return file;
 }
 
-
 FIL *create_file(char *filename) {
-	TCHAR *path = _get_full_path(filename);
+	char *path = _get_full_path(filename);
 	FIL *file = malloc(sizeof(FIL));
 
 	if(f_open(file, path, FA_CREATE_NEW | FA_WRITE) != FR_OK ) {
@@ -133,8 +130,8 @@ void close_file(FIL *file) {
 	free(file);
 }
 
-int write_to_file(FIL *file, char *buf, int size) {
-	int bw;
+uint16_t write_to_file(FIL *file, char *buf, uint16_t size) {
+	uint16_t bw;
 	if(f_write(file, buf, size, &bw) != FR_OK) {
 		printf("write to file error\r\n");
 		return -1;
@@ -142,8 +139,8 @@ int write_to_file(FIL *file, char *buf, int size) {
 	return bw;
 }
 
-int read_file(FIL *file, char *buf, int size) {
-	int br;
+uint16_t read_file(FIL *file, char *buf, uint16_t size) {
+	uint16_t br;
 	if(f_read(file, buf, size, &br) != FR_OK) {
 		printf("read file error\r\n");
 		return -1;
@@ -151,8 +148,8 @@ int read_file(FIL *file, char *buf, int size) {
 	return br;
 }
 
-int delete_file(TCHAR *filename) {
-	TCHAR *full_path = _get_full_path(filename);
+int delete_file(char *filename) {
+	char *full_path = _get_full_path(filename);
 
 	if(f_unlink(full_path) != FR_OK) {
 		printf("cannot delete file: %s\r\n", full_path);

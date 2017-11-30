@@ -1,4 +1,0 @@
-usbh_msc_bot.c:114:20:USBH_MSC_BOT_REQ_Reset	0	static
-usbh_msc_bot.c:135:20:USBH_MSC_BOT_REQ_GetMaxLUN	0	static
-usbh_msc_bot.c:156:20:USBH_MSC_BOT_Init	0	static
-usbh_msc_bot.c:178:20:USBH_MSC_BOT_Process	24	static
