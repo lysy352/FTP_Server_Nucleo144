@@ -1,0 +1,1738 @@
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"mem.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.plug_holes,"ax",%progbits
+  18              		.align	1
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu fpv5-sp-d16
+  24              	plug_holes:
+  25              	.LFB141:
+  26              		.file 1 "Middlewares/Third_Party/LwIP/src/core/mem.c"
+   1:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+   2:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @file
+   3:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Dynamic memory manager
+   4:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+   5:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * This is a lightweight replacement for the standard C library malloc().
+   6:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+   7:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * If you want to use the standard C library malloc() instead, define
+   8:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * MEM_LIBC_MALLOC to 1 in your lwipopts.h
+   9:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+  10:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * To let mem_malloc() use pools (prevents fragmentation and is much faster than
+  11:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * a heap but might waste some memory), define MEM_USE_POOLS to 1, define
+  12:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * MEMP_USE_CUSTOM_POOLS to 1 and create a file "lwippools.h" that includes a list
+  13:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * of pools like this (more pools can be added between _START and _END):
+  14:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+  15:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Define three pools with sizes 256, 512, and 1512 bytes
+  16:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * LWIP_MALLOC_MEMPOOL_START
+  17:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * LWIP_MALLOC_MEMPOOL(20, 256)
+  18:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * LWIP_MALLOC_MEMPOOL(10, 512)
+  19:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * LWIP_MALLOC_MEMPOOL(5, 1512)
+  20:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * LWIP_MALLOC_MEMPOOL_END
+  21:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+  22:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+  23:Middlewares/Third_Party/LwIP/src/core/mem.c **** /*
+  24:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
+  25:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * All rights reserved.
+  26:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+  27:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  28:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * are permitted provided that the following conditions are met:
+  29:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+  30:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  31:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *    this list of conditions and the following disclaimer.
+  32:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 2
+
+
+  33:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *    this list of conditions and the following disclaimer in the documentation
+  34:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *    and/or other materials provided with the distribution.
+  35:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * 3. The name of the author may not be used to endorse or promote products
+  36:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *    derived from this software without specific prior written permission.
+  37:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+  38:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  39:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  40:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  41:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  42:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  43:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  44:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  45:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  46:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  47:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * OF SUCH DAMAGE.
+  48:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+  49:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * This file is part of the lwIP TCP/IP stack.
+  50:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+  51:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Author: Adam Dunkels <adam@sics.se>
+  52:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *         Simon Goldschmidt
+  53:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+  54:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+  55:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+  56:Middlewares/Third_Party/LwIP/src/core/mem.c **** #include "lwip/opt.h"
+  57:Middlewares/Third_Party/LwIP/src/core/mem.c **** #include "lwip/mem.h"
+  58:Middlewares/Third_Party/LwIP/src/core/mem.c **** #include "lwip/def.h"
+  59:Middlewares/Third_Party/LwIP/src/core/mem.c **** #include "lwip/sys.h"
+  60:Middlewares/Third_Party/LwIP/src/core/mem.c **** #include "lwip/stats.h"
+  61:Middlewares/Third_Party/LwIP/src/core/mem.c **** #include "lwip/err.h"
+  62:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+  63:Middlewares/Third_Party/LwIP/src/core/mem.c **** #include <string.h>
+  64:Middlewares/Third_Party/LwIP/src/core/mem.c **** #include <stdlib.h>
+  65:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+  66:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if MEM_LIBC_MALLOC || MEM_USE_POOLS
+  67:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** mem_init is not used when using pools instead of a heap or using
+  68:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * C library malloc().
+  69:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+  70:Middlewares/Third_Party/LwIP/src/core/mem.c **** void
+  71:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_init(void)
+  72:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+  73:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+  74:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+  75:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** mem_trim is not used when using pools instead of a heap or using
+  76:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * C library malloc(): we can't free part of a pool element and the stack
+  77:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * support mem_trim() to return a different pointer
+  78:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+  79:Middlewares/Third_Party/LwIP/src/core/mem.c **** void*
+  80:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_trim(void *mem, mem_size_t size)
+  81:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+  82:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_UNUSED_ARG(size);
+  83:Middlewares/Third_Party/LwIP/src/core/mem.c ****   return mem;
+  84:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+  85:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* MEM_LIBC_MALLOC || MEM_USE_POOLS */
+  86:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+  87:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if MEM_LIBC_MALLOC
+  88:Middlewares/Third_Party/LwIP/src/core/mem.c **** /* lwIP heap implemented using C library malloc() */
+  89:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 3
+
+
+  90:Middlewares/Third_Party/LwIP/src/core/mem.c **** /* in case C library malloc() needs extra protection,
+  91:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * allow these defines to be overridden.
+  92:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+  93:Middlewares/Third_Party/LwIP/src/core/mem.c **** #ifndef mem_clib_free
+  94:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define mem_clib_free free
+  95:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif
+  96:Middlewares/Third_Party/LwIP/src/core/mem.c **** #ifndef mem_clib_malloc
+  97:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define mem_clib_malloc malloc
+  98:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif
+  99:Middlewares/Third_Party/LwIP/src/core/mem.c **** #ifndef mem_clib_calloc
+ 100:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define mem_clib_calloc calloc
+ 101:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif
+ 102:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 103:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_STATS && MEM_STATS
+ 104:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define MEM_LIBC_STATSHELPER_SIZE LWIP_MEM_ALIGN_SIZE(sizeof(mem_size_t))
+ 105:Middlewares/Third_Party/LwIP/src/core/mem.c **** #else
+ 106:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define MEM_LIBC_STATSHELPER_SIZE 0
+ 107:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif
+ 108:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 109:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 110:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Allocate a block of memory with a minimum of 'size' bytes.
+ 111:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 112:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param size is the minimum size of the requested block in bytes.
+ 113:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @return pointer to allocated memory or NULL if no free memory was found.
+ 114:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 115:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Note that the returned value must always be aligned (as defined by MEM_ALIGNMENT).
+ 116:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 117:Middlewares/Third_Party/LwIP/src/core/mem.c **** void *
+ 118:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_malloc(mem_size_t size)
+ 119:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 120:Middlewares/Third_Party/LwIP/src/core/mem.c ****   void* ret = mem_clib_malloc(size + MEM_LIBC_STATSHELPER_SIZE);
+ 121:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (ret == NULL) {
+ 122:Middlewares/Third_Party/LwIP/src/core/mem.c ****     MEM_STATS_INC(err);
+ 123:Middlewares/Third_Party/LwIP/src/core/mem.c ****   } else {
+ 124:Middlewares/Third_Party/LwIP/src/core/mem.c ****     LWIP_ASSERT("malloc() must return aligned memory", LWIP_MEM_ALIGN(ret) == ret);
+ 125:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_STATS && MEM_STATS
+ 126:Middlewares/Third_Party/LwIP/src/core/mem.c ****     *(mem_size_t*)ret = size;
+ 127:Middlewares/Third_Party/LwIP/src/core/mem.c ****     ret = (u8_t*)ret + MEM_LIBC_STATSHELPER_SIZE;
+ 128:Middlewares/Third_Party/LwIP/src/core/mem.c ****     MEM_STATS_INC_USED(used, size);
+ 129:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif
+ 130:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 131:Middlewares/Third_Party/LwIP/src/core/mem.c ****   return ret;
+ 132:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 133:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 134:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** Put memory back on the heap
+ 135:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 136:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param rmem is the pointer as returned by a previous call to mem_malloc()
+ 137:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 138:Middlewares/Third_Party/LwIP/src/core/mem.c **** void
+ 139:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_free(void *rmem)
+ 140:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 141:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("rmem != NULL", (rmem != NULL));
+ 142:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("rmem == MEM_ALIGN(rmem)", (rmem == LWIP_MEM_ALIGN(rmem)));
+ 143:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_STATS && MEM_STATS
+ 144:Middlewares/Third_Party/LwIP/src/core/mem.c ****   rmem = (u8_t*)rmem - MEM_LIBC_STATSHELPER_SIZE;
+ 145:Middlewares/Third_Party/LwIP/src/core/mem.c ****   MEM_STATS_DEC_USED(used, *(mem_size_t*)rmem);
+ 146:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 4
+
+
+ 147:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_clib_free(rmem);
+ 148:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 149:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 150:Middlewares/Third_Party/LwIP/src/core/mem.c **** #elif MEM_USE_POOLS
+ 151:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 152:Middlewares/Third_Party/LwIP/src/core/mem.c **** /* lwIP heap implemented with different sized pools */
+ 153:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 154:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 155:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Allocate memory: determine the smallest pool that is big enough
+ 156:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * to contain an element of 'size' and get an element from that pool.
+ 157:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 158:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param size the size in bytes of the memory needed
+ 159:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @return a pointer to the allocated memory or NULL if the pool is empty
+ 160:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 161:Middlewares/Third_Party/LwIP/src/core/mem.c **** void *
+ 162:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_malloc(mem_size_t size)
+ 163:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 164:Middlewares/Third_Party/LwIP/src/core/mem.c ****   void *ret;
+ 165:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct memp_malloc_helper *element;
+ 166:Middlewares/Third_Party/LwIP/src/core/mem.c ****   memp_t poolnr;
+ 167:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_size_t required_size = size + LWIP_MEM_ALIGN_SIZE(sizeof(struct memp_malloc_helper));
+ 168:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 169:Middlewares/Third_Party/LwIP/src/core/mem.c ****   for (poolnr = MEMP_POOL_FIRST; poolnr <= MEMP_POOL_LAST; poolnr = (memp_t)(poolnr + 1)) {
+ 170:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* is this pool big enough to hold an element of the required size
+ 171:Middlewares/Third_Party/LwIP/src/core/mem.c ****        plus a struct memp_malloc_helper that saves the pool this element came from? */
+ 172:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (required_size <= memp_pools[poolnr]->size) {
+ 173:Middlewares/Third_Party/LwIP/src/core/mem.c ****       element = (struct memp_malloc_helper*)memp_malloc(poolnr);
+ 174:Middlewares/Third_Party/LwIP/src/core/mem.c ****       if (element == NULL) {
+ 175:Middlewares/Third_Party/LwIP/src/core/mem.c ****         /* No need to DEBUGF or ASSERT: This error is already taken care of in memp.c */
+ 176:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if MEM_USE_POOLS_TRY_BIGGER_POOL
+ 177:Middlewares/Third_Party/LwIP/src/core/mem.c ****         /** Try a bigger pool if this one is empty! */
+ 178:Middlewares/Third_Party/LwIP/src/core/mem.c ****         if (poolnr < MEMP_POOL_LAST) {
+ 179:Middlewares/Third_Party/LwIP/src/core/mem.c ****           continue;
+ 180:Middlewares/Third_Party/LwIP/src/core/mem.c ****         }
+ 181:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* MEM_USE_POOLS_TRY_BIGGER_POOL */
+ 182:Middlewares/Third_Party/LwIP/src/core/mem.c ****         MEM_STATS_INC(err);
+ 183:Middlewares/Third_Party/LwIP/src/core/mem.c ****         return NULL;
+ 184:Middlewares/Third_Party/LwIP/src/core/mem.c ****       }
+ 185:Middlewares/Third_Party/LwIP/src/core/mem.c ****       break;
+ 186:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 187:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 188:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (poolnr > MEMP_POOL_LAST) {
+ 189:Middlewares/Third_Party/LwIP/src/core/mem.c ****     LWIP_ASSERT("mem_malloc(): no pool is that big!", 0);
+ 190:Middlewares/Third_Party/LwIP/src/core/mem.c ****     MEM_STATS_INC(err);
+ 191:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return NULL;
+ 192:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 193:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 194:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* save the pool number this element came from */
+ 195:Middlewares/Third_Party/LwIP/src/core/mem.c ****   element->poolnr = poolnr;
+ 196:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* and return a pointer to the memory directly after the struct memp_malloc_helper */
+ 197:Middlewares/Third_Party/LwIP/src/core/mem.c ****   ret = (u8_t*)element + LWIP_MEM_ALIGN_SIZE(sizeof(struct memp_malloc_helper));
+ 198:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 199:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if MEMP_OVERFLOW_CHECK || (LWIP_STATS && MEM_STATS)
+ 200:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* truncating to u16_t is safe because struct memp_desc::size is u16_t */
+ 201:Middlewares/Third_Party/LwIP/src/core/mem.c ****   element->size = (u16_t)size;
+ 202:Middlewares/Third_Party/LwIP/src/core/mem.c ****   MEM_STATS_INC_USED(used, element->size);
+ 203:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* MEMP_OVERFLOW_CHECK || (LWIP_STATS && MEM_STATS) */
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 5
+
+
+ 204:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if MEMP_OVERFLOW_CHECK
+ 205:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* initialize unused memory (diff between requested size and selected pool's size) */
+ 206:Middlewares/Third_Party/LwIP/src/core/mem.c ****   memset((u8_t*)ret + size, 0xcd, memp_pools[poolnr]->size - size);
+ 207:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* MEMP_OVERFLOW_CHECK */
+ 208:Middlewares/Third_Party/LwIP/src/core/mem.c ****   return ret;
+ 209:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 210:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 211:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 212:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Free memory previously allocated by mem_malloc. Loads the pool number
+ 213:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * and calls memp_free with that pool number to put the element back into
+ 214:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * its pool
+ 215:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 216:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param rmem the memory element to free
+ 217:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 218:Middlewares/Third_Party/LwIP/src/core/mem.c **** void
+ 219:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_free(void *rmem)
+ 220:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 221:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct memp_malloc_helper *hmem;
+ 222:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 223:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("rmem != NULL", (rmem != NULL));
+ 224:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("rmem == MEM_ALIGN(rmem)", (rmem == LWIP_MEM_ALIGN(rmem)));
+ 225:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 226:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* get the original struct memp_malloc_helper */
+ 227:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* cast through void* to get rid of alignment warnings */
+ 228:Middlewares/Third_Party/LwIP/src/core/mem.c ****   hmem = (struct memp_malloc_helper*)(void*)((u8_t*)rmem - LWIP_MEM_ALIGN_SIZE(sizeof(struct memp_m
+ 229:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 230:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("hmem != NULL", (hmem != NULL));
+ 231:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("hmem == MEM_ALIGN(hmem)", (hmem == LWIP_MEM_ALIGN(hmem)));
+ 232:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("hmem->poolnr < MEMP_MAX", (hmem->poolnr < MEMP_MAX));
+ 233:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 234:Middlewares/Third_Party/LwIP/src/core/mem.c ****   MEM_STATS_DEC_USED(used, hmem->size);
+ 235:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if MEMP_OVERFLOW_CHECK
+ 236:Middlewares/Third_Party/LwIP/src/core/mem.c ****   {
+ 237:Middlewares/Third_Party/LwIP/src/core/mem.c ****      u16_t i;
+ 238:Middlewares/Third_Party/LwIP/src/core/mem.c ****      LWIP_ASSERT("MEM_USE_POOLS: invalid chunk size",
+ 239:Middlewares/Third_Party/LwIP/src/core/mem.c ****         hmem->size <= memp_pools[hmem->poolnr]->size);
+ 240:Middlewares/Third_Party/LwIP/src/core/mem.c ****      /* check that unused memory remained untouched (diff between requested size and selected pool'
+ 241:Middlewares/Third_Party/LwIP/src/core/mem.c ****      for (i = hmem->size; i < memp_pools[hmem->poolnr]->size; i++) {
+ 242:Middlewares/Third_Party/LwIP/src/core/mem.c ****         u8_t data = *((u8_t*)rmem + i);
+ 243:Middlewares/Third_Party/LwIP/src/core/mem.c ****         LWIP_ASSERT("MEM_USE_POOLS: mem overflow detected", data == 0xcd);
+ 244:Middlewares/Third_Party/LwIP/src/core/mem.c ****      }
+ 245:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 246:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* MEMP_OVERFLOW_CHECK */
+ 247:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 248:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* and put it in the pool we saved earlier */
+ 249:Middlewares/Third_Party/LwIP/src/core/mem.c ****   memp_free(hmem->poolnr, hmem);
+ 250:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 251:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 252:Middlewares/Third_Party/LwIP/src/core/mem.c **** #else /* MEM_USE_POOLS */
+ 253:Middlewares/Third_Party/LwIP/src/core/mem.c **** /* lwIP replacement for your libc malloc() */
+ 254:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 255:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 256:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * The heap is made up as a list of structs of this type.
+ 257:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * This does not have to be aligned since for getting its size,
+ 258:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * we only use the macro SIZEOF_STRUCT_MEM, which automatically aligns.
+ 259:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 260:Middlewares/Third_Party/LwIP/src/core/mem.c **** struct mem {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 6
+
+
+ 261:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /** index (-> ram[next]) of the next struct */
+ 262:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_size_t next;
+ 263:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /** index (-> ram[prev]) of the previous struct */
+ 264:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_size_t prev;
+ 265:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /** 1: this area is used; 0: this area is unused */
+ 266:Middlewares/Third_Party/LwIP/src/core/mem.c ****   u8_t used;
+ 267:Middlewares/Third_Party/LwIP/src/core/mem.c **** };
+ 268:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 269:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** All allocated blocks will be MIN_SIZE bytes big, at least!
+ 270:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * MIN_SIZE can be overridden to suit your needs. Smaller values save space,
+ 271:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * larger values could prevent too small blocks to fragment the RAM too much. */
+ 272:Middlewares/Third_Party/LwIP/src/core/mem.c **** #ifndef MIN_SIZE
+ 273:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define MIN_SIZE             12
+ 274:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* MIN_SIZE */
+ 275:Middlewares/Third_Party/LwIP/src/core/mem.c **** /* some alignment macros: we define them here for better source code layout */
+ 276:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define MIN_SIZE_ALIGNED     LWIP_MEM_ALIGN_SIZE(MIN_SIZE)
+ 277:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define SIZEOF_STRUCT_MEM    LWIP_MEM_ALIGN_SIZE(sizeof(struct mem))
+ 278:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define MEM_SIZE_ALIGNED     LWIP_MEM_ALIGN_SIZE(MEM_SIZE)
+ 279:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 280:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** If you want to relocate the heap to external memory, simply define
+ 281:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * LWIP_RAM_HEAP_POINTER as a void-pointer to that location.
+ 282:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * If so, make sure the memory at that location is big enough (see below on
+ 283:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * how that space is calculated). */
+ 284:Middlewares/Third_Party/LwIP/src/core/mem.c **** #ifndef LWIP_RAM_HEAP_POINTER
+ 285:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** the heap. we need one struct mem at the end and some room for alignment */
+ 286:Middlewares/Third_Party/LwIP/src/core/mem.c **** LWIP_DECLARE_MEMORY_ALIGNED(ram_heap, MEM_SIZE_ALIGNED + (2U*SIZEOF_STRUCT_MEM));
+ 287:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_RAM_HEAP_POINTER ram_heap
+ 288:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_RAM_HEAP_POINTER */
+ 289:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 290:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** pointer to the heap (ram_heap): for alignment, ram is now a pointer instead of an array */
+ 291:Middlewares/Third_Party/LwIP/src/core/mem.c **** static u8_t *ram;
+ 292:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** the last entry, always unused! */
+ 293:Middlewares/Third_Party/LwIP/src/core/mem.c **** static struct mem *ram_end;
+ 294:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** pointer to the lowest free block, this is used for faster search */
+ 295:Middlewares/Third_Party/LwIP/src/core/mem.c **** static struct mem *lfree;
+ 296:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 297:Middlewares/Third_Party/LwIP/src/core/mem.c **** /** concurrent access protection */
+ 298:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if !NO_SYS
+ 299:Middlewares/Third_Party/LwIP/src/core/mem.c **** static sys_mutex_t mem_mutex;
+ 300:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif
+ 301:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 302:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 303:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 304:Middlewares/Third_Party/LwIP/src/core/mem.c **** static volatile u8_t mem_free_count;
+ 305:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 306:Middlewares/Third_Party/LwIP/src/core/mem.c **** /* Allow mem_free from other (e.g. interrupt) context */
+ 307:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_FREE_DECL_PROTECT()  SYS_ARCH_DECL_PROTECT(lev_free)
+ 308:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_FREE_PROTECT()       SYS_ARCH_PROTECT(lev_free)
+ 309:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_FREE_UNPROTECT()     SYS_ARCH_UNPROTECT(lev_free)
+ 310:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_ALLOC_DECL_PROTECT() SYS_ARCH_DECL_PROTECT(lev_alloc)
+ 311:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_ALLOC_PROTECT()      SYS_ARCH_PROTECT(lev_alloc)
+ 312:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_ALLOC_UNPROTECT()    SYS_ARCH_UNPROTECT(lev_alloc)
+ 313:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 314:Middlewares/Third_Party/LwIP/src/core/mem.c **** #else /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 315:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 316:Middlewares/Third_Party/LwIP/src/core/mem.c **** /* Protect the heap only by using a semaphore */
+ 317:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_FREE_DECL_PROTECT()
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 7
+
+
+ 318:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_FREE_PROTECT()    sys_mutex_lock(&mem_mutex)
+ 319:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_FREE_UNPROTECT()  sys_mutex_unlock(&mem_mutex)
+ 320:Middlewares/Third_Party/LwIP/src/core/mem.c **** /* mem_malloc is protected using semaphore AND LWIP_MEM_ALLOC_PROTECT */
+ 321:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_ALLOC_DECL_PROTECT()
+ 322:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_ALLOC_PROTECT()
+ 323:Middlewares/Third_Party/LwIP/src/core/mem.c **** #define LWIP_MEM_ALLOC_UNPROTECT()
+ 324:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 325:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 326:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 327:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 328:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 329:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * "Plug holes" by combining adjacent empty struct mems.
+ 330:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * After this function is through, there should not exist
+ 331:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * one empty struct mem pointing to another empty struct mem.
+ 332:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 333:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param mem this points to a struct mem which just has been freed
+ 334:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @internal this function is only called by mem_free() and mem_trim()
+ 335:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 336:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * This assumes access to the heap is protected by the calling function
+ 337:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * already.
+ 338:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 339:Middlewares/Third_Party/LwIP/src/core/mem.c **** static void
+ 340:Middlewares/Third_Party/LwIP/src/core/mem.c **** plug_holes(struct mem *mem)
+ 341:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+  27              		.loc 1 341 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  32              	.LVL0:
+  33 0000 30B4     		push	{r4, r5}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 4, -8
+  37              		.cfi_offset 5, -4
+ 342:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct mem *nmem;
+ 343:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct mem *pmem;
+ 344:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 345:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("plug_holes: mem >= ram", (u8_t *)mem >= ram);
+  38              		.loc 1 345 0
+  39 0002 174B     		ldr	r3, .L9
+  40 0004 1B68     		ldr	r3, [r3]
+ 346:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("plug_holes: mem < ram_end", (u8_t *)mem < (u8_t *)ram_end);
+  41              		.loc 1 346 0
+  42 0006 174A     		ldr	r2, .L9+4
+  43 0008 1568     		ldr	r5, [r2]
+ 347:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("plug_holes: mem->used == 0", mem->used == 0);
+ 348:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 349:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* plug hole forward */
+ 350:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("plug_holes: mem->next <= MEM_SIZE_ALIGNED", mem->next <= MEM_SIZE_ALIGNED);
+  44              		.loc 1 350 0
+  45 000a 0188     		ldrh	r1, [r0]
+ 351:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 352:Middlewares/Third_Party/LwIP/src/core/mem.c ****   nmem = (struct mem *)(void *)&ram[mem->next];
+  46              		.loc 1 352 0
+  47 000c 5A18     		adds	r2, r3, r1
+  48              	.LVL1:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 8
+
+
+ 353:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (mem != nmem && nmem->used == 0 && (u8_t *)nmem != (u8_t *)ram_end) {
+  49              		.loc 1 353 0
+  50 000e 9042     		cmp	r0, r2
+  51 0010 0DD0     		beq	.L2
+  52              		.loc 1 353 0 is_stmt 0 discriminator 1
+  53 0012 1479     		ldrb	r4, [r2, #4]	@ zero_extendqisi2
+  54 0014 5CB9     		cbnz	r4, .L2
+  55              		.loc 1 353 0 discriminator 2
+  56 0016 9542     		cmp	r5, r2
+  57 0018 09D0     		beq	.L2
+ 354:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* if mem->next is unused and not end of ram, combine mem and mem->next */
+ 355:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (lfree == nmem) {
+  58              		.loc 1 355 0 is_stmt 1
+  59 001a 134C     		ldr	r4, .L9+8
+  60 001c 2468     		ldr	r4, [r4]
+  61 001e A242     		cmp	r2, r4
+  62 0020 17D0     		beq	.L7
+  63              	.LVL2:
+  64              	.L3:
+ 356:Middlewares/Third_Party/LwIP/src/core/mem.c ****       lfree = mem;
+ 357:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 358:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem->next = nmem->next;
+  65              		.loc 1 358 0
+  66 0022 5A5A     		ldrh	r2, [r3, r1]
+  67 0024 0280     		strh	r2, [r0]	@ movhi
+ 359:Middlewares/Third_Party/LwIP/src/core/mem.c ****     ((struct mem *)(void *)&ram[nmem->next])->prev = (mem_size_t)((u8_t *)mem - ram);
+  68              		.loc 1 359 0
+  69 0026 5A5A     		ldrh	r2, [r3, r1]
+  70 0028 1A44     		add	r2, r2, r3
+  71 002a C11A     		subs	r1, r0, r3
+  72              	.LVL3:
+  73 002c 5180     		strh	r1, [r2, #2]	@ movhi
+  74              	.L2:
+ 360:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 361:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 362:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* plug hole backward */
+ 363:Middlewares/Third_Party/LwIP/src/core/mem.c ****   pmem = (struct mem *)(void *)&ram[mem->prev];
+  75              		.loc 1 363 0
+  76 002e 4188     		ldrh	r1, [r0, #2]
+  77 0030 5A18     		adds	r2, r3, r1
+  78              	.LVL4:
+ 364:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (pmem != mem && pmem->used == 0) {
+  79              		.loc 1 364 0
+  80 0032 9042     		cmp	r0, r2
+  81 0034 0BD0     		beq	.L1
+  82              		.loc 1 364 0 is_stmt 0 discriminator 1
+  83 0036 1479     		ldrb	r4, [r2, #4]	@ zero_extendqisi2
+  84 0038 4CB9     		cbnz	r4, .L1
+ 365:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* if mem->prev is unused, combine mem and mem->prev */
+ 366:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (lfree == mem) {
+  85              		.loc 1 366 0 is_stmt 1
+  86 003a 0B4C     		ldr	r4, .L9+8
+  87 003c 2468     		ldr	r4, [r4]
+  88 003e A042     		cmp	r0, r4
+  89 0040 0AD0     		beq	.L8
+  90              	.L5:
+ 367:Middlewares/Third_Party/LwIP/src/core/mem.c ****       lfree = pmem;
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 9
+
+
+ 368:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 369:Middlewares/Third_Party/LwIP/src/core/mem.c ****     pmem->next = mem->next;
+  91              		.loc 1 369 0
+  92 0042 0488     		ldrh	r4, [r0]
+  93 0044 5C52     		strh	r4, [r3, r1]	@ movhi
+ 370:Middlewares/Third_Party/LwIP/src/core/mem.c ****     ((struct mem *)(void *)&ram[mem->next])->prev = (mem_size_t)((u8_t *)pmem - ram);
+  94              		.loc 1 370 0
+  95 0046 0188     		ldrh	r1, [r0]
+  96 0048 1944     		add	r1, r1, r3
+  97 004a D31A     		subs	r3, r2, r3
+  98 004c 4B80     		strh	r3, [r1, #2]	@ movhi
+  99              	.L1:
+ 371:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 372:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 100              		.loc 1 372 0
+ 101 004e 30BC     		pop	{r4, r5}
+ 102              	.LCFI1:
+ 103              		.cfi_remember_state
+ 104              		.cfi_restore 5
+ 105              		.cfi_restore 4
+ 106              		.cfi_def_cfa_offset 0
+ 107 0050 7047     		bx	lr
+ 108              	.LVL5:
+ 109              	.L7:
+ 110              	.LCFI2:
+ 111              		.cfi_restore_state
+ 356:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 112              		.loc 1 356 0
+ 113 0052 054A     		ldr	r2, .L9+8
+ 114              	.LVL6:
+ 115 0054 1060     		str	r0, [r2]
+ 116 0056 E4E7     		b	.L3
+ 117              	.LVL7:
+ 118              	.L8:
+ 367:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 119              		.loc 1 367 0
+ 120 0058 034C     		ldr	r4, .L9+8
+ 121 005a 2260     		str	r2, [r4]
+ 122 005c F1E7     		b	.L5
+ 123              	.L10:
+ 124 005e 00BF     		.align	2
+ 125              	.L9:
+ 126 0060 00000000 		.word	.LANCHOR0
+ 127 0064 00000000 		.word	.LANCHOR1
+ 128 0068 00000000 		.word	.LANCHOR2
+ 129              		.cfi_endproc
+ 130              	.LFE141:
+ 132              		.section	.text.mem_init,"ax",%progbits
+ 133              		.align	1
+ 134              		.global	mem_init
+ 135              		.syntax unified
+ 136              		.thumb
+ 137              		.thumb_func
+ 138              		.fpu fpv5-sp-d16
+ 140              	mem_init:
+ 141              	.LFB142:
+ 373:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 10
+
+
+ 374:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 375:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Zero the heap and initialize start, end and lowest-free
+ 376:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 377:Middlewares/Third_Party/LwIP/src/core/mem.c **** void
+ 378:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_init(void)
+ 379:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 142              		.loc 1 379 0
+ 143              		.cfi_startproc
+ 144              		@ args = 0, pretend = 0, frame = 0
+ 145              		@ frame_needed = 0, uses_anonymous_args = 0
+ 146 0000 08B5     		push	{r3, lr}
+ 147              	.LCFI3:
+ 148              		.cfi_def_cfa_offset 8
+ 149              		.cfi_offset 3, -8
+ 150              		.cfi_offset 14, -4
+ 380:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct mem *mem;
+ 381:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 382:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("Sanity check alignment",
+ 383:Middlewares/Third_Party/LwIP/src/core/mem.c ****     (SIZEOF_STRUCT_MEM & (MEM_ALIGNMENT-1)) == 0);
+ 384:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 385:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* align the heap */
+ 386:Middlewares/Third_Party/LwIP/src/core/mem.c ****   ram = (u8_t *)LWIP_MEM_ALIGN(LWIP_RAM_HEAP_POINTER);
+ 151              		.loc 1 386 0
+ 152 0002 0C4B     		ldr	r3, .L13
+ 153 0004 23F00303 		bic	r3, r3, #3
+ 154 0008 0B4A     		ldr	r2, .L13+4
+ 155 000a 1360     		str	r3, [r2]
+ 156              	.LVL8:
+ 387:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* initialize the start of the heap */
+ 388:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem = (struct mem *)(void *)ram;
+ 389:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem->next = MEM_SIZE_ALIGNED;
+ 157              		.loc 1 389 0
+ 158 000c 4FF4C861 		mov	r1, #1600
+ 159 0010 1980     		strh	r1, [r3]	@ movhi
+ 390:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem->prev = 0;
+ 160              		.loc 1 390 0
+ 161 0012 0022     		movs	r2, #0
+ 162 0014 5A80     		strh	r2, [r3, #2]	@ movhi
+ 391:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem->used = 0;
+ 163              		.loc 1 391 0
+ 164 0016 1A71     		strb	r2, [r3, #4]
+ 392:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* initialize the end of the heap */
+ 393:Middlewares/Third_Party/LwIP/src/core/mem.c ****   ram_end = (struct mem *)(void *)&ram[MEM_SIZE_ALIGNED];
+ 165              		.loc 1 393 0
+ 166 0018 5A18     		adds	r2, r3, r1
+ 167 001a 0848     		ldr	r0, .L13+8
+ 168 001c 0260     		str	r2, [r0]
+ 394:Middlewares/Third_Party/LwIP/src/core/mem.c ****   ram_end->used = 1;
+ 169              		.loc 1 394 0
+ 170 001e 0120     		movs	r0, #1
+ 171 0020 1071     		strb	r0, [r2, #4]
+ 395:Middlewares/Third_Party/LwIP/src/core/mem.c ****   ram_end->next = MEM_SIZE_ALIGNED;
+ 172              		.loc 1 395 0
+ 173 0022 A3F84016 		strh	r1, [r3, #1600]	@ movhi
+ 396:Middlewares/Third_Party/LwIP/src/core/mem.c ****   ram_end->prev = MEM_SIZE_ALIGNED;
+ 174              		.loc 1 396 0
+ 175 0026 5180     		strh	r1, [r2, #2]	@ movhi
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 11
+
+
+ 397:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 398:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* initialize the lowest-free pointer to the start of the heap */
+ 399:Middlewares/Third_Party/LwIP/src/core/mem.c ****   lfree = (struct mem *)(void *)ram;
+ 176              		.loc 1 399 0
+ 177 0028 054A     		ldr	r2, .L13+12
+ 178 002a 1360     		str	r3, [r2]
+ 400:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 401:Middlewares/Third_Party/LwIP/src/core/mem.c ****   MEM_STATS_AVAIL(avail, MEM_SIZE_ALIGNED);
+ 402:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 403:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (sys_mutex_new(&mem_mutex) != ERR_OK) {
+ 179              		.loc 1 403 0
+ 180 002c 0548     		ldr	r0, .L13+16
+ 181 002e FFF7FEFF 		bl	sys_mutex_new
+ 182              	.LVL9:
+ 183 0032 08BD     		pop	{r3, pc}
+ 184              	.L14:
+ 185              		.align	2
+ 186              	.L13:
+ 187 0034 03000000 		.word	ram_heap+3
+ 188 0038 00000000 		.word	.LANCHOR0
+ 189 003c 00000000 		.word	.LANCHOR1
+ 190 0040 00000000 		.word	.LANCHOR2
+ 191 0044 00000000 		.word	.LANCHOR3
+ 192              		.cfi_endproc
+ 193              	.LFE142:
+ 195              		.section	.text.mem_free,"ax",%progbits
+ 196              		.align	1
+ 197              		.global	mem_free
+ 198              		.syntax unified
+ 199              		.thumb
+ 200              		.thumb_func
+ 201              		.fpu fpv5-sp-d16
+ 203              	mem_free:
+ 204              	.LFB143:
+ 404:Middlewares/Third_Party/LwIP/src/core/mem.c ****     LWIP_ASSERT("failed to create mem_mutex", 0);
+ 405:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 406:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 407:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 408:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 409:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Put a struct mem back on the heap
+ 410:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 411:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param rmem is the data portion of a struct mem as returned by a previous
+ 412:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *             call to mem_malloc()
+ 413:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 414:Middlewares/Third_Party/LwIP/src/core/mem.c **** void
+ 415:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_free(void *rmem)
+ 416:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 205              		.loc 1 416 0
+ 206              		.cfi_startproc
+ 207              		@ args = 0, pretend = 0, frame = 0
+ 208              		@ frame_needed = 0, uses_anonymous_args = 0
+ 209              	.LVL10:
+ 417:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct mem *mem;
+ 418:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_FREE_DECL_PROTECT();
+ 419:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 420:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (rmem == NULL) {
+ 210              		.loc 1 420 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 12
+
+
+ 211 0000 10B3     		cbz	r0, .L21
+ 416:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct mem *mem;
+ 212              		.loc 1 416 0
+ 213 0002 10B5     		push	{r4, lr}
+ 214              	.LCFI4:
+ 215              		.cfi_def_cfa_offset 8
+ 216              		.cfi_offset 4, -8
+ 217              		.cfi_offset 14, -4
+ 218 0004 0446     		mov	r4, r0
+ 421:Middlewares/Third_Party/LwIP/src/core/mem.c ****     LWIP_DEBUGF(MEM_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("mem_free(p == NULL) was call
+ 422:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return;
+ 423:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 424:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("mem_free: sanity check alignment", (((mem_ptr_t)rmem) & (MEM_ALIGNMENT-1)) == 0);
+ 425:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 426:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("mem_free: legal memory", (u8_t *)rmem >= (u8_t *)ram &&
+ 219              		.loc 1 426 0
+ 220 0006 114B     		ldr	r3, .L24
+ 221 0008 1B68     		ldr	r3, [r3]
+ 427:Middlewares/Third_Party/LwIP/src/core/mem.c ****     (u8_t *)rmem < (u8_t *)ram_end);
+ 428:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 429:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if ((u8_t *)rmem < (u8_t *)ram || (u8_t *)rmem >= (u8_t *)ram_end) {
+ 222              		.loc 1 429 0
+ 223 000a 9842     		cmp	r0, r3
+ 224 000c 03D3     		bcc	.L17
+ 225              		.loc 1 429 0 is_stmt 0 discriminator 1
+ 226 000e 104B     		ldr	r3, .L24+4
+ 227 0010 1B68     		ldr	r3, [r3]
+ 228 0012 9842     		cmp	r0, r3
+ 229 0014 04D3     		bcc	.L18
+ 230              	.L17:
+ 231              	.LBB2:
+ 430:Middlewares/Third_Party/LwIP/src/core/mem.c ****     SYS_ARCH_DECL_PROTECT(lev);
+ 431:Middlewares/Third_Party/LwIP/src/core/mem.c ****     LWIP_DEBUGF(MEM_DEBUG | LWIP_DBG_LEVEL_SEVERE, ("mem_free: illegal memory\n"));
+ 432:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* protect mem stats from concurrent access */
+ 433:Middlewares/Third_Party/LwIP/src/core/mem.c ****     SYS_ARCH_PROTECT(lev);
+ 232              		.loc 1 433 0 is_stmt 1
+ 233 0016 FFF7FEFF 		bl	sys_arch_protect
+ 234              	.LVL11:
+ 434:Middlewares/Third_Party/LwIP/src/core/mem.c ****     MEM_STATS_INC(illegal);
+ 435:Middlewares/Third_Party/LwIP/src/core/mem.c ****     SYS_ARCH_UNPROTECT(lev);
+ 235              		.loc 1 435 0
+ 236 001a FFF7FEFF 		bl	sys_arch_unprotect
+ 237              	.LVL12:
+ 436:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return;
+ 238              		.loc 1 436 0
+ 239 001e 10BD     		pop	{r4, pc}
+ 240              	.LVL13:
+ 241              	.L18:
+ 242              	.LBE2:
+ 437:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 438:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* protect the heap from concurrent access */
+ 439:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_FREE_PROTECT();
+ 243              		.loc 1 439 0
+ 244 0020 0C48     		ldr	r0, .L24+8
+ 245              	.LVL14:
+ 246 0022 FFF7FEFF 		bl	sys_mutex_lock
+ 247              	.LVL15:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 13
+
+
+ 440:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* Get the corresponding struct mem ... */
+ 441:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* cast through void* to get rid of alignment warnings */
+ 442:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem = (struct mem *)(void *)((u8_t *)rmem - SIZEOF_STRUCT_MEM);
+ 248              		.loc 1 442 0
+ 249 0026 A4F10800 		sub	r0, r4, #8
+ 250              	.LVL16:
+ 443:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* ... which has to be in a used state ... */
+ 444:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("mem_free: mem->used", mem->used);
+ 445:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* ... and is now unused. */
+ 446:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem->used = 0;
+ 251              		.loc 1 446 0
+ 252 002a 0023     		movs	r3, #0
+ 253 002c 04F8043C 		strb	r3, [r4, #-4]
+ 447:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 448:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (mem < lfree) {
+ 254              		.loc 1 448 0
+ 255 0030 094B     		ldr	r3, .L24+12
+ 256 0032 1B68     		ldr	r3, [r3]
+ 257 0034 9842     		cmp	r0, r3
+ 258 0036 01D2     		bcs	.L19
+ 449:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* the newly freed struct is now the lowest */
+ 450:Middlewares/Third_Party/LwIP/src/core/mem.c ****     lfree = mem;
+ 259              		.loc 1 450 0
+ 260 0038 074B     		ldr	r3, .L24+12
+ 261 003a 1860     		str	r0, [r3]
+ 262              	.L19:
+ 451:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 452:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 453:Middlewares/Third_Party/LwIP/src/core/mem.c ****   MEM_STATS_DEC_USED(used, mem->next - (mem_size_t)(((u8_t *)mem - ram)));
+ 454:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 455:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* finally, see if prev or next are free also */
+ 456:Middlewares/Third_Party/LwIP/src/core/mem.c ****   plug_holes(mem);
+ 263              		.loc 1 456 0
+ 264 003c FFF7FEFF 		bl	plug_holes
+ 265              	.LVL17:
+ 457:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 458:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_free_count = 1;
+ 459:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 460:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_FREE_UNPROTECT();
+ 266              		.loc 1 460 0
+ 267 0040 0448     		ldr	r0, .L24+8
+ 268 0042 FFF7FEFF 		bl	sys_mutex_unlock
+ 269              	.LVL18:
+ 270 0046 10BD     		pop	{r4, pc}
+ 271              	.LVL19:
+ 272              	.L21:
+ 273              	.LCFI5:
+ 274              		.cfi_def_cfa_offset 0
+ 275              		.cfi_restore 4
+ 276              		.cfi_restore 14
+ 277 0048 7047     		bx	lr
+ 278              	.L25:
+ 279 004a 00BF     		.align	2
+ 280              	.L24:
+ 281 004c 00000000 		.word	.LANCHOR0
+ 282 0050 00000000 		.word	.LANCHOR1
+ 283 0054 00000000 		.word	.LANCHOR3
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 14
+
+
+ 284 0058 00000000 		.word	.LANCHOR2
+ 285              		.cfi_endproc
+ 286              	.LFE143:
+ 288              		.section	.text.mem_trim,"ax",%progbits
+ 289              		.align	1
+ 290              		.global	mem_trim
+ 291              		.syntax unified
+ 292              		.thumb
+ 293              		.thumb_func
+ 294              		.fpu fpv5-sp-d16
+ 296              	mem_trim:
+ 297              	.LFB144:
+ 461:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 462:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 463:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 464:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Shrink memory returned by mem_malloc().
+ 465:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 466:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param rmem pointer to memory allocated by mem_malloc the is to be shrinked
+ 467:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param newsize required size after shrinking (needs to be smaller than or
+ 468:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *                equal to the previous size)
+ 469:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @return for compatibility reasons: is always == rmem, at the moment
+ 470:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *         or NULL if newsize is > old size, in which case rmem is NOT touched
+ 471:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *         or freed!
+ 472:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 473:Middlewares/Third_Party/LwIP/src/core/mem.c **** void *
+ 474:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_trim(void *rmem, mem_size_t newsize)
+ 475:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 298              		.loc 1 475 0
+ 299              		.cfi_startproc
+ 300              		@ args = 0, pretend = 0, frame = 0
+ 301              		@ frame_needed = 0, uses_anonymous_args = 0
+ 302              	.LVL20:
+ 303 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 304              	.LCFI6:
+ 305              		.cfi_def_cfa_offset 24
+ 306              		.cfi_offset 3, -24
+ 307              		.cfi_offset 4, -20
+ 308              		.cfi_offset 5, -16
+ 309              		.cfi_offset 6, -12
+ 310              		.cfi_offset 7, -8
+ 311              		.cfi_offset 14, -4
+ 312 0002 0546     		mov	r5, r0
+ 476:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_size_t size;
+ 477:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_size_t ptr, ptr2;
+ 478:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct mem *mem, *mem2;
+ 479:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* use the FREE_PROTECT here: it protects with sem OR SYS_ARCH_PROTECT */
+ 480:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_FREE_DECL_PROTECT();
+ 481:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 482:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* Expand the size of the allocated memory region so that we can
+ 483:Middlewares/Third_Party/LwIP/src/core/mem.c ****      adjust for alignment. */
+ 484:Middlewares/Third_Party/LwIP/src/core/mem.c ****   newsize = LWIP_MEM_ALIGN_SIZE(newsize);
+ 313              		.loc 1 484 0
+ 314 0004 CC1C     		adds	r4, r1, #3
+ 315 0006 A4B2     		uxth	r4, r4
+ 316 0008 24F00304 		bic	r4, r4, #3
+ 317 000c A4B2     		uxth	r4, r4
+ 318              	.LVL21:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 15
+
+
+ 485:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 486:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (newsize < MIN_SIZE_ALIGNED) {
+ 319              		.loc 1 486 0
+ 320 000e 0B2C     		cmp	r4, #11
+ 321 0010 00D8     		bhi	.L27
+ 487:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* every data block must be at least MIN_SIZE_ALIGNED long */
+ 488:Middlewares/Third_Party/LwIP/src/core/mem.c ****     newsize = MIN_SIZE_ALIGNED;
+ 322              		.loc 1 488 0
+ 323 0012 0C24     		movs	r4, #12
+ 324              	.LVL22:
+ 325              	.L27:
+ 489:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 490:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 491:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (newsize > MEM_SIZE_ALIGNED) {
+ 326              		.loc 1 491 0
+ 327 0014 B4F5C86F 		cmp	r4, #1600
+ 328 0018 60D8     		bhi	.L36
+ 492:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return NULL;
+ 493:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 494:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 495:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("mem_trim: legal memory", (u8_t *)rmem >= (u8_t *)ram &&
+ 329              		.loc 1 495 0
+ 330 001a 324B     		ldr	r3, .L40
+ 331 001c 1B68     		ldr	r3, [r3]
+ 496:Middlewares/Third_Party/LwIP/src/core/mem.c ****    (u8_t *)rmem < (u8_t *)ram_end);
+ 497:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 498:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if ((u8_t *)rmem < (u8_t *)ram || (u8_t *)rmem >= (u8_t *)ram_end) {
+ 332              		.loc 1 498 0
+ 333 001e AB42     		cmp	r3, r5
+ 334 0020 34D8     		bhi	.L29
+ 335              		.loc 1 498 0 is_stmt 0 discriminator 1
+ 336 0022 314A     		ldr	r2, .L40+4
+ 337 0024 1268     		ldr	r2, [r2]
+ 338 0026 9542     		cmp	r5, r2
+ 339 0028 30D2     		bcs	.L29
+ 499:Middlewares/Third_Party/LwIP/src/core/mem.c ****     SYS_ARCH_DECL_PROTECT(lev);
+ 500:Middlewares/Third_Party/LwIP/src/core/mem.c ****     LWIP_DEBUGF(MEM_DEBUG | LWIP_DBG_LEVEL_SEVERE, ("mem_trim: illegal memory\n"));
+ 501:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* protect mem stats from concurrent access */
+ 502:Middlewares/Third_Party/LwIP/src/core/mem.c ****     SYS_ARCH_PROTECT(lev);
+ 503:Middlewares/Third_Party/LwIP/src/core/mem.c ****     MEM_STATS_INC(illegal);
+ 504:Middlewares/Third_Party/LwIP/src/core/mem.c ****     SYS_ARCH_UNPROTECT(lev);
+ 505:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return rmem;
+ 506:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 507:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* Get the corresponding struct mem ... */
+ 508:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* cast through void* to get rid of alignment warnings */
+ 509:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem = (struct mem *)(void *)((u8_t *)rmem - SIZEOF_STRUCT_MEM);
+ 340              		.loc 1 509 0 is_stmt 1
+ 341 002a A5F10807 		sub	r7, r5, #8
+ 342              	.LVL23:
+ 510:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* ... and its offset pointer */
+ 511:Middlewares/Third_Party/LwIP/src/core/mem.c ****   ptr = (mem_size_t)((u8_t *)mem - ram);
+ 343              		.loc 1 511 0
+ 344 002e FF1A     		subs	r7, r7, r3
+ 345              	.LVL24:
+ 346 0030 BFB2     		uxth	r7, r7
+ 347              	.LVL25:
+ 512:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 16
+
+
+ 513:Middlewares/Third_Party/LwIP/src/core/mem.c ****   size = mem->next - ptr - SIZEOF_STRUCT_MEM;
+ 348              		.loc 1 513 0
+ 349 0032 35F8086C 		ldrh	r6, [r5, #-8]
+ 350 0036 F61B     		subs	r6, r6, r7
+ 351 0038 B6B2     		uxth	r6, r6
+ 352 003a 083E     		subs	r6, r6, #8
+ 353 003c B6B2     		uxth	r6, r6
+ 354              	.LVL26:
+ 514:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_ASSERT("mem_trim can only shrink memory", newsize <= size);
+ 515:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (newsize > size) {
+ 355              		.loc 1 515 0
+ 356 003e B442     		cmp	r4, r6
+ 357 0040 4ED8     		bhi	.L37
+ 516:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* not supported */
+ 517:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return NULL;
+ 518:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 519:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (newsize == size) {
+ 358              		.loc 1 519 0
+ 359 0042 27D0     		beq	.L28
+ 520:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* No change in size, simply return */
+ 521:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return rmem;
+ 522:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 523:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 524:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* protect the heap from concurrent access */
+ 525:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_FREE_PROTECT();
+ 360              		.loc 1 525 0
+ 361 0044 2948     		ldr	r0, .L40+8
+ 362              	.LVL27:
+ 363 0046 FFF7FEFF 		bl	sys_mutex_lock
+ 364              	.LVL28:
+ 526:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 527:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem2 = (struct mem *)(void *)&ram[mem->next];
+ 365              		.loc 1 527 0
+ 366 004a 264B     		ldr	r3, .L40
+ 367 004c 1A68     		ldr	r2, [r3]
+ 368 004e 35F8083C 		ldrh	r3, [r5, #-8]
+ 369 0052 D118     		adds	r1, r2, r3
+ 370              	.LVL29:
+ 528:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (mem2->used == 0) {
+ 371              		.loc 1 528 0
+ 372 0054 0879     		ldrb	r0, [r1, #4]	@ zero_extendqisi2
+ 373 0056 18BB     		cbnz	r0, .L31
+ 374              	.LBB3:
+ 529:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* The next struct is unused, we can simply move it at little */
+ 530:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem_size_t next;
+ 531:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* remember the old next pointer */
+ 532:Middlewares/Third_Party/LwIP/src/core/mem.c ****     next = mem2->next;
+ 375              		.loc 1 532 0
+ 376 0058 D05A     		ldrh	r0, [r2, r3]
+ 377              	.LVL30:
+ 533:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* create new struct mem which is moved directly after the shrinked mem */
+ 534:Middlewares/Third_Party/LwIP/src/core/mem.c ****     ptr2 = ptr + SIZEOF_STRUCT_MEM + newsize;
+ 378              		.loc 1 534 0
+ 379 005a E319     		adds	r3, r4, r7
+ 380 005c 9BB2     		uxth	r3, r3
+ 381 005e 0833     		adds	r3, r3, #8
+ 382 0060 9BB2     		uxth	r3, r3
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 17
+
+
+ 383              	.LVL31:
+ 535:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (lfree == mem2) {
+ 384              		.loc 1 535 0
+ 385 0062 234C     		ldr	r4, .L40+12
+ 386              	.LVL32:
+ 387 0064 2468     		ldr	r4, [r4]
+ 388 0066 A142     		cmp	r1, r4
+ 389 0068 16D0     		beq	.L39
+ 390              	.LVL33:
+ 391              	.L32:
+ 536:Middlewares/Third_Party/LwIP/src/core/mem.c ****       lfree = (struct mem *)(void *)&ram[ptr2];
+ 537:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 538:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2 = (struct mem *)(void *)&ram[ptr2];
+ 392              		.loc 1 538 0
+ 393 006a D118     		adds	r1, r2, r3
+ 394              	.LVL34:
+ 539:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2->used = 0;
+ 395              		.loc 1 539 0
+ 396 006c 0024     		movs	r4, #0
+ 397 006e 0C71     		strb	r4, [r1, #4]
+ 540:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* restore the next pointer */
+ 541:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2->next = next;
+ 398              		.loc 1 541 0
+ 399 0070 D052     		strh	r0, [r2, r3]	@ movhi
+ 542:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* link it back to mem */
+ 543:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2->prev = ptr;
+ 400              		.loc 1 543 0
+ 401 0072 4F80     		strh	r7, [r1, #2]	@ movhi
+ 544:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* link mem to it */
+ 545:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem->next = ptr2;
+ 402              		.loc 1 545 0
+ 403 0074 25F8083C 		strh	r3, [r5, #-8]	@ movhi
+ 546:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* last thing to restore linked list: as we have moved mem2,
+ 547:Middlewares/Third_Party/LwIP/src/core/mem.c ****      * let 'mem2->next->prev' point to mem2 again. but only if mem2->next is not
+ 548:Middlewares/Third_Party/LwIP/src/core/mem.c ****      * the end of the heap */
+ 549:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (mem2->next != MEM_SIZE_ALIGNED) {
+ 404              		.loc 1 549 0
+ 405 0078 D15A     		ldrh	r1, [r2, r3]
+ 406 007a B1F5C86F 		cmp	r1, #1600
+ 407 007e 01D0     		beq	.L33
+ 550:Middlewares/Third_Party/LwIP/src/core/mem.c ****       ((struct mem *)(void *)&ram[mem2->next])->prev = ptr2;
+ 408              		.loc 1 550 0
+ 409 0080 0A44     		add	r2, r2, r1
+ 410 0082 5380     		strh	r3, [r2, #2]	@ movhi
+ 411              	.LVL35:
+ 412              	.L33:
+ 413              	.LBE3:
+ 551:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 552:Middlewares/Third_Party/LwIP/src/core/mem.c ****     MEM_STATS_DEC_USED(used, (size - newsize));
+ 553:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* no need to plug holes, we've already done that */
+ 554:Middlewares/Third_Party/LwIP/src/core/mem.c ****   } else if (newsize + SIZEOF_STRUCT_MEM + MIN_SIZE_ALIGNED <= size) {
+ 555:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* Next struct is used but there's room for another struct mem with
+ 556:Middlewares/Third_Party/LwIP/src/core/mem.c ****      * at least MIN_SIZE_ALIGNED of data.
+ 557:Middlewares/Third_Party/LwIP/src/core/mem.c ****      * Old size ('size') must be big enough to contain at least 'newsize' plus a struct mem
+ 558:Middlewares/Third_Party/LwIP/src/core/mem.c ****      * ('SIZEOF_STRUCT_MEM') with some data ('MIN_SIZE_ALIGNED').
+ 559:Middlewares/Third_Party/LwIP/src/core/mem.c ****      * @todo we could leave out MIN_SIZE_ALIGNED. We would create an empty
+ 560:Middlewares/Third_Party/LwIP/src/core/mem.c ****      *       region that couldn't hold data, but when mem->next gets freed,
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 18
+
+
+ 561:Middlewares/Third_Party/LwIP/src/core/mem.c ****      *       the 2 regions would be combined, resulting in more free memory */
+ 562:Middlewares/Third_Party/LwIP/src/core/mem.c ****     ptr2 = ptr + SIZEOF_STRUCT_MEM + newsize;
+ 563:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2 = (struct mem *)(void *)&ram[ptr2];
+ 564:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (mem2 < lfree) {
+ 565:Middlewares/Third_Party/LwIP/src/core/mem.c ****       lfree = mem2;
+ 566:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 567:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2->used = 0;
+ 568:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2->next = mem->next;
+ 569:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2->prev = ptr;
+ 570:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem->next = ptr2;
+ 571:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (mem2->next != MEM_SIZE_ALIGNED) {
+ 572:Middlewares/Third_Party/LwIP/src/core/mem.c ****       ((struct mem *)(void *)&ram[mem2->next])->prev = ptr2;
+ 573:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 574:Middlewares/Third_Party/LwIP/src/core/mem.c ****     MEM_STATS_DEC_USED(used, (size - newsize));
+ 575:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* the original mem->next is used, so no need to plug holes! */
+ 576:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 577:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* else {
+ 578:Middlewares/Third_Party/LwIP/src/core/mem.c ****     next struct mem is used but size between mem and mem2 is not big enough
+ 579:Middlewares/Third_Party/LwIP/src/core/mem.c ****     to create another struct mem
+ 580:Middlewares/Third_Party/LwIP/src/core/mem.c ****     -> don't do anyhting.
+ 581:Middlewares/Third_Party/LwIP/src/core/mem.c ****     -> the remaining space stays unused since it is too small
+ 582:Middlewares/Third_Party/LwIP/src/core/mem.c ****   } */
+ 583:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 584:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_free_count = 1;
+ 585:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 586:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_FREE_UNPROTECT();
+ 414              		.loc 1 586 0
+ 415 0084 1948     		ldr	r0, .L40+8
+ 416 0086 FFF7FEFF 		bl	sys_mutex_unlock
+ 417              	.LVL36:
+ 587:Middlewares/Third_Party/LwIP/src/core/mem.c ****   return rmem;
+ 418              		.loc 1 587 0
+ 419 008a 03E0     		b	.L28
+ 420              	.LVL37:
+ 421              	.L29:
+ 422              	.LBB4:
+ 502:Middlewares/Third_Party/LwIP/src/core/mem.c ****     MEM_STATS_INC(illegal);
+ 423              		.loc 1 502 0
+ 424 008c FFF7FEFF 		bl	sys_arch_protect
+ 425              	.LVL38:
+ 504:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return rmem;
+ 426              		.loc 1 504 0
+ 427 0090 FFF7FEFF 		bl	sys_arch_unprotect
+ 428              	.LVL39:
+ 429              	.L28:
+ 430              	.LBE4:
+ 588:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 431              		.loc 1 588 0
+ 432 0094 2846     		mov	r0, r5
+ 433 0096 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 434              	.LVL40:
+ 435              	.L39:
+ 436              	.LBB5:
+ 536:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 437              		.loc 1 536 0
+ 438 0098 D118     		adds	r1, r2, r3
+ 439              	.LVL41:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 19
+
+
+ 440 009a 154C     		ldr	r4, .L40+12
+ 441 009c 2160     		str	r1, [r4]
+ 442 009e E4E7     		b	.L32
+ 443              	.LVL42:
+ 444              	.L31:
+ 445              	.LBE5:
+ 554:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* Next struct is used but there's room for another struct mem with
+ 446              		.loc 1 554 0
+ 447 00a0 04F11403 		add	r3, r4, #20
+ 448 00a4 B342     		cmp	r3, r6
+ 449 00a6 EDD8     		bhi	.L33
+ 562:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2 = (struct mem *)(void *)&ram[ptr2];
+ 450              		.loc 1 562 0
+ 451 00a8 E319     		adds	r3, r4, r7
+ 452 00aa 9BB2     		uxth	r3, r3
+ 453 00ac 0833     		adds	r3, r3, #8
+ 454 00ae 9BB2     		uxth	r3, r3
+ 455              	.LVL43:
+ 563:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (mem2 < lfree) {
+ 456              		.loc 1 563 0
+ 457 00b0 D118     		adds	r1, r2, r3
+ 458              	.LVL44:
+ 564:Middlewares/Third_Party/LwIP/src/core/mem.c ****       lfree = mem2;
+ 459              		.loc 1 564 0
+ 460 00b2 0F48     		ldr	r0, .L40+12
+ 461 00b4 0068     		ldr	r0, [r0]
+ 462 00b6 8142     		cmp	r1, r0
+ 463 00b8 01D2     		bcs	.L34
+ 565:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 464              		.loc 1 565 0
+ 465 00ba 0D48     		ldr	r0, .L40+12
+ 466 00bc 0160     		str	r1, [r0]
+ 467              	.L34:
+ 567:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2->next = mem->next;
+ 468              		.loc 1 567 0
+ 469 00be 0020     		movs	r0, #0
+ 470 00c0 0871     		strb	r0, [r1, #4]
+ 568:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem2->prev = ptr;
+ 471              		.loc 1 568 0
+ 472 00c2 35F8080C 		ldrh	r0, [r5, #-8]
+ 473 00c6 D052     		strh	r0, [r2, r3]	@ movhi
+ 569:Middlewares/Third_Party/LwIP/src/core/mem.c ****     mem->next = ptr2;
+ 474              		.loc 1 569 0
+ 475 00c8 4F80     		strh	r7, [r1, #2]	@ movhi
+ 570:Middlewares/Third_Party/LwIP/src/core/mem.c ****     if (mem2->next != MEM_SIZE_ALIGNED) {
+ 476              		.loc 1 570 0
+ 477 00ca 25F8083C 		strh	r3, [r5, #-8]	@ movhi
+ 571:Middlewares/Third_Party/LwIP/src/core/mem.c ****       ((struct mem *)(void *)&ram[mem2->next])->prev = ptr2;
+ 478              		.loc 1 571 0
+ 479 00ce D15A     		ldrh	r1, [r2, r3]
+ 480              	.LVL45:
+ 481 00d0 B1F5C86F 		cmp	r1, #1600
+ 482 00d4 D6D0     		beq	.L33
+ 572:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 483              		.loc 1 572 0
+ 484 00d6 0A44     		add	r2, r2, r1
+ 485              	.LVL46:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 20
+
+
+ 486 00d8 5380     		strh	r3, [r2, #2]	@ movhi
+ 487 00da D3E7     		b	.L33
+ 488              	.LVL47:
+ 489              	.L36:
+ 492:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 490              		.loc 1 492 0
+ 491 00dc 0025     		movs	r5, #0
+ 492 00de D9E7     		b	.L28
+ 493              	.LVL48:
+ 494              	.L37:
+ 517:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 495              		.loc 1 517 0
+ 496 00e0 0025     		movs	r5, #0
+ 497 00e2 D7E7     		b	.L28
+ 498              	.L41:
+ 499              		.align	2
+ 500              	.L40:
+ 501 00e4 00000000 		.word	.LANCHOR0
+ 502 00e8 00000000 		.word	.LANCHOR1
+ 503 00ec 00000000 		.word	.LANCHOR3
+ 504 00f0 00000000 		.word	.LANCHOR2
+ 505              		.cfi_endproc
+ 506              	.LFE144:
+ 508              		.section	.text.mem_malloc,"ax",%progbits
+ 509              		.align	1
+ 510              		.global	mem_malloc
+ 511              		.syntax unified
+ 512              		.thumb
+ 513              		.thumb_func
+ 514              		.fpu fpv5-sp-d16
+ 516              	mem_malloc:
+ 517              	.LFB145:
+ 589:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 590:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 591:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Allocate a block of memory with a minimum of 'size' bytes.
+ 592:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 593:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param size is the minimum size of the requested block in bytes.
+ 594:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @return pointer to allocated memory or NULL if no free memory was found.
+ 595:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 596:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Note that the returned value will always be aligned (as defined by MEM_ALIGNMENT).
+ 597:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 598:Middlewares/Third_Party/LwIP/src/core/mem.c **** void *
+ 599:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_malloc(mem_size_t size)
+ 600:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 518              		.loc 1 600 0
+ 519              		.cfi_startproc
+ 520              		@ args = 0, pretend = 0, frame = 0
+ 521              		@ frame_needed = 0, uses_anonymous_args = 0
+ 522              	.LVL49:
+ 601:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_size_t ptr, ptr2;
+ 602:Middlewares/Third_Party/LwIP/src/core/mem.c ****   struct mem *mem, *mem2;
+ 603:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 604:Middlewares/Third_Party/LwIP/src/core/mem.c ****   u8_t local_mem_free_count = 0;
+ 605:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 606:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_ALLOC_DECL_PROTECT();
+ 607:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 608:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (size == 0) {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 21
+
+
+ 523              		.loc 1 608 0
+ 524 0000 0028     		cmp	r0, #0
+ 525 0002 5BD0     		beq	.L54
+ 600:Middlewares/Third_Party/LwIP/src/core/mem.c ****   mem_size_t ptr, ptr2;
+ 526              		.loc 1 600 0
+ 527 0004 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 528              	.LCFI7:
+ 529              		.cfi_def_cfa_offset 24
+ 530              		.cfi_offset 3, -24
+ 531              		.cfi_offset 4, -20
+ 532              		.cfi_offset 5, -16
+ 533              		.cfi_offset 6, -12
+ 534              		.cfi_offset 7, -8
+ 535              		.cfi_offset 14, -4
+ 536 0006 0546     		mov	r5, r0
+ 609:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return NULL;
+ 610:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 611:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 612:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* Expand the size of the allocated memory region so that we can
+ 613:Middlewares/Third_Party/LwIP/src/core/mem.c ****      adjust for alignment. */
+ 614:Middlewares/Third_Party/LwIP/src/core/mem.c ****   size = LWIP_MEM_ALIGN_SIZE(size);
+ 537              		.loc 1 614 0
+ 538 0008 0335     		adds	r5, r5, #3
+ 539 000a ADB2     		uxth	r5, r5
+ 540 000c 25F00305 		bic	r5, r5, #3
+ 541 0010 ADB2     		uxth	r5, r5
+ 542              	.LVL50:
+ 615:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 616:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (size < MIN_SIZE_ALIGNED) {
+ 543              		.loc 1 616 0
+ 544 0012 0B2D     		cmp	r5, #11
+ 545 0014 00D8     		bhi	.L44
+ 617:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* every data block must be at least MIN_SIZE_ALIGNED long */
+ 618:Middlewares/Third_Party/LwIP/src/core/mem.c ****     size = MIN_SIZE_ALIGNED;
+ 546              		.loc 1 618 0
+ 547 0016 0C25     		movs	r5, #12
+ 548              	.LVL51:
+ 549              	.L44:
+ 619:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 620:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 621:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (size > MEM_SIZE_ALIGNED) {
+ 550              		.loc 1 621 0
+ 551 0018 B5F5C86F 		cmp	r5, #1600
+ 552 001c 50D8     		bhi	.L56
+ 622:Middlewares/Third_Party/LwIP/src/core/mem.c ****     return NULL;
+ 623:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 624:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 625:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* protect the heap from concurrent access */
+ 626:Middlewares/Third_Party/LwIP/src/core/mem.c ****   sys_mutex_lock(&mem_mutex);
+ 553              		.loc 1 626 0
+ 554 001e 2948     		ldr	r0, .L62
+ 555 0020 FFF7FEFF 		bl	sys_mutex_lock
+ 556              	.LVL52:
+ 627:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_ALLOC_PROTECT();
+ 628:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 629:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* run as long as a mem_free disturbed mem_malloc or mem_trim */
+ 630:Middlewares/Third_Party/LwIP/src/core/mem.c ****   do {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 22
+
+
+ 631:Middlewares/Third_Party/LwIP/src/core/mem.c ****     local_mem_free_count = 0;
+ 632:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 633:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 634:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* Scan through the heap searching for a free block that is big enough,
+ 635:Middlewares/Third_Party/LwIP/src/core/mem.c ****      * beginning with the lowest free block.
+ 636:Middlewares/Third_Party/LwIP/src/core/mem.c ****      */
+ 637:Middlewares/Third_Party/LwIP/src/core/mem.c ****     for (ptr = (mem_size_t)((u8_t *)lfree - ram); ptr < MEM_SIZE_ALIGNED - size;
+ 557              		.loc 1 637 0
+ 558 0024 284B     		ldr	r3, .L62+4
+ 559 0026 1868     		ldr	r0, [r3]
+ 560 0028 284B     		ldr	r3, .L62+8
+ 561 002a 1B68     		ldr	r3, [r3]
+ 562 002c 1B1A     		subs	r3, r3, r0
+ 563 002e 9BB2     		uxth	r3, r3
+ 564              	.LVL53:
+ 565 0030 19E0     		b	.L45
+ 566              	.LVL54:
+ 567              	.L47:
+ 638:Middlewares/Third_Party/LwIP/src/core/mem.c ****          ptr = ((struct mem *)(void *)&ram[ptr])->next) {
+ 639:Middlewares/Third_Party/LwIP/src/core/mem.c ****       mem = (struct mem *)(void *)&ram[ptr];
+ 640:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 641:Middlewares/Third_Party/LwIP/src/core/mem.c ****       mem_free_count = 0;
+ 642:Middlewares/Third_Party/LwIP/src/core/mem.c ****       LWIP_MEM_ALLOC_UNPROTECT();
+ 643:Middlewares/Third_Party/LwIP/src/core/mem.c ****       /* allow mem_free or mem_trim to run */
+ 644:Middlewares/Third_Party/LwIP/src/core/mem.c ****       LWIP_MEM_ALLOC_PROTECT();
+ 645:Middlewares/Third_Party/LwIP/src/core/mem.c ****       if (mem_free_count != 0) {
+ 646:Middlewares/Third_Party/LwIP/src/core/mem.c ****         /* If mem_free or mem_trim have run, we have to restart since they
+ 647:Middlewares/Third_Party/LwIP/src/core/mem.c ****            could have altered our current struct mem. */
+ 648:Middlewares/Third_Party/LwIP/src/core/mem.c ****         local_mem_free_count = 1;
+ 649:Middlewares/Third_Party/LwIP/src/core/mem.c ****         break;
+ 650:Middlewares/Third_Party/LwIP/src/core/mem.c ****       }
+ 651:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 652:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 653:Middlewares/Third_Party/LwIP/src/core/mem.c ****       if ((!mem->used) &&
+ 654:Middlewares/Third_Party/LwIP/src/core/mem.c ****           (mem->next - (ptr + SIZEOF_STRUCT_MEM)) >= size) {
+ 655:Middlewares/Third_Party/LwIP/src/core/mem.c ****         /* mem is not used and at least perfect fit is possible:
+ 656:Middlewares/Third_Party/LwIP/src/core/mem.c ****          * mem->next - (ptr + SIZEOF_STRUCT_MEM) gives us the 'user data size' of mem */
+ 657:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 658:Middlewares/Third_Party/LwIP/src/core/mem.c ****         if (mem->next - (ptr + SIZEOF_STRUCT_MEM) >= (size + SIZEOF_STRUCT_MEM + MIN_SIZE_ALIGNED))
+ 659:Middlewares/Third_Party/LwIP/src/core/mem.c ****           /* (in addition to the above, we test if another struct mem (SIZEOF_STRUCT_MEM) containin
+ 660:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * at least MIN_SIZE_ALIGNED of data also fits in the 'user data space' of 'mem')
+ 661:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * -> split large block, create empty remainder,
+ 662:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * remainder must be large enough to contain MIN_SIZE_ALIGNED data: if
+ 663:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * mem->next - (ptr + (2*SIZEOF_STRUCT_MEM)) == size,
+ 664:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * struct mem would fit in but no data between mem2 and mem2->next
+ 665:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * @todo we could leave out MIN_SIZE_ALIGNED. We would create an empty
+ 666:Middlewares/Third_Party/LwIP/src/core/mem.c ****            *       region that couldn't hold data, but when mem->next gets freed,
+ 667:Middlewares/Third_Party/LwIP/src/core/mem.c ****            *       the 2 regions would be combined, resulting in more free memory
+ 668:Middlewares/Third_Party/LwIP/src/core/mem.c ****            */
+ 669:Middlewares/Third_Party/LwIP/src/core/mem.c ****           ptr2 = ptr + SIZEOF_STRUCT_MEM + size;
+ 670:Middlewares/Third_Party/LwIP/src/core/mem.c ****           /* create mem2 struct */
+ 671:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem2 = (struct mem *)(void *)&ram[ptr2];
+ 672:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem2->used = 0;
+ 673:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem2->next = mem->next;
+ 674:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem2->prev = ptr;
+ 675:Middlewares/Third_Party/LwIP/src/core/mem.c ****           /* and insert it between mem and mem->next */
+ 676:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem->next = ptr2;
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 23
+
+
+ 677:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem->used = 1;
+ 678:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 679:Middlewares/Third_Party/LwIP/src/core/mem.c ****           if (mem2->next != MEM_SIZE_ALIGNED) {
+ 680:Middlewares/Third_Party/LwIP/src/core/mem.c ****             ((struct mem *)(void *)&ram[mem2->next])->prev = ptr2;
+ 681:Middlewares/Third_Party/LwIP/src/core/mem.c ****           }
+ 682:Middlewares/Third_Party/LwIP/src/core/mem.c ****           MEM_STATS_INC_USED(used, (size + SIZEOF_STRUCT_MEM));
+ 683:Middlewares/Third_Party/LwIP/src/core/mem.c ****         } else {
+ 684:Middlewares/Third_Party/LwIP/src/core/mem.c ****           /* (a mem2 struct does no fit into the user data space of mem and mem->next will always
+ 685:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * be used at this point: if not we have 2 unused structs in a row, plug_holes should hav
+ 686:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * take care of this).
+ 687:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * -> near fit or exact fit: do not split, no mem2 creation
+ 688:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * also can't move mem->next directly behind mem, since mem->next
+ 689:Middlewares/Third_Party/LwIP/src/core/mem.c ****            * will always be used at this point!
+ 690:Middlewares/Third_Party/LwIP/src/core/mem.c ****            */
+ 691:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem->used = 1;
+ 568              		.loc 1 691 0
+ 569 0032 0123     		movs	r3, #1
+ 570              	.LVL55:
+ 571 0034 2371     		strb	r3, [r4, #4]
+ 572              	.LVL56:
+ 573              	.L48:
+ 692:Middlewares/Third_Party/LwIP/src/core/mem.c ****           MEM_STATS_INC_USED(used, mem->next - (mem_size_t)((u8_t *)mem - ram));
+ 693:Middlewares/Third_Party/LwIP/src/core/mem.c ****         }
+ 694:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 695:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_malloc_adjust_lfree:
+ 696:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 697:Middlewares/Third_Party/LwIP/src/core/mem.c ****         if (mem == lfree) {
+ 574              		.loc 1 697 0
+ 575 0036 254B     		ldr	r3, .L62+8
+ 576 0038 1B68     		ldr	r3, [r3]
+ 577 003a 9C42     		cmp	r4, r3
+ 578 003c 09D0     		beq	.L49
+ 579              	.L50:
+ 698:Middlewares/Third_Party/LwIP/src/core/mem.c ****           struct mem *cur = lfree;
+ 699:Middlewares/Third_Party/LwIP/src/core/mem.c ****           /* Find next free block after mem and update lowest free pointer */
+ 700:Middlewares/Third_Party/LwIP/src/core/mem.c ****           while (cur->used && cur != ram_end) {
+ 701:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 702:Middlewares/Third_Party/LwIP/src/core/mem.c ****             mem_free_count = 0;
+ 703:Middlewares/Third_Party/LwIP/src/core/mem.c ****             LWIP_MEM_ALLOC_UNPROTECT();
+ 704:Middlewares/Third_Party/LwIP/src/core/mem.c ****             /* prevent high interrupt latency... */
+ 705:Middlewares/Third_Party/LwIP/src/core/mem.c ****             LWIP_MEM_ALLOC_PROTECT();
+ 706:Middlewares/Third_Party/LwIP/src/core/mem.c ****             if (mem_free_count != 0) {
+ 707:Middlewares/Third_Party/LwIP/src/core/mem.c ****               /* If mem_free or mem_trim have run, we have to restart since they
+ 708:Middlewares/Third_Party/LwIP/src/core/mem.c ****                  could have altered our current struct mem or lfree. */
+ 709:Middlewares/Third_Party/LwIP/src/core/mem.c ****               goto mem_malloc_adjust_lfree;
+ 710:Middlewares/Third_Party/LwIP/src/core/mem.c ****             }
+ 711:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 712:Middlewares/Third_Party/LwIP/src/core/mem.c ****             cur = (struct mem *)(void *)&ram[cur->next];
+ 713:Middlewares/Third_Party/LwIP/src/core/mem.c ****           }
+ 714:Middlewares/Third_Party/LwIP/src/core/mem.c ****           lfree = cur;
+ 715:Middlewares/Third_Party/LwIP/src/core/mem.c ****           LWIP_ASSERT("mem_malloc: !lfree->used", ((lfree == ram_end) || (!lfree->used)));
+ 716:Middlewares/Third_Party/LwIP/src/core/mem.c ****         }
+ 717:Middlewares/Third_Party/LwIP/src/core/mem.c ****         LWIP_MEM_ALLOC_UNPROTECT();
+ 718:Middlewares/Third_Party/LwIP/src/core/mem.c ****         sys_mutex_unlock(&mem_mutex);
+ 580              		.loc 1 718 0
+ 581 003e 2148     		ldr	r0, .L62
+ 582 0040 FFF7FEFF 		bl	sys_mutex_unlock
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 24
+
+
+ 583              	.LVL57:
+ 719:Middlewares/Third_Party/LwIP/src/core/mem.c ****         LWIP_ASSERT("mem_malloc: allocated memory not above ram_end.",
+ 720:Middlewares/Third_Party/LwIP/src/core/mem.c ****          (mem_ptr_t)mem + SIZEOF_STRUCT_MEM + size <= (mem_ptr_t)ram_end);
+ 721:Middlewares/Third_Party/LwIP/src/core/mem.c ****         LWIP_ASSERT("mem_malloc: allocated memory properly aligned.",
+ 722:Middlewares/Third_Party/LwIP/src/core/mem.c ****          ((mem_ptr_t)mem + SIZEOF_STRUCT_MEM) % MEM_ALIGNMENT == 0);
+ 723:Middlewares/Third_Party/LwIP/src/core/mem.c ****         LWIP_ASSERT("mem_malloc: sanity check alignment",
+ 724:Middlewares/Third_Party/LwIP/src/core/mem.c ****           (((mem_ptr_t)mem) & (MEM_ALIGNMENT-1)) == 0);
+ 725:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 726:Middlewares/Third_Party/LwIP/src/core/mem.c ****         return (u8_t *)mem + SIZEOF_STRUCT_MEM;
+ 584              		.loc 1 726 0
+ 585 0044 04F10800 		add	r0, r4, #8
+ 586 0048 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 587              	.LVL58:
+ 588              	.L52:
+ 589              	.LBB6:
+ 712:Middlewares/Third_Party/LwIP/src/core/mem.c ****           }
+ 590              		.loc 1 712 0
+ 591 004a 1F4A     		ldr	r2, .L62+4
+ 592 004c 1268     		ldr	r2, [r2]
+ 593 004e 1B88     		ldrh	r3, [r3]
+ 594              	.LVL59:
+ 595 0050 1344     		add	r3, r3, r2
+ 596              	.LVL60:
+ 597              	.L49:
+ 700:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 598              		.loc 1 700 0
+ 599 0052 1A79     		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 600 0054 1AB1     		cbz	r2, .L51
+ 700:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 601              		.loc 1 700 0 is_stmt 0 discriminator 1
+ 602 0056 1E4A     		ldr	r2, .L62+12
+ 603 0058 1268     		ldr	r2, [r2]
+ 604 005a 9342     		cmp	r3, r2
+ 605 005c F5D1     		bne	.L52
+ 606              	.L51:
+ 714:Middlewares/Third_Party/LwIP/src/core/mem.c ****           LWIP_ASSERT("mem_malloc: !lfree->used", ((lfree == ram_end) || (!lfree->used)));
+ 607              		.loc 1 714 0 is_stmt 1
+ 608 005e 1B4A     		ldr	r2, .L62+8
+ 609 0060 1360     		str	r3, [r2]
+ 610 0062 ECE7     		b	.L50
+ 611              	.LVL61:
+ 612              	.L46:
+ 613              	.LBE6:
+ 638:Middlewares/Third_Party/LwIP/src/core/mem.c ****       mem = (struct mem *)(void *)&ram[ptr];
+ 614              		.loc 1 638 0
+ 615 0064 2388     		ldrh	r3, [r4]
+ 616              	.LVL62:
+ 617              	.L45:
+ 637:Middlewares/Third_Party/LwIP/src/core/mem.c ****          ptr = ((struct mem *)(void *)&ram[ptr])->next) {
+ 618              		.loc 1 637 0 discriminator 1
+ 619 0066 1F46     		mov	r7, r3
+ 620 0068 2E46     		mov	r6, r5
+ 621 006a C5F5C861 		rsb	r1, r5, #1600
+ 622 006e 8B42     		cmp	r3, r1
+ 623 0070 1FD2     		bcs	.L61
+ 639:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 624              		.loc 1 639 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 25
+
+
+ 625 0072 C418     		adds	r4, r0, r3
+ 626              	.LVL63:
+ 653:Middlewares/Third_Party/LwIP/src/core/mem.c ****           (mem->next - (ptr + SIZEOF_STRUCT_MEM)) >= size) {
+ 627              		.loc 1 653 0
+ 628 0074 2179     		ldrb	r1, [r4, #4]	@ zero_extendqisi2
+ 629 0076 0029     		cmp	r1, #0
+ 630 0078 F4D1     		bne	.L46
+ 654:Middlewares/Third_Party/LwIP/src/core/mem.c ****         /* mem is not used and at least perfect fit is possible:
+ 631              		.loc 1 654 0 discriminator 1
+ 632 007a C25A     		ldrh	r2, [r0, r3]
+ 633 007c D21B     		subs	r2, r2, r7
+ 634 007e 083A     		subs	r2, r2, #8
+ 653:Middlewares/Third_Party/LwIP/src/core/mem.c ****           (mem->next - (ptr + SIZEOF_STRUCT_MEM)) >= size) {
+ 635              		.loc 1 653 0 discriminator 1
+ 636 0080 9642     		cmp	r6, r2
+ 637 0082 EFD8     		bhi	.L46
+ 658:Middlewares/Third_Party/LwIP/src/core/mem.c ****           /* (in addition to the above, we test if another struct mem (SIZEOF_STRUCT_MEM) containin
+ 638              		.loc 1 658 0
+ 639 0084 1436     		adds	r6, r6, #20
+ 640 0086 B242     		cmp	r2, r6
+ 641 0088 D3D3     		bcc	.L47
+ 669:Middlewares/Third_Party/LwIP/src/core/mem.c ****           /* create mem2 struct */
+ 642              		.loc 1 669 0
+ 643 008a EA18     		adds	r2, r5, r3
+ 644 008c 92B2     		uxth	r2, r2
+ 645 008e 0832     		adds	r2, r2, #8
+ 646 0090 92B2     		uxth	r2, r2
+ 647              	.LVL64:
+ 671:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem2->used = 0;
+ 648              		.loc 1 671 0
+ 649 0092 8118     		adds	r1, r0, r2
+ 650              	.LVL65:
+ 672:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem2->next = mem->next;
+ 651              		.loc 1 672 0
+ 652 0094 0025     		movs	r5, #0
+ 653              	.LVL66:
+ 654 0096 0D71     		strb	r5, [r1, #4]
+ 673:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem2->prev = ptr;
+ 655              		.loc 1 673 0
+ 656 0098 2588     		ldrh	r5, [r4]
+ 657 009a 8552     		strh	r5, [r0, r2]	@ movhi
+ 674:Middlewares/Third_Party/LwIP/src/core/mem.c ****           /* and insert it between mem and mem->next */
+ 658              		.loc 1 674 0
+ 659 009c 4B80     		strh	r3, [r1, #2]	@ movhi
+ 676:Middlewares/Third_Party/LwIP/src/core/mem.c ****           mem->used = 1;
+ 660              		.loc 1 676 0
+ 661 009e 2280     		strh	r2, [r4]	@ movhi
+ 677:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 662              		.loc 1 677 0
+ 663 00a0 0123     		movs	r3, #1
+ 664              	.LVL67:
+ 665 00a2 2371     		strb	r3, [r4, #4]
+ 679:Middlewares/Third_Party/LwIP/src/core/mem.c ****             ((struct mem *)(void *)&ram[mem2->next])->prev = ptr2;
+ 666              		.loc 1 679 0
+ 667 00a4 835A     		ldrh	r3, [r0, r2]
+ 668 00a6 B3F5C86F 		cmp	r3, #1600
+ 669 00aa C4D0     		beq	.L48
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 26
+
+
+ 680:Middlewares/Third_Party/LwIP/src/core/mem.c ****           }
+ 670              		.loc 1 680 0
+ 671 00ac 1844     		add	r0, r0, r3
+ 672 00ae 4280     		strh	r2, [r0, #2]	@ movhi
+ 673 00b0 C1E7     		b	.L48
+ 674              	.LVL68:
+ 675              	.L61:
+ 727:Middlewares/Third_Party/LwIP/src/core/mem.c ****       }
+ 728:Middlewares/Third_Party/LwIP/src/core/mem.c ****     }
+ 729:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
+ 730:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* if we got interrupted by a mem_free, try again */
+ 731:Middlewares/Third_Party/LwIP/src/core/mem.c ****   } while (local_mem_free_count != 0);
+ 732:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
+ 733:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_DEBUGF(MEM_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("mem_malloc: could not allocate %"S16_F" bytes\n
+ 734:Middlewares/Third_Party/LwIP/src/core/mem.c ****   MEM_STATS_INC(err);
+ 735:Middlewares/Third_Party/LwIP/src/core/mem.c ****   LWIP_MEM_ALLOC_UNPROTECT();
+ 736:Middlewares/Third_Party/LwIP/src/core/mem.c ****   sys_mutex_unlock(&mem_mutex);
+ 676              		.loc 1 736 0
+ 677 00b2 0448     		ldr	r0, .L62
+ 678 00b4 FFF7FEFF 		bl	sys_mutex_unlock
+ 679              	.LVL69:
+ 737:Middlewares/Third_Party/LwIP/src/core/mem.c ****   return NULL;
+ 680              		.loc 1 737 0
+ 681 00b8 0020     		movs	r0, #0
+ 682 00ba F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 683              	.LVL70:
+ 684              	.L54:
+ 685              	.LCFI8:
+ 686              		.cfi_def_cfa_offset 0
+ 687              		.cfi_restore 3
+ 688              		.cfi_restore 4
+ 689              		.cfi_restore 5
+ 690              		.cfi_restore 6
+ 691              		.cfi_restore 7
+ 692              		.cfi_restore 14
+ 609:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 693              		.loc 1 609 0
+ 694 00bc 0020     		movs	r0, #0
+ 695              	.LVL71:
+ 696 00be 7047     		bx	lr
+ 697              	.LVL72:
+ 698              	.L56:
+ 699              	.LCFI9:
+ 700              		.cfi_def_cfa_offset 24
+ 701              		.cfi_offset 3, -24
+ 702              		.cfi_offset 4, -20
+ 703              		.cfi_offset 5, -16
+ 704              		.cfi_offset 6, -12
+ 705              		.cfi_offset 7, -8
+ 706              		.cfi_offset 14, -4
+ 622:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 707              		.loc 1 622 0
+ 708 00c0 0020     		movs	r0, #0
+ 738:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 709              		.loc 1 738 0
+ 710 00c2 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 711              	.LVL73:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 27
+
+
+ 712              	.L63:
+ 713              		.align	2
+ 714              	.L62:
+ 715 00c4 00000000 		.word	.LANCHOR3
+ 716 00c8 00000000 		.word	.LANCHOR0
+ 717 00cc 00000000 		.word	.LANCHOR2
+ 718 00d0 00000000 		.word	.LANCHOR1
+ 719              		.cfi_endproc
+ 720              	.LFE145:
+ 722              		.section	.text.mem_calloc,"ax",%progbits
+ 723              		.align	1
+ 724              		.global	mem_calloc
+ 725              		.syntax unified
+ 726              		.thumb
+ 727              		.thumb_func
+ 728              		.fpu fpv5-sp-d16
+ 730              	mem_calloc:
+ 731              	.LFB146:
+ 739:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 740:Middlewares/Third_Party/LwIP/src/core/mem.c **** #endif /* MEM_USE_POOLS */
+ 741:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 742:Middlewares/Third_Party/LwIP/src/core/mem.c **** #if MEM_LIBC_MALLOC && (!LWIP_STATS || !MEM_STATS)
+ 743:Middlewares/Third_Party/LwIP/src/core/mem.c **** void *
+ 744:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_calloc(mem_size_t count, mem_size_t size)
+ 745:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 746:Middlewares/Third_Party/LwIP/src/core/mem.c ****   return mem_clib_calloc(count, size);
+ 747:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 748:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 749:Middlewares/Third_Party/LwIP/src/core/mem.c **** #else /* MEM_LIBC_MALLOC && (!LWIP_STATS || !MEM_STATS) */
+ 750:Middlewares/Third_Party/LwIP/src/core/mem.c **** /**
+ 751:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * Contiguously allocates enough space for count objects that are size bytes
+ 752:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * of memory each and returns a pointer to the allocated memory.
+ 753:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 754:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * The allocated memory is filled with bytes of value zero.
+ 755:Middlewares/Third_Party/LwIP/src/core/mem.c ****  *
+ 756:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param count number of objects to allocate
+ 757:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @param size size of the objects to allocate
+ 758:Middlewares/Third_Party/LwIP/src/core/mem.c ****  * @return pointer to allocated memory / NULL pointer if there is an error
+ 759:Middlewares/Third_Party/LwIP/src/core/mem.c ****  */
+ 760:Middlewares/Third_Party/LwIP/src/core/mem.c **** void *
+ 761:Middlewares/Third_Party/LwIP/src/core/mem.c **** mem_calloc(mem_size_t count, mem_size_t size)
+ 762:Middlewares/Third_Party/LwIP/src/core/mem.c **** {
+ 732              		.loc 1 762 0
+ 733              		.cfi_startproc
+ 734              		@ args = 0, pretend = 0, frame = 0
+ 735              		@ frame_needed = 0, uses_anonymous_args = 0
+ 736              	.LVL74:
+ 737 0000 70B5     		push	{r4, r5, r6, lr}
+ 738              	.LCFI10:
+ 739              		.cfi_def_cfa_offset 16
+ 740              		.cfi_offset 4, -16
+ 741              		.cfi_offset 5, -12
+ 742              		.cfi_offset 6, -8
+ 743              		.cfi_offset 14, -4
+ 744 0002 0546     		mov	r5, r0
+ 745 0004 0E46     		mov	r6, r1
+ 763:Middlewares/Third_Party/LwIP/src/core/mem.c ****   void *p;
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 28
+
+
+ 764:Middlewares/Third_Party/LwIP/src/core/mem.c **** 
+ 765:Middlewares/Third_Party/LwIP/src/core/mem.c ****   /* allocate 'count' objects of size 'size' */
+ 766:Middlewares/Third_Party/LwIP/src/core/mem.c ****   p = mem_malloc(count * size);
+ 746              		.loc 1 766 0
+ 747 0006 10FB01F0 		smulbb	r0, r0, r1
+ 748              	.LVL75:
+ 749 000a 80B2     		uxth	r0, r0
+ 750 000c FFF7FEFF 		bl	mem_malloc
+ 751              	.LVL76:
+ 767:Middlewares/Third_Party/LwIP/src/core/mem.c ****   if (p) {
+ 752              		.loc 1 767 0
+ 753 0010 0446     		mov	r4, r0
+ 754 0012 20B1     		cbz	r0, .L64
+ 768:Middlewares/Third_Party/LwIP/src/core/mem.c ****     /* zero the memory */
+ 769:Middlewares/Third_Party/LwIP/src/core/mem.c ****     memset(p, 0, (size_t)count * (size_t)size);
+ 755              		.loc 1 769 0
+ 756 0014 06FB05F2 		mul	r2, r6, r5
+ 757 0018 0021     		movs	r1, #0
+ 758 001a FFF7FEFF 		bl	memset
+ 759              	.LVL77:
+ 760              	.L64:
+ 770:Middlewares/Third_Party/LwIP/src/core/mem.c ****   }
+ 771:Middlewares/Third_Party/LwIP/src/core/mem.c ****   return p;
+ 772:Middlewares/Third_Party/LwIP/src/core/mem.c **** }
+ 761              		.loc 1 772 0
+ 762 001e 2046     		mov	r0, r4
+ 763 0020 70BD     		pop	{r4, r5, r6, pc}
+ 764              		.cfi_endproc
+ 765              	.LFE146:
+ 767              		.comm	ram_heap,1619,4
+ 768              		.section	.bss.lfree,"aw",%nobits
+ 769              		.align	2
+ 770              		.set	.LANCHOR2,. + 0
+ 773              	lfree:
+ 774 0000 00000000 		.space	4
+ 775              		.section	.bss.mem_mutex,"aw",%nobits
+ 776              		.align	2
+ 777              		.set	.LANCHOR3,. + 0
+ 780              	mem_mutex:
+ 781 0000 00000000 		.space	4
+ 782              		.section	.bss.ram,"aw",%nobits
+ 783              		.align	2
+ 784              		.set	.LANCHOR0,. + 0
+ 787              	ram:
+ 788 0000 00000000 		.space	4
+ 789              		.section	.bss.ram_end,"aw",%nobits
+ 790              		.align	2
+ 791              		.set	.LANCHOR1,. + 0
+ 794              	ram_end:
+ 795 0000 00000000 		.space	4
+ 796              		.text
+ 797              	.Letext0:
+ 798              		.file 2 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 799              		.file 3 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 800              		.file 4 "Drivers/CMSIS/Include/core_cm7.h"
+ 801              		.file 5 "Drivers/CMSIS/Device/ST/STM32F7xx/Include/system_stm32f7xx.h"
+ 802              		.file 6 "c:\\gcc_toolchain\\6_2017-q1-update\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 29
+
+
+ 803              		.file 7 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\lock.h"
+ 804              		.file 8 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_types.h"
+ 805              		.file 9 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\reent.h"
+ 806              		.file 10 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\stdlib.h"
+ 807              		.file 11 "Middlewares/Third_Party/LwIP/system/arch/cc.h"
+ 808              		.file 12 "Middlewares/Third_Party/LwIP/src/include/lwip/arch.h"
+ 809              		.file 13 "Middlewares/Third_Party/LwIP/src/include/lwip/mem.h"
+ 810              		.file 14 "Middlewares/Third_Party/FreeRTOS/Source/include/queue.h"
+ 811              		.file 15 "Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h"
+ 812              		.file 16 "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h"
+ 813              		.file 17 "Middlewares/Third_Party/LwIP/system/arch/sys_arch.h"
+ 814              		.file 18 "Middlewares/Third_Party/LwIP/src/include/lwip/err.h"
+ 815              		.file 19 "Middlewares/Third_Party/LwIP/src/include/lwip/memp.h"
+ 816              		.file 20 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/memp_priv.h"
+ 817              		.file 21 "Middlewares/Third_Party/LwIP/src/include/lwip/sys.h"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s 			page 30
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 mem.c
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:18     .text.plug_holes:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:24     .text.plug_holes:00000000 plug_holes
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:126    .text.plug_holes:00000060 $d
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:133    .text.mem_init:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:140    .text.mem_init:00000000 mem_init
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:187    .text.mem_init:00000034 $d
+                            *COM*:00000653 ram_heap
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:196    .text.mem_free:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:203    .text.mem_free:00000000 mem_free
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:281    .text.mem_free:0000004c $d
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:289    .text.mem_trim:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:296    .text.mem_trim:00000000 mem_trim
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:501    .text.mem_trim:000000e4 $d
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:509    .text.mem_malloc:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:516    .text.mem_malloc:00000000 mem_malloc
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:715    .text.mem_malloc:000000c4 $d
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:723    .text.mem_calloc:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:730    .text.mem_calloc:00000000 mem_calloc
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:769    .bss.lfree:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:773    .bss.lfree:00000000 lfree
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:776    .bss.mem_mutex:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:780    .bss.mem_mutex:00000000 mem_mutex
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:783    .bss.ram:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:787    .bss.ram:00000000 ram
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:790    .bss.ram_end:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc6T6r1g.s:794    .bss.ram_end:00000000 ram_end
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+sys_mutex_new
+sys_arch_protect
+sys_arch_unprotect
+sys_mutex_lock
+sys_mutex_unlock
+memset

@@ -52,6 +52,7 @@
 #include "usb_host.h"
 #include "usbh_core.h"
 #include "usbh_msc.h"
+#include "memory_access.h"
 
 /* USB Host Core handle declaration */
 USBH_HandleTypeDef hUsbHostFS;
@@ -109,14 +110,17 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
     
   case HOST_USER_DISCONNECTION:
   Appli_state = APPLICATION_DISCONNECT;
+  USB_Process(Appli_state);
   break;
     
   case HOST_USER_CLASS_ACTIVE:
   Appli_state = APPLICATION_READY;
+  USB_Process(Appli_state);
   break;
 
   case HOST_USER_CONNECTION:
   Appli_state = APPLICATION_START;
+  USB_Process(Appli_state);
   break;
 
   default:

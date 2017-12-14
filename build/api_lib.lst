@@ -1,0 +1,2791 @@
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"api_lib.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.netconn_apimsg,"ax",%progbits
+  18              		.align	1
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu fpv5-sp-d16
+  24              	netconn_apimsg:
+  25              	.LFB141:
+  26              		.file 1 "Middlewares/Third_Party/LwIP/src/api/api_lib.c"
+   1:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+   2:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @file
+   3:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Sequential API External module
+   4:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * 
+   5:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @defgroup netconn Netconn API
+   6:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup sequential_api
+   7:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Thread-safe, to be called from non-TCPIP threads only.
+   8:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * TX/RX handling based on @ref netbuf (containing @ref pbuf)
+   9:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * to avoid copying data around.
+  10:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * 
+  11:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @defgroup netconn_common Common functions
+  12:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn
+  13:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * For use with TCP and UDP
+  14:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * 
+  15:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @defgroup netconn_tcp TCP only
+  16:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn
+  17:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * TCP only functions
+  18:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * 
+  19:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @defgroup netconn_udp UDP only
+  20:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn
+  21:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * UDP only functions
+  22:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+  23:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  24:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /*
+  25:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
+  26:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * All rights reserved.
+  27:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+  28:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  29:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * are permitted provided that the following conditions are met:
+  30:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+  31:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  32:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *    this list of conditions and the following disclaimer.
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 2
+
+
+  33:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  34:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *    this list of conditions and the following disclaimer in the documentation
+  35:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *    and/or other materials provided with the distribution.
+  36:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * 3. The name of the author may not be used to endorse or promote products
+  37:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *    derived from this software without specific prior written permission.
+  38:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+  39:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  40:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  41:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  42:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  43:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  44:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  45:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  46:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  47:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  48:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * OF SUCH DAMAGE.
+  49:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+  50:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * This file is part of the lwIP TCP/IP stack.
+  51:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+  52:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Author: Adam Dunkels <adam@sics.se>
+  53:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+  54:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  55:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /* This is the part of the API that is linked with
+  56:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****    the application */
+  57:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  58:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/opt.h"
+  59:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  60:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_NETCONN /* don't build if not configured for use in lwipopts.h */
+  61:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  62:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/api.h"
+  63:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/memp.h"
+  64:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  65:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/ip.h"
+  66:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/raw.h"
+  67:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/udp.h"
+  68:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/priv/api_msg.h"
+  69:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/priv/tcp_priv.h"
+  70:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include "lwip/priv/tcpip_priv.h"
+  71:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  72:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #include <string.h>
+  73:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  74:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #define API_MSG_VAR_REF(name)               API_VAR_REF(name)
+  75:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #define API_MSG_VAR_DECLARE(name)           API_VAR_DECLARE(struct api_msg, name)
+  76:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #define API_MSG_VAR_ALLOC(name)             API_VAR_ALLOC(struct api_msg, MEMP_API_MSG, name, ERR_M
+  77:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #define API_MSG_VAR_ALLOC_RETURN_NULL(name) API_VAR_ALLOC(struct api_msg, MEMP_API_MSG, name, NULL)
+  78:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #define API_MSG_VAR_FREE(name)              API_VAR_FREE(MEMP_API_MSG, name)
+  79:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  80:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** static err_t netconn_close_shutdown(struct netconn *conn, u8_t how);
+  81:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  82:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+  83:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Call the lower part of a netconn_* function
+  84:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * This function is then running in the thread context
+  85:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * of tcpip_thread and has exclusive access to lwIP core code.
+  86:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+  87:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param fn function to call
+  88:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param apimsg a struct containing the function to call and its parameters
+  89:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if the function was called, another err_t if not
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 3
+
+
+  90:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+  91:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** static err_t
+  92:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_apimsg(tcpip_callback_fn fn, struct api_msg *apimsg)
+  93:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+  27              		.loc 1 93 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 10B5     		push	{r4, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 8
+  35              		.cfi_offset 4, -8
+  36              		.cfi_offset 14, -4
+  37 0002 0C46     		mov	r4, r1
+  94:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+  95:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+  96:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #ifdef LWIP_DEBUG
+  97:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* catch functions that don't set err */
+  98:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   apimsg->err = ERR_VAL;
+  99:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_DEBUG */
+ 100:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 101:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_NETCONN_SEM_PER_THREAD
+ 102:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   apimsg->op_completed_sem = LWIP_NETCONN_THREAD_SEM_GET();
+ 103:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_NETCONN_SEM_PER_THREAD */
+ 104:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 105:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = tcpip_send_msg_wait_sem(fn, apimsg, LWIP_API_MSG_SEM(apimsg));
+  38              		.loc 1 105 0
+  39 0004 0A68     		ldr	r2, [r1]
+  40 0006 0C32     		adds	r2, r2, #12
+  41 0008 FFF7FEFF 		bl	tcpip_send_msg_wait_sem
+  42              	.LVL1:
+ 106:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (err == ERR_OK) {
+  43              		.loc 1 106 0
+  44 000c 0346     		mov	r3, r0
+  45 000e 08B9     		cbnz	r0, .L2
+ 107:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return apimsg->err;
+  46              		.loc 1 107 0
+  47 0010 94F90430 		ldrsb	r3, [r4, #4]
+  48              	.L2:
+ 108:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 109:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 110:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+  49              		.loc 1 110 0
+  50 0014 1846     		mov	r0, r3
+  51              	.LVL2:
+  52 0016 10BD     		pop	{r4, pc}
+  53              		.cfi_endproc
+  54              	.LFE141:
+  56              		.section	.text.netconn_close_shutdown,"ax",%progbits
+  57              		.align	1
+  58              		.syntax unified
+  59              		.thumb
+  60              		.thumb_func
+  61              		.fpu fpv5-sp-d16
+  63              	netconn_close_shutdown:
+  64              	.LFB156:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 4
+
+
+ 111:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 112:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 113:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Create a new netconn (of a specific type) that has a callback function.
+ 114:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * The corresponding pcb is also created.
+ 115:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 116:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param t the type of 'connection' to create (@see enum netconn_type)
+ 117:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param proto the IP protocol for RAW IP pcbs
+ 118:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param callback a function to call on status changes (RX available, TX'ed)
+ 119:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return a newly allocated struct netconn or
+ 120:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *         NULL on memory error
+ 121:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 122:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** struct netconn*
+ 123:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_new_with_proto_and_callback(enum netconn_type t, u8_t proto, netconn_callback callback)
+ 124:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 125:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   struct netconn *conn;
+ 126:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 127:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC_RETURN_NULL(msg);
+ 128:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 129:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   conn = netconn_alloc(t, callback);
+ 130:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (conn != NULL) {
+ 131:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     err_t err;
+ 132:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 133:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_REF(msg).msg.n.proto = proto;
+ 134:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_REF(msg).conn = conn;
+ 135:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     err = netconn_apimsg(lwip_netconn_do_newconn, &API_MSG_VAR_REF(msg));
+ 136:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (err != ERR_OK) {
+ 137:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       LWIP_ASSERT("freeing conn without freeing pcb", conn->pcb.tcp == NULL);
+ 138:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       LWIP_ASSERT("conn has no recvmbox", sys_mbox_valid(&conn->recvmbox));
+ 139:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 140:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       LWIP_ASSERT("conn->acceptmbox shouldn't exist", !sys_mbox_valid(&conn->acceptmbox));
+ 141:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 142:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if !LWIP_NETCONN_SEM_PER_THREAD
+ 143:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       LWIP_ASSERT("conn has no op_completed", sys_sem_valid(&conn->op_completed));
+ 144:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       sys_sem_free(&conn->op_completed);
+ 145:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* !LWIP_NETCONN_SEM_PER_THREAD */
+ 146:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       sys_mbox_free(&conn->recvmbox);
+ 147:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       memp_free(MEMP_NETCONN, conn);
+ 148:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       API_MSG_VAR_FREE(msg);
+ 149:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       return NULL;
+ 150:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 151:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 152:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 153:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return conn;
+ 154:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 155:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 156:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 157:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_common
+ 158:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Close a netconn 'connection' and free its resources.
+ 159:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * UDP and RAW connection are completely closed, TCP pcbs might still be in a waitstate
+ 160:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * after this returns.
+ 161:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 162:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn to delete
+ 163:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if the connection was deleted
+ 164:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 165:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 166:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_delete(struct netconn *conn)
+ 167:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 5
+
+
+ 168:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 169:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 170:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 171:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* No ASSERT here because possible to get a (conn == NULL) if we got an accept error */
+ 172:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (conn == NULL) {
+ 173:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_OK;
+ 174:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 175:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 176:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 177:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+ 178:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_SNDTIMEO || LWIP_SO_LINGER
+ 179:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* get the time we started, which is later compared to
+ 180:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****      sys_now() + conn->send_timeout */
+ 181:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.sd.time_started = sys_now();
+ 182:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #else /* LWIP_SO_SNDTIMEO || LWIP_SO_LINGER */
+ 183:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 184:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.sd.polls_left =
+ 185:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     ((LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT + TCP_SLOW_INTERVAL - 1) / TCP_SLOW_INTERVAL) + 1;
+ 186:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 187:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_SNDTIMEO || LWIP_SO_LINGER */
+ 188:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_delconn, &API_MSG_VAR_REF(msg));
+ 189:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 190:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 191:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (err != ERR_OK) {
+ 192:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return err;
+ 193:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 194:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 195:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   netconn_free(conn);
+ 196:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 197:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return ERR_OK;
+ 198:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 199:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 200:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 201:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Get the local or remote IP address and port of a netconn.
+ 202:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * For RAW netconns, this returns the protocol instead of a port!
+ 203:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 204:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn to query
+ 205:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param addr a pointer to which to save the IP address
+ 206:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param port a pointer to which to save the port (or protocol for RAW)
+ 207:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param local 1 to get the local IP address, 0 to get the remote one
+ 208:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_CONN for invalid connections
+ 209:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *         ERR_OK if the information was retrieved
+ 210:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 211:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 212:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_getaddr(struct netconn *conn, ip_addr_t *addr, u16_t *port, u8_t local)
+ 213:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 214:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 215:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 216:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 217:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_getaddr: invalid conn", (conn != NULL), return ERR_ARG;);
+ 218:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_getaddr: invalid addr", (addr != NULL), return ERR_ARG;);
+ 219:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_getaddr: invalid port", (port != NULL), return ERR_ARG;);
+ 220:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 221:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 222:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+ 223:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.ad.local = local;
+ 224:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_MPU_COMPATIBLE
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 6
+
+
+ 225:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_getaddr, &API_MSG_VAR_REF(msg));
+ 226:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *addr = msg->msg.ad.ipaddr;
+ 227:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *port = msg->msg.ad.port;
+ 228:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #else /* LWIP_MPU_COMPATIBLE */
+ 229:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   msg.msg.ad.ipaddr = addr;
+ 230:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   msg.msg.ad.port = port;
+ 231:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_getaddr, &msg);
+ 232:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_MPU_COMPATIBLE */
+ 233:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 234:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 235:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 236:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 237:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 238:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 239:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_common
+ 240:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Bind a netconn to a specific local IP address and port.
+ 241:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Binding one netconn twice might not always be checked correctly!
+ 242:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 243:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn to bind
+ 244:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param addr the local IP address to bind the netconn to 
+ 245:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *             (use IP4_ADDR_ANY/IP6_ADDR_ANY to bind to all addresses)
+ 246:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param port the local port to bind the netconn to (not used for RAW)
+ 247:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if bound, any other err_t on failure
+ 248:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 249:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 250:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_bind(struct netconn *conn, const ip_addr_t *addr, u16_t port)
+ 251:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 252:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 253:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 254:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   
+ 255:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_bind: invalid conn", (conn != NULL), return ERR_ARG;);
+ 256:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 257:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_IPV4
+ 258:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* Don't propagate NULL pointer (IP_ADDR_ANY alias) to subsequent functions */
+ 259:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (addr == NULL) {
+ 260:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     addr = IP4_ADDR_ANY;
+ 261:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 262:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif
+ 263:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 264:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 265:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+ 266:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.bc.ipaddr = API_MSG_VAR_REF(addr);
+ 267:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.bc.port = port;
+ 268:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_bind, &API_MSG_VAR_REF(msg));
+ 269:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 270:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 271:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 272:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 273:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 274:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 275:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_common
+ 276:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Connect a netconn to a specific remote IP address and port.
+ 277:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 278:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn to connect
+ 279:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param addr the remote IP address to connect to
+ 280:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param port the remote port to connect to (no used for RAW)
+ 281:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if connected, return value of tcp_/udp_/raw_connect otherwise
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 7
+
+
+ 282:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 283:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 284:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_connect(struct netconn *conn, const ip_addr_t *addr, u16_t port)
+ 285:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 286:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 287:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 288:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 289:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_connect: invalid conn", (conn != NULL), return ERR_ARG;);
+ 290:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 291:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_IPV4
+ 292:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* Don't propagate NULL pointer (IP_ADDR_ANY alias) to subsequent functions */
+ 293:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (addr == NULL) {
+ 294:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     addr = IP4_ADDR_ANY;
+ 295:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 296:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif
+ 297:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 298:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 299:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+ 300:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.bc.ipaddr = API_MSG_VAR_REF(addr);
+ 301:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.bc.port = port;
+ 302:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_connect, &API_MSG_VAR_REF(msg));
+ 303:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 304:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 305:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 306:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 307:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 308:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 309:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_udp
+ 310:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Disconnect a netconn from its current peer (only valid for UDP netconns).
+ 311:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 312:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn to disconnect
+ 313:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return See @ref err_t
+ 314:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 315:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 316:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_disconnect(struct netconn *conn)
+ 317:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 318:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 319:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 320:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 321:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_disconnect: invalid conn", (conn != NULL), return ERR_ARG;);
+ 322:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 323:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 324:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+ 325:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_disconnect, &API_MSG_VAR_REF(msg));
+ 326:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 327:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 328:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 329:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 330:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 331:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 332:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_tcp
+ 333:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Set a TCP netconn into listen mode
+ 334:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 335:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the tcp netconn to set to listen mode
+ 336:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param backlog the listen backlog, only used if TCP_LISTEN_BACKLOG==1
+ 337:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if the netconn was set to listen (UDP and RAW netconns
+ 338:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *         don't return any error (yet?))
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 8
+
+
+ 339:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 340:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 341:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_listen_with_backlog(struct netconn *conn, u8_t backlog)
+ 342:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 343:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 344:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 345:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 346:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 347:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* This does no harm. If TCP_LISTEN_BACKLOG is off, backlog is unused. */
+ 348:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_UNUSED_ARG(backlog);
+ 349:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 350:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_listen: invalid conn", (conn != NULL), return ERR_ARG;);
+ 351:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 352:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 353:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+ 354:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 355:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.lb.backlog = backlog;
+ 356:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* TCP_LISTEN_BACKLOG */
+ 357:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_listen, &API_MSG_VAR_REF(msg));
+ 358:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 359:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 360:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 361:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #else /* LWIP_TCP */
+ 362:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_UNUSED_ARG(conn);
+ 363:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_UNUSED_ARG(backlog);
+ 364:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return ERR_ARG;
+ 365:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 366:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 367:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 368:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 369:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_tcp
+ 370:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Accept a new connection on a TCP listening netconn.
+ 371:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 372:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the TCP listen netconn
+ 373:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param new_conn pointer where the new connection is stored
+ 374:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if a new connection has been received or an error
+ 375:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *                code otherwise
+ 376:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 377:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 378:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_accept(struct netconn *conn, struct netconn **new_conn)
+ 379:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 380:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 381:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   void *accept_ptr;
+ 382:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   struct netconn *newconn;
+ 383:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 384:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 385:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 386:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* TCP_LISTEN_BACKLOG */
+ 387:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 388:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_accept: invalid pointer",    (new_conn != NULL),                  return ERR_
+ 389:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_conn = NULL;
+ 390:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_accept: invalid conn",       (conn != NULL),                      return ERR_
+ 391:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 392:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = conn->last_err;
+ 393:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (ERR_IS_FATAL(err)) {
+ 394:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* don't recv on fatal errors: this might block the application task
+ 395:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****        waiting on acceptmbox forever! */
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 9
+
+
+ 396:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return err;
+ 397:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 398:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (!sys_mbox_valid(&conn->acceptmbox)) {
+ 399:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_CLSD;
+ 400:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 401:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 402:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 403:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 404:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* TCP_LISTEN_BACKLOG */
+ 405:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 406:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_RCVTIMEO
+ 407:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (sys_arch_mbox_fetch(&conn->acceptmbox, &accept_ptr, conn->recv_timeout) == SYS_ARCH_TIMEOUT) 
+ 408:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 409:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_FREE(msg);
+ 410:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* TCP_LISTEN_BACKLOG */
+ 411:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_TIMEOUT;
+ 412:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 413:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #else
+ 414:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   sys_arch_mbox_fetch(&conn->acceptmbox, &accept_ptr, 0);
+ 415:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_RCVTIMEO*/
+ 416:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   newconn = (struct netconn *)accept_ptr;
+ 417:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* Register event with callback */
+ 418:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_EVENT(conn, NETCONN_EVT_RCVMINUS, 0);
+ 419:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 420:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (accept_ptr == &netconn_aborted) {
+ 421:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* a connection has been aborted: out of pcbs or out of netconns during accept */
+ 422:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* @todo: set netconn error, but this would be fatal and thus block further accepts */
+ 423:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 424:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_FREE(msg);
+ 425:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* TCP_LISTEN_BACKLOG */
+ 426:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_ABRT;
+ 427:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 428:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (newconn == NULL) {
+ 429:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* connection has been aborted */
+ 430:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* in this special case, we set the netconn error from application thread, as
+ 431:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****        on a ready-to-accept listening netconn, there should not be anything running
+ 432:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****        in tcpip_thread */
+ 433:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     NETCONN_SET_SAFE_ERR(conn, ERR_CLSD);
+ 434:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 435:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_FREE(msg);
+ 436:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* TCP_LISTEN_BACKLOG */
+ 437:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_CLSD;
+ 438:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 439:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 440:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* Let the stack know that we have accepted the connection. */
+ 441:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = newconn;
+ 442:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* don't care for the return value of lwip_netconn_do_recv */
+ 443:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   netconn_apimsg(lwip_netconn_do_accepted, &API_MSG_VAR_REF(msg));
+ 444:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 445:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* TCP_LISTEN_BACKLOG */
+ 446:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 447:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_conn = newconn;
+ 448:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* don't set conn->last_err: it's only ERR_OK, anyway */
+ 449:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return ERR_OK;
+ 450:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #else /* LWIP_TCP */
+ 451:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_UNUSED_ARG(conn);
+ 452:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_UNUSED_ARG(new_conn);
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 10
+
+
+ 453:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return ERR_ARG;
+ 454:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 455:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 456:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 457:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 458:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_common
+ 459:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Receive data: actual implementation that doesn't care whether pbuf or netbuf
+ 460:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * is received
+ 461:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 462:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn from which to receive data
+ 463:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param new_buf pointer where a new pbuf/netbuf is stored when received data
+ 464:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if data has been received, an error code otherwise (timeout,
+ 465:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *                memory error or another error)
+ 466:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 467:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** static err_t
+ 468:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_recv_data(struct netconn *conn, void **new_buf)
+ 469:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 470:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   void *buf = NULL;
+ 471:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   u16_t len;
+ 472:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 473:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 474:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 475:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_MPU_COMPATIBLE
+ 476:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   msg = NULL;
+ 477:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif
+ 478:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 479:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 480:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid pointer", (new_buf != NULL), return ERR_ARG;);
+ 481:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_buf = NULL;
+ 482:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid conn",    (conn != NULL),    return ERR_ARG;);
+ 483:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 484:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if (LWIP_UDP || LWIP_RAW)
+ 485:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (NETCONNTYPE_GROUP(conn->type) == NETCONN_TCP)
+ 486:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 487:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   {
+ 488:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (!sys_mbox_valid(&conn->recvmbox)) {
+ 489:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       /* This happens when calling this function after receiving FIN */
+ 490:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       return sys_mbox_valid(&conn->acceptmbox) ? ERR_CONN : ERR_CLSD;
+ 491:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 492:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 493:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 494:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid recvmbox", sys_mbox_valid(&conn->recvmbox), return ERR_CONN;);
+ 495:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 496:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = conn->last_err;
+ 497:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (ERR_IS_FATAL(err)) {
+ 498:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* don't recv on fatal errors: this might block the application task
+ 499:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****        waiting on recvmbox forever! */
+ 500:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* @todo: this does not allow us to fetch data that has been put into recvmbox
+ 501:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****        before the fatal error occurred - is that a problem? */
+ 502:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return err;
+ 503:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 504:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 505:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if (LWIP_UDP || LWIP_RAW)
+ 506:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (NETCONNTYPE_GROUP(conn->type) == NETCONN_TCP)
+ 507:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 508:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   {
+ 509:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_ALLOC(msg);
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 11
+
+
+ 510:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 511:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 512:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 513:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_RCVTIMEO
+ 514:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (sys_arch_mbox_fetch(&conn->recvmbox, &buf, conn->recv_timeout) == SYS_ARCH_TIMEOUT) {
+ 515:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 516:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if (LWIP_UDP || LWIP_RAW)
+ 517:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (NETCONNTYPE_GROUP(conn->type) == NETCONN_TCP)
+ 518:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 519:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     {
+ 520:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       API_MSG_VAR_FREE(msg);
+ 521:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 522:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 523:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_TIMEOUT;
+ 524:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 525:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #else
+ 526:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   sys_arch_mbox_fetch(&conn->recvmbox, &buf, 0);
+ 527:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_RCVTIMEO*/
+ 528:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 529:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 530:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if (LWIP_UDP || LWIP_RAW)
+ 531:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (NETCONNTYPE_GROUP(conn->type) == NETCONN_TCP)
+ 532:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 533:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   {
+ 534:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* Let the stack know that we have taken the data. */
+ 535:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* @todo: Speedup: Don't block and wait for the answer here
+ 536:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****        (to prevent multiple thread-switches). */
+ 537:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_REF(msg).conn = conn;
+ 538:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (buf != NULL) {
+ 539:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       API_MSG_VAR_REF(msg).msg.r.len = ((struct pbuf *)buf)->tot_len;
+ 540:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     } else {
+ 541:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       API_MSG_VAR_REF(msg).msg.r.len = 1;
+ 542:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 543:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 544:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* don't care for the return value of lwip_netconn_do_recv */
+ 545:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     netconn_apimsg(lwip_netconn_do_recv, &API_MSG_VAR_REF(msg));
+ 546:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_FREE(msg);
+ 547:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 548:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* If we are closed, we indicate that we no longer wish to use the socket */
+ 549:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (buf == NULL) {
+ 550:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       API_EVENT(conn, NETCONN_EVT_RCVMINUS, 0);
+ 551:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       if (conn->pcb.ip == NULL) {
+ 552:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****         /* race condition: RST during recv */
+ 553:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****         return conn->last_err == ERR_OK ? ERR_RST : conn->last_err;
+ 554:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       }
+ 555:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       /* RX side is closed, so deallocate the recvmbox */
+ 556:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       netconn_close_shutdown(conn, NETCONN_SHUT_RD);
+ 557:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       /* Don' store ERR_CLSD as conn->err since we are only half-closed */
+ 558:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       return ERR_CLSD;
+ 559:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 560:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     len = ((struct pbuf *)buf)->tot_len;
+ 561:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 562:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 563:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP && (LWIP_UDP || LWIP_RAW)
+ 564:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   else
+ 565:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP && (LWIP_UDP || LWIP_RAW) */
+ 566:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if (LWIP_UDP || LWIP_RAW)
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 12
+
+
+ 567:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   {
+ 568:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     LWIP_ASSERT("buf != NULL", buf != NULL);
+ 569:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     len = netbuf_len((struct netbuf *)buf);
+ 570:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 571:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 572:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 573:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_RCVBUF
+ 574:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   SYS_ARCH_DEC(conn->recv_avail, len);
+ 575:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_RCVBUF */
+ 576:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* Register event with callback */
+ 577:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_EVENT(conn, NETCONN_EVT_RCVMINUS, len);
+ 578:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 579:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_DEBUGF(API_LIB_DEBUG, ("netconn_recv_data: received %p, len=%"U16_F"\n", buf, len));
+ 580:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 581:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_buf = buf;
+ 582:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* don't set conn->last_err: it's only ERR_OK, anyway */
+ 583:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return ERR_OK;
+ 584:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 585:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 586:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 587:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_tcp
+ 588:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Receive data (in form of a pbuf) from a TCP netconn
+ 589:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 590:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn from which to receive data
+ 591:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param new_buf pointer where a new pbuf is stored when received data
+ 592:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if data has been received, an error code otherwise (timeout,
+ 593:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *                memory error or another error)
+ 594:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *         ERR_ARG if conn is not a TCP netconn
+ 595:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 596:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 597:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_recv_tcp_pbuf(struct netconn *conn, struct pbuf **new_buf)
+ 598:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 599:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid conn", (conn != NULL) &&
+ 600:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****              NETCONNTYPE_GROUP(netconn_type(conn)) == NETCONN_TCP, return ERR_ARG;);
+ 601:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 602:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return netconn_recv_data(conn, (void **)new_buf);
+ 603:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 604:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 605:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 606:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_common
+ 607:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Receive data (in form of a netbuf containing a packet buffer) from a netconn
+ 608:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 609:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn from which to receive data
+ 610:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param new_buf pointer where a new netbuf is stored when received data
+ 611:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if data has been received, an error code otherwise (timeout,
+ 612:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *                memory error or another error)
+ 613:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 614:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 615:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_recv(struct netconn *conn, struct netbuf **new_buf)
+ 616:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 617:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 618:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   struct netbuf *buf = NULL;
+ 619:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 620:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 621:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 622:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid pointer", (new_buf != NULL), return ERR_ARG;);
+ 623:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_buf = NULL;
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 13
+
+
+ 624:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid conn",    (conn != NULL),    return ERR_ARG;);
+ 625:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 626:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 627:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if (LWIP_UDP || LWIP_RAW)
+ 628:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (NETCONNTYPE_GROUP(conn->type) == NETCONN_TCP)
+ 629:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 630:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   {
+ 631:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     struct pbuf *p = NULL;
+ 632:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* This is not a listening netconn, since recvmbox is set */
+ 633:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 634:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf = (struct netbuf *)memp_malloc(MEMP_NETBUF);
+ 635:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (buf == NULL) {
+ 636:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       return ERR_MEM;
+ 637:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 638:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 639:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     err = netconn_recv_data(conn, (void **)&p);
+ 640:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (err != ERR_OK) {
+ 641:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       memp_free(MEMP_NETBUF, buf);
+ 642:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       return err;
+ 643:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 644:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     LWIP_ASSERT("p != NULL", p != NULL);
+ 645:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 646:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->p = p;
+ 647:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->ptr = p;
+ 648:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->port = 0;
+ 649:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     ip_addr_set_zero(&buf->addr);
+ 650:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     *new_buf = buf;
+ 651:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* don't set conn->last_err: it's only ERR_OK, anyway */
+ 652:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_OK;
+ 653:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 654:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 655:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP && (LWIP_UDP || LWIP_RAW)
+ 656:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   else
+ 657:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP && (LWIP_UDP || LWIP_RAW) */
+ 658:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   {
+ 659:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if (LWIP_UDP || LWIP_RAW)
+ 660:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return netconn_recv_data(conn, (void **)new_buf);
+ 661:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 662:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 663:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 664:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 665:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 666:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_udp
+ 667:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Send data (in form of a netbuf) to a specific remote IP address and port.
+ 668:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Only to be used for UDP and RAW netconns (not TCP).
+ 669:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 670:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the netconn over which to send data
+ 671:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param buf a netbuf containing the data to send
+ 672:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param addr the remote IP address to which to send the data
+ 673:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param port the remote port to which to send the data
+ 674:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if data was sent, any other err_t on error
+ 675:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 676:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 677:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_sendto(struct netconn *conn, struct netbuf *buf, const ip_addr_t *addr, u16_t port)
+ 678:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 679:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (buf != NULL) {
+ 680:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     ip_addr_set(&buf->addr, addr);
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 14
+
+
+ 681:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->port = port;
+ 682:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return netconn_send(conn, buf);
+ 683:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 684:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return ERR_VAL;
+ 685:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 686:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 687:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 688:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_udp
+ 689:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Send data over a UDP or RAW netconn (that is already connected).
+ 690:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 691:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the UDP or RAW netconn over which to send data
+ 692:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param buf a netbuf containing the data to send
+ 693:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if data was sent, any other err_t on error
+ 694:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 695:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 696:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_send(struct netconn *conn, struct netbuf *buf)
+ 697:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 698:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 699:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 700:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 701:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_send: invalid conn",  (conn != NULL), return ERR_ARG;);
+ 702:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 703:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_DEBUGF(API_LIB_DEBUG, ("netconn_send: sending %"U16_F" bytes\n", buf->p->tot_len));
+ 704:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 705:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+ 706:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.b = buf;
+ 707:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_send, &API_MSG_VAR_REF(msg));
+ 708:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 709:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 710:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 711:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 712:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 713:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 714:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_tcp
+ 715:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Send data over a TCP netconn.
+ 716:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 717:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the TCP netconn over which to send data
+ 718:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param dataptr pointer to the application buffer that contains the data to send
+ 719:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param size size of the application data to send
+ 720:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param apiflags combination of following flags :
+ 721:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * - NETCONN_COPY: data will be copied into memory belonging to the stack
+ 722:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * - NETCONN_MORE: for TCP connection, PSH flag will be set on last segment sent
+ 723:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * - NETCONN_DONTBLOCK: only write the data if all data can be written at once
+ 724:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param bytes_written pointer to a location that receives the number of written bytes
+ 725:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if data was sent, any other err_t on error
+ 726:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 727:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 728:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_write_partly(struct netconn *conn, const void *dataptr, size_t size,
+ 729:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****                      u8_t apiflags, size_t *bytes_written)
+ 730:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 731:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 732:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 733:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   u8_t dontblock;
+ 734:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 735:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_write: invalid conn",  (conn != NULL), return ERR_ARG;);
+ 736:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_write: invalid conn->type",  (NETCONNTYPE_GROUP(conn->type)== NETCONN_TCP), r
+ 737:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (size == 0) {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 15
+
+
+ 738:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_OK;
+ 739:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 740:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   dontblock = netconn_is_nonblocking(conn) || (apiflags & NETCONN_DONTBLOCK);
+ 741:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (dontblock && !bytes_written) {
+ 742:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* This implies netconn_write() cannot be used for non-blocking send, since
+ 743:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****        it has no way to return the number of bytes written. */
+ 744:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_VAL;
+ 745:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 746:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 747:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 748:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* non-blocking write sends as much  */
+ 749:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+ 750:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.w.dataptr = dataptr;
+ 751:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.w.apiflags = apiflags;
+ 752:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.w.len = size;
+ 753:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_SNDTIMEO
+ 754:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (conn->send_timeout != 0) {
+ 755:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* get the time we started, which is later compared to
+ 756:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****         sys_now() + conn->send_timeout */
+ 757:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_REF(msg).msg.w.time_started = sys_now();
+ 758:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   } else {
+ 759:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_REF(msg).msg.w.time_started = 0;
+ 760:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 761:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_SNDTIMEO */
+ 762:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 763:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* For locking the core: this _can_ be delayed on low memory/low send buffer,
+ 764:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****      but if it is, this is done inside api_msg.c:do_write(), so we can use the
+ 765:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****      non-blocking version here. */
+ 766:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_write, &API_MSG_VAR_REF(msg));
+ 767:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if ((err == ERR_OK) && (bytes_written != NULL)) {
+ 768:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (dontblock
+ 769:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_SNDTIMEO
+ 770:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****         || (conn->send_timeout != 0)
+ 771:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_SNDTIMEO */
+ 772:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****        ) {
+ 773:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       /* nonblocking write: maybe the data has been sent partly */
+ 774:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       *bytes_written = API_MSG_VAR_REF(msg).msg.w.len;
+ 775:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     } else {
+ 776:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       /* blocking call succeeded: all data has been sent if it */
+ 777:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       *bytes_written = size;
+ 778:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 779:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 780:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 781:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 782:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 783:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 784:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 785:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 786:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_tcp
+ 787:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Close or shutdown a TCP netconn (doesn't delete it).
+ 788:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 789:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the TCP netconn to close or shutdown
+ 790:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param how fully close or only shutdown one side?
+ 791:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if the netconn was closed, any other err_t on error
+ 792:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 793:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** static err_t
+ 794:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_close_shutdown(struct netconn *conn, u8_t how)
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 16
+
+
+ 795:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+  65              		.loc 1 795 0
+  66              		.cfi_startproc
+  67              		@ args = 0, pretend = 0, frame = 24
+  68              		@ frame_needed = 0, uses_anonymous_args = 0
+  69              	.LVL3:
+ 796:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 797:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 798:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_UNUSED_ARG(how);
+ 799:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 800:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_close: invalid conn",  (conn != NULL), return ERR_ARG;);
+  70              		.loc 1 800 0
+  71 0000 70B1     		cbz	r0, .L6
+ 795:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+  72              		.loc 1 795 0
+  73 0002 00B5     		push	{lr}
+  74              	.LCFI1:
+  75              		.cfi_def_cfa_offset 4
+  76              		.cfi_offset 14, -4
+  77 0004 87B0     		sub	sp, sp, #28
+  78              	.LCFI2:
+  79              		.cfi_def_cfa_offset 32
+ 801:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 802:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_ALLOC(msg);
+ 803:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).conn = conn;
+  80              		.loc 1 803 0
+  81 0006 0190     		str	r0, [sp, #4]
+ 804:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 805:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* shutting down both ends is the same as closing */
+ 806:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.sd.shut = how;
+  82              		.loc 1 806 0
+  83 0008 8DF80C10 		strb	r1, [sp, #12]
+ 807:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_SNDTIMEO || LWIP_SO_LINGER
+ 808:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* get the time we started, which is later compared to
+ 809:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****      sys_now() + conn->send_timeout */
+ 810:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.sd.time_started = sys_now();
+ 811:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #else /* LWIP_SO_SNDTIMEO || LWIP_SO_LINGER */
+ 812:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.sd.polls_left =
+  84              		.loc 1 812 0
+  85 000c 2923     		movs	r3, #41
+  86 000e 8DF80D30 		strb	r3, [sp, #13]
+ 813:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     ((LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT + TCP_SLOW_INTERVAL - 1) / TCP_SLOW_INTERVAL) + 1;
+ 814:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_SNDTIMEO || LWIP_SO_LINGER */
+ 815:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 816:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_close, &API_MSG_VAR_REF(msg));
+  87              		.loc 1 816 0
+  88 0012 01A9     		add	r1, sp, #4
+  89              	.LVL4:
+  90 0014 0448     		ldr	r0, .L11
+  91              	.LVL5:
+  92 0016 FFF7FEFF 		bl	netconn_apimsg
+  93              	.LVL6:
+ 817:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 818:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 819:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return err;
+ 820:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+  94              		.loc 1 820 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 17
+
+
+  95 001a 07B0     		add	sp, sp, #28
+  96              	.LCFI3:
+  97              		.cfi_def_cfa_offset 4
+  98              		@ sp needed
+  99 001c 5DF804FB 		ldr	pc, [sp], #4
+ 100              	.LVL7:
+ 101              	.L6:
+ 102              	.LCFI4:
+ 103              		.cfi_def_cfa_offset 0
+ 104              		.cfi_restore 14
+ 800:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 105              		.loc 1 800 0
+ 106 0020 6FF00F00 		mvn	r0, #15
+ 107              	.LVL8:
+ 108 0024 7047     		bx	lr
+ 109              	.L12:
+ 110 0026 00BF     		.align	2
+ 111              	.L11:
+ 112 0028 00000000 		.word	lwip_netconn_do_close
+ 113              		.cfi_endproc
+ 114              	.LFE156:
+ 116              		.section	.text.netconn_recv_data,"ax",%progbits
+ 117              		.align	1
+ 118              		.syntax unified
+ 119              		.thumb
+ 120              		.thumb_func
+ 121              		.fpu fpv5-sp-d16
+ 123              	netconn_recv_data:
+ 124              	.LFB150:
+ 469:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   void *buf = NULL;
+ 125              		.loc 1 469 0
+ 126              		.cfi_startproc
+ 127              		@ args = 0, pretend = 0, frame = 24
+ 128              		@ frame_needed = 0, uses_anonymous_args = 0
+ 129              	.LVL9:
+ 130 0000 70B5     		push	{r4, r5, r6, lr}
+ 131              	.LCFI5:
+ 132              		.cfi_def_cfa_offset 16
+ 133              		.cfi_offset 4, -16
+ 134              		.cfi_offset 5, -12
+ 135              		.cfi_offset 6, -8
+ 136              		.cfi_offset 14, -4
+ 137 0002 86B0     		sub	sp, sp, #24
+ 138              	.LCFI6:
+ 139              		.cfi_def_cfa_offset 40
+ 470:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   u16_t len;
+ 140              		.loc 1 470 0
+ 141 0004 0023     		movs	r3, #0
+ 142 0006 0593     		str	r3, [sp, #20]
+ 480:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_buf = NULL;
+ 143              		.loc 1 480 0
+ 144 0008 0029     		cmp	r1, #0
+ 145 000a 61D0     		beq	.L24
+ 146 000c 0D46     		mov	r5, r1
+ 481:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid conn",    (conn != NULL),    return ERR_ARG;);
+ 147              		.loc 1 481 0
+ 148 000e 2B60     		str	r3, [r5]
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 18
+
+
+ 482:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 149              		.loc 1 482 0
+ 150 0010 0028     		cmp	r0, #0
+ 151 0012 60D0     		beq	.L25
+ 152 0014 0446     		mov	r4, r0
+ 485:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 153              		.loc 1 485 0
+ 154 0016 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+ 155 0018 03F0F003 		and	r3, r3, #240
+ 156 001c 102B     		cmp	r3, #16
+ 157 001e 0DD0     		beq	.L29
+ 158              	.LVL10:
+ 159              	.L15:
+ 494:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 160              		.loc 1 494 0
+ 161 0020 04F11006 		add	r6, r4, #16
+ 162 0024 3046     		mov	r0, r6
+ 163 0026 FFF7FEFF 		bl	sys_mbox_valid
+ 164              	.LVL11:
+ 165 002a 0028     		cmp	r0, #0
+ 166 002c 59D0     		beq	.L27
+ 496:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (ERR_IS_FATAL(err)) {
+ 167              		.loc 1 496 0
+ 168 002e 94F90800 		ldrsb	r0, [r4, #8]
+ 169              	.LVL12:
+ 497:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* don't recv on fatal errors: this might block the application task
+ 170              		.loc 1 497 0
+ 171 0032 10F10C0F 		cmn	r0, #12
+ 172 0036 0FDA     		bge	.L30
+ 173              	.LVL13:
+ 174              	.L14:
+ 584:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 175              		.loc 1 584 0
+ 176 0038 06B0     		add	sp, sp, #24
+ 177              	.LCFI7:
+ 178              		.cfi_remember_state
+ 179              		.cfi_def_cfa_offset 16
+ 180              		@ sp needed
+ 181 003a 70BD     		pop	{r4, r5, r6, pc}
+ 182              	.LVL14:
+ 183              	.L29:
+ 184              	.LCFI8:
+ 185              		.cfi_restore_state
+ 488:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       /* This happens when calling this function after receiving FIN */
+ 186              		.loc 1 488 0
+ 187 003c 1030     		adds	r0, r0, #16
+ 188              	.LVL15:
+ 189 003e FFF7FEFF 		bl	sys_mbox_valid
+ 190              	.LVL16:
+ 191 0042 0028     		cmp	r0, #0
+ 192 0044 ECD1     		bne	.L15
+ 490:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 193              		.loc 1 490 0
+ 194 0046 04F11400 		add	r0, r4, #20
+ 195 004a FFF7FEFF 		bl	sys_mbox_valid
+ 196              	.LVL17:
+ 197 004e 0028     		cmp	r0, #0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 19
+
+
+ 198 0050 44D0     		beq	.L26
+ 199 0052 6FF00A00 		mvn	r0, #10
+ 200 0056 EFE7     		b	.L14
+ 201              	.LVL18:
+ 202              	.L30:
+ 526:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_RCVTIMEO*/
+ 203              		.loc 1 526 0
+ 204 0058 0022     		movs	r2, #0
+ 205 005a 05A9     		add	r1, sp, #20
+ 206 005c 3046     		mov	r0, r6
+ 207              	.LVL19:
+ 208 005e FFF7FEFF 		bl	sys_arch_mbox_fetch
+ 209              	.LVL20:
+ 531:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 210              		.loc 1 531 0
+ 211 0062 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 212 0064 03F0F003 		and	r3, r3, #240
+ 213 0068 102B     		cmp	r3, #16
+ 214 006a 0BD0     		beq	.L31
+ 568:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     len = netbuf_len((struct netbuf *)buf);
+ 215              		.loc 1 568 0
+ 216 006c 059B     		ldr	r3, [sp, #20]
+ 569:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 217              		.loc 1 569 0
+ 218 006e 1B68     		ldr	r3, [r3]
+ 219 0070 1A89     		ldrh	r2, [r3, #8]
+ 220              	.LVL21:
+ 221              	.L22:
+ 577:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 222              		.loc 1 577 0
+ 223 0072 A36A     		ldr	r3, [r4, #40]
+ 224 0074 13B1     		cbz	r3, .L23
+ 577:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 225              		.loc 1 577 0 is_stmt 0 discriminator 1
+ 226 0076 0121     		movs	r1, #1
+ 227 0078 2046     		mov	r0, r4
+ 228 007a 9847     		blx	r3
+ 229              	.LVL22:
+ 230              	.L23:
+ 581:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* don't set conn->last_err: it's only ERR_OK, anyway */
+ 231              		.loc 1 581 0 is_stmt 1
+ 232 007c 059B     		ldr	r3, [sp, #20]
+ 233 007e 2B60     		str	r3, [r5]
+ 583:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 234              		.loc 1 583 0
+ 235 0080 0020     		movs	r0, #0
+ 236 0082 D9E7     		b	.L14
+ 237              	.L31:
+ 537:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (buf != NULL) {
+ 238              		.loc 1 537 0
+ 239 0084 0094     		str	r4, [sp]
+ 538:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       API_MSG_VAR_REF(msg).msg.r.len = ((struct pbuf *)buf)->tot_len;
+ 240              		.loc 1 538 0
+ 241 0086 059B     		ldr	r3, [sp, #20]
+ 242 0088 4BB1     		cbz	r3, .L17
+ 539:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     } else {
+ 243              		.loc 1 539 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 20
+
+
+ 244 008a 1B89     		ldrh	r3, [r3, #8]
+ 245 008c 0293     		str	r3, [sp, #8]
+ 246              	.L18:
+ 545:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_FREE(msg);
+ 247              		.loc 1 545 0
+ 248 008e 6946     		mov	r1, sp
+ 249 0090 1548     		ldr	r0, .L33
+ 250 0092 FFF7FEFF 		bl	netconn_apimsg
+ 251              	.LVL23:
+ 549:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       API_EVENT(conn, NETCONN_EVT_RCVMINUS, 0);
+ 252              		.loc 1 549 0
+ 253 0096 059B     		ldr	r3, [sp, #20]
+ 254 0098 23B1     		cbz	r3, .L32
+ 560:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 255              		.loc 1 560 0
+ 256 009a 1A89     		ldrh	r2, [r3, #8]
+ 257              	.LVL24:
+ 258 009c E9E7     		b	.L22
+ 259              	.LVL25:
+ 260              	.L17:
+ 541:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 261              		.loc 1 541 0
+ 262 009e 0123     		movs	r3, #1
+ 263 00a0 0293     		str	r3, [sp, #8]
+ 264 00a2 F4E7     		b	.L18
+ 265              	.L32:
+ 550:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       if (conn->pcb.ip == NULL) {
+ 266              		.loc 1 550 0
+ 267 00a4 A36A     		ldr	r3, [r4, #40]
+ 268 00a6 1BB1     		cbz	r3, .L20
+ 550:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       if (conn->pcb.ip == NULL) {
+ 269              		.loc 1 550 0 is_stmt 0 discriminator 1
+ 270 00a8 0022     		movs	r2, #0
+ 271 00aa 0121     		movs	r1, #1
+ 272 00ac 2046     		mov	r0, r4
+ 273 00ae 9847     		blx	r3
+ 274              	.LVL26:
+ 275              	.L20:
+ 551:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****         /* race condition: RST during recv */
+ 276              		.loc 1 551 0 is_stmt 1
+ 277 00b0 6368     		ldr	r3, [r4, #4]
+ 278 00b2 33B9     		cbnz	r3, .L21
+ 553:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       }
+ 279              		.loc 1 553 0
+ 280 00b4 94F90800 		ldrsb	r0, [r4, #8]
+ 281 00b8 0028     		cmp	r0, #0
+ 282 00ba BDD1     		bne	.L14
+ 283 00bc 6FF00D00 		mvn	r0, #13
+ 284 00c0 BAE7     		b	.L14
+ 285              	.L21:
+ 556:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       /* Don' store ERR_CLSD as conn->err since we are only half-closed */
+ 286              		.loc 1 556 0
+ 287 00c2 0121     		movs	r1, #1
+ 288 00c4 2046     		mov	r0, r4
+ 289 00c6 FFF7FEFF 		bl	netconn_close_shutdown
+ 290              	.LVL27:
+ 558:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 21
+
+
+ 291              		.loc 1 558 0
+ 292 00ca 6FF00E00 		mvn	r0, #14
+ 293 00ce B3E7     		b	.L14
+ 294              	.LVL28:
+ 295              	.L24:
+ 480:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_buf = NULL;
+ 296              		.loc 1 480 0
+ 297 00d0 6FF00F00 		mvn	r0, #15
+ 298              	.LVL29:
+ 299 00d4 B0E7     		b	.L14
+ 300              	.LVL30:
+ 301              	.L25:
+ 482:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 302              		.loc 1 482 0
+ 303 00d6 6FF00F00 		mvn	r0, #15
+ 304              	.LVL31:
+ 305 00da ADE7     		b	.L14
+ 306              	.LVL32:
+ 307              	.L26:
+ 490:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 308              		.loc 1 490 0
+ 309 00dc 6FF00E00 		mvn	r0, #14
+ 310 00e0 AAE7     		b	.L14
+ 311              	.L27:
+ 494:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 312              		.loc 1 494 0
+ 313 00e2 6FF00A00 		mvn	r0, #10
+ 314 00e6 A7E7     		b	.L14
+ 315              	.L34:
+ 316              		.align	2
+ 317              	.L33:
+ 318 00e8 00000000 		.word	lwip_netconn_do_recv
+ 319              		.cfi_endproc
+ 320              	.LFE150:
+ 322              		.section	.text.netconn_new_with_proto_and_callback,"ax",%progbits
+ 323              		.align	1
+ 324              		.global	netconn_new_with_proto_and_callback
+ 325              		.syntax unified
+ 326              		.thumb
+ 327              		.thumb_func
+ 328              		.fpu fpv5-sp-d16
+ 330              	netconn_new_with_proto_and_callback:
+ 331              	.LFB142:
+ 124:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   struct netconn *conn;
+ 332              		.loc 1 124 0
+ 333              		.cfi_startproc
+ 334              		@ args = 0, pretend = 0, frame = 24
+ 335              		@ frame_needed = 0, uses_anonymous_args = 0
+ 336              	.LVL33:
+ 337 0000 70B5     		push	{r4, r5, r6, lr}
+ 338              	.LCFI9:
+ 339              		.cfi_def_cfa_offset 16
+ 340              		.cfi_offset 4, -16
+ 341              		.cfi_offset 5, -12
+ 342              		.cfi_offset 6, -8
+ 343              		.cfi_offset 14, -4
+ 344 0002 86B0     		sub	sp, sp, #24
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 22
+
+
+ 345              	.LCFI10:
+ 346              		.cfi_def_cfa_offset 40
+ 347 0004 0D46     		mov	r5, r1
+ 129:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (conn != NULL) {
+ 348              		.loc 1 129 0
+ 349 0006 1146     		mov	r1, r2
+ 350              	.LVL34:
+ 351 0008 FFF7FEFF 		bl	netconn_alloc
+ 352              	.LVL35:
+ 130:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     err_t err;
+ 353              		.loc 1 130 0
+ 354 000c 0446     		mov	r4, r0
+ 355 000e 40B1     		cbz	r0, .L35
+ 356              	.LBB2:
+ 133:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     API_MSG_VAR_REF(msg).conn = conn;
+ 357              		.loc 1 133 0
+ 358 0010 8DF80C50 		strb	r5, [sp, #12]
+ 134:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     err = netconn_apimsg(lwip_netconn_do_newconn, &API_MSG_VAR_REF(msg));
+ 359              		.loc 1 134 0
+ 360 0014 06A9     		add	r1, sp, #24
+ 361 0016 41F8140D 		str	r0, [r1, #-20]!
+ 135:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (err != ERR_OK) {
+ 362              		.loc 1 135 0
+ 363 001a 1048     		ldr	r0, .L39
+ 364              	.LVL36:
+ 365 001c FFF7FEFF 		bl	netconn_apimsg
+ 366              	.LVL37:
+ 136:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       LWIP_ASSERT("freeing conn without freeing pcb", conn->pcb.tcp == NULL);
+ 367              		.loc 1 136 0
+ 368 0020 10B9     		cbnz	r0, .L38
+ 369              	.LVL38:
+ 370              	.L35:
+ 371              	.LBE2:
+ 154:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 372              		.loc 1 154 0
+ 373 0022 2046     		mov	r0, r4
+ 374 0024 06B0     		add	sp, sp, #24
+ 375              	.LCFI11:
+ 376              		.cfi_remember_state
+ 377              		.cfi_def_cfa_offset 16
+ 378              		@ sp needed
+ 379 0026 70BD     		pop	{r4, r5, r6, pc}
+ 380              	.LVL39:
+ 381              	.L38:
+ 382              	.LCFI12:
+ 383              		.cfi_restore_state
+ 384              	.LBB3:
+ 138:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 385              		.loc 1 138 0
+ 386 0028 04F11005 		add	r5, r4, #16
+ 387 002c 2846     		mov	r0, r5
+ 388              	.LVL40:
+ 389 002e FFF7FEFF 		bl	sys_mbox_valid
+ 390              	.LVL41:
+ 140:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_TCP */
+ 391              		.loc 1 140 0
+ 392 0032 04F11400 		add	r0, r4, #20
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 23
+
+
+ 393 0036 FFF7FEFF 		bl	sys_mbox_valid
+ 394              	.LVL42:
+ 143:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       sys_sem_free(&conn->op_completed);
+ 395              		.loc 1 143 0
+ 396 003a 04F10C06 		add	r6, r4, #12
+ 397 003e 3046     		mov	r0, r6
+ 398 0040 FFF7FEFF 		bl	sys_sem_valid
+ 399              	.LVL43:
+ 144:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* !LWIP_NETCONN_SEM_PER_THREAD */
+ 400              		.loc 1 144 0
+ 401 0044 3046     		mov	r0, r6
+ 402 0046 FFF7FEFF 		bl	sys_sem_free
+ 403              	.LVL44:
+ 146:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       memp_free(MEMP_NETCONN, conn);
+ 404              		.loc 1 146 0
+ 405 004a 2846     		mov	r0, r5
+ 406 004c FFF7FEFF 		bl	sys_mbox_free
+ 407              	.LVL45:
+ 147:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       API_MSG_VAR_FREE(msg);
+ 408              		.loc 1 147 0
+ 409 0050 2146     		mov	r1, r4
+ 410 0052 0720     		movs	r0, #7
+ 411 0054 FFF7FEFF 		bl	memp_free
+ 412              	.LVL46:
+ 149:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 413              		.loc 1 149 0
+ 414 0058 0024     		movs	r4, #0
+ 415              	.LVL47:
+ 416 005a E2E7     		b	.L35
+ 417              	.L40:
+ 418              		.align	2
+ 419              	.L39:
+ 420 005c 00000000 		.word	lwip_netconn_do_newconn
+ 421              	.LBE3:
+ 422              		.cfi_endproc
+ 423              	.LFE142:
+ 425              		.section	.text.netconn_delete,"ax",%progbits
+ 426              		.align	1
+ 427              		.global	netconn_delete
+ 428              		.syntax unified
+ 429              		.thumb
+ 430              		.thumb_func
+ 431              		.fpu fpv5-sp-d16
+ 433              	netconn_delete:
+ 434              	.LFB143:
+ 167:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err_t err;
+ 435              		.loc 1 167 0
+ 436              		.cfi_startproc
+ 437              		@ args = 0, pretend = 0, frame = 24
+ 438              		@ frame_needed = 0, uses_anonymous_args = 0
+ 439              	.LVL48:
+ 440 0000 30B5     		push	{r4, r5, lr}
+ 441              	.LCFI13:
+ 442              		.cfi_def_cfa_offset 12
+ 443              		.cfi_offset 4, -12
+ 444              		.cfi_offset 5, -8
+ 445              		.cfi_offset 14, -4
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 24
+
+
+ 446 0002 87B0     		sub	sp, sp, #28
+ 447              	.LCFI14:
+ 448              		.cfi_def_cfa_offset 40
+ 172:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_OK;
+ 449              		.loc 1 172 0
+ 450 0004 88B1     		cbz	r0, .L43
+ 451 0006 0446     		mov	r4, r0
+ 177:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_SNDTIMEO || LWIP_SO_LINGER
+ 452              		.loc 1 177 0
+ 453 0008 0190     		str	r0, [sp, #4]
+ 184:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     ((LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT + TCP_SLOW_INTERVAL - 1) / TCP_SLOW_INTERVAL) + 1;
+ 454              		.loc 1 184 0
+ 455 000a 2923     		movs	r3, #41
+ 456 000c 8DF80D30 		strb	r3, [sp, #13]
+ 188:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 457              		.loc 1 188 0
+ 458 0010 01A9     		add	r1, sp, #4
+ 459 0012 0748     		ldr	r0, .L46
+ 460              	.LVL49:
+ 461 0014 FFF7FEFF 		bl	netconn_apimsg
+ 462              	.LVL50:
+ 191:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return err;
+ 463              		.loc 1 191 0
+ 464 0018 0546     		mov	r5, r0
+ 465 001a 10B1     		cbz	r0, .L45
+ 466              	.LVL51:
+ 467              	.L42:
+ 198:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 468              		.loc 1 198 0
+ 469 001c 2846     		mov	r0, r5
+ 470 001e 07B0     		add	sp, sp, #28
+ 471              	.LCFI15:
+ 472              		.cfi_remember_state
+ 473              		.cfi_def_cfa_offset 12
+ 474              		@ sp needed
+ 475 0020 30BD     		pop	{r4, r5, pc}
+ 476              	.LVL52:
+ 477              	.L45:
+ 478              	.LCFI16:
+ 479              		.cfi_restore_state
+ 195:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 480              		.loc 1 195 0
+ 481 0022 2046     		mov	r0, r4
+ 482              	.LVL53:
+ 483 0024 FFF7FEFF 		bl	netconn_free
+ 484              	.LVL54:
+ 197:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 485              		.loc 1 197 0
+ 486 0028 F8E7     		b	.L42
+ 487              	.LVL55:
+ 488              	.L43:
+ 173:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 489              		.loc 1 173 0
+ 490 002a 0025     		movs	r5, #0
+ 491 002c F6E7     		b	.L42
+ 492              	.L47:
+ 493 002e 00BF     		.align	2
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 25
+
+
+ 494              	.L46:
+ 495 0030 00000000 		.word	lwip_netconn_do_delconn
+ 496              		.cfi_endproc
+ 497              	.LFE143:
+ 499              		.section	.text.netconn_getaddr,"ax",%progbits
+ 500              		.align	1
+ 501              		.global	netconn_getaddr
+ 502              		.syntax unified
+ 503              		.thumb
+ 504              		.thumb_func
+ 505              		.fpu fpv5-sp-d16
+ 507              	netconn_getaddr:
+ 508              	.LFB144:
+ 213:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 509              		.loc 1 213 0
+ 510              		.cfi_startproc
+ 511              		@ args = 0, pretend = 0, frame = 24
+ 512              		@ frame_needed = 0, uses_anonymous_args = 0
+ 513              	.LVL56:
+ 217:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_getaddr: invalid addr", (addr != NULL), return ERR_ARG;);
+ 514              		.loc 1 217 0
+ 515 0000 70B1     		cbz	r0, .L50
+ 213:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 516              		.loc 1 213 0
+ 517 0002 10B5     		push	{r4, lr}
+ 518              	.LCFI17:
+ 519              		.cfi_def_cfa_offset 8
+ 520              		.cfi_offset 4, -8
+ 521              		.cfi_offset 14, -4
+ 522 0004 86B0     		sub	sp, sp, #24
+ 523              	.LCFI18:
+ 524              		.cfi_def_cfa_offset 32
+ 218:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_getaddr: invalid port", (port != NULL), return ERR_ARG;);
+ 525              		.loc 1 218 0
+ 526 0006 71B1     		cbz	r1, .L51
+ 219:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 527              		.loc 1 219 0
+ 528 0008 82B1     		cbz	r2, .L52
+ 222:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.ad.local = local;
+ 529              		.loc 1 222 0
+ 530 000a 0190     		str	r0, [sp, #4]
+ 223:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_MPU_COMPATIBLE
+ 531              		.loc 1 223 0
+ 532 000c 8DF81430 		strb	r3, [sp, #20]
+ 229:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   msg.msg.ad.port = port;
+ 533              		.loc 1 229 0
+ 534 0010 0391     		str	r1, [sp, #12]
+ 230:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_getaddr, &msg);
+ 535              		.loc 1 230 0
+ 536 0012 0492     		str	r2, [sp, #16]
+ 231:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_MPU_COMPATIBLE */
+ 537              		.loc 1 231 0
+ 538 0014 01A9     		add	r1, sp, #4
+ 539              	.LVL57:
+ 540 0016 0748     		ldr	r0, .L57
+ 541              	.LVL58:
+ 542 0018 FFF7FEFF 		bl	netconn_apimsg
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 26
+
+
+ 543              	.LVL59:
+ 544              	.L49:
+ 236:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 545              		.loc 1 236 0
+ 546 001c 06B0     		add	sp, sp, #24
+ 547              	.LCFI19:
+ 548              		.cfi_def_cfa_offset 8
+ 549              		@ sp needed
+ 550 001e 10BD     		pop	{r4, pc}
+ 551              	.LVL60:
+ 552              	.L50:
+ 553              	.LCFI20:
+ 554              		.cfi_def_cfa_offset 0
+ 555              		.cfi_restore 4
+ 556              		.cfi_restore 14
+ 217:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_getaddr: invalid addr", (addr != NULL), return ERR_ARG;);
+ 557              		.loc 1 217 0
+ 558 0020 6FF00F00 		mvn	r0, #15
+ 559              	.LVL61:
+ 560 0024 7047     		bx	lr
+ 561              	.LVL62:
+ 562              	.L51:
+ 563              	.LCFI21:
+ 564              		.cfi_def_cfa_offset 32
+ 565              		.cfi_offset 4, -8
+ 566              		.cfi_offset 14, -4
+ 218:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_getaddr: invalid port", (port != NULL), return ERR_ARG;);
+ 567              		.loc 1 218 0
+ 568 0026 6FF00F00 		mvn	r0, #15
+ 569              	.LVL63:
+ 570 002a F7E7     		b	.L49
+ 571              	.LVL64:
+ 572              	.L52:
+ 219:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 573              		.loc 1 219 0
+ 574 002c 6FF00F00 		mvn	r0, #15
+ 575              	.LVL65:
+ 576 0030 F4E7     		b	.L49
+ 577              	.L58:
+ 578 0032 00BF     		.align	2
+ 579              	.L57:
+ 580 0034 00000000 		.word	lwip_netconn_do_getaddr
+ 581              		.cfi_endproc
+ 582              	.LFE144:
+ 584              		.section	.text.netconn_bind,"ax",%progbits
+ 585              		.align	1
+ 586              		.global	netconn_bind
+ 587              		.syntax unified
+ 588              		.thumb
+ 589              		.thumb_func
+ 590              		.fpu fpv5-sp-d16
+ 592              	netconn_bind:
+ 593              	.LFB145:
+ 251:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 594              		.loc 1 251 0
+ 595              		.cfi_startproc
+ 596              		@ args = 0, pretend = 0, frame = 24
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 27
+
+
+ 597              		@ frame_needed = 0, uses_anonymous_args = 0
+ 598              	.LVL66:
+ 255:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 599              		.loc 1 255 0
+ 600 0000 80B1     		cbz	r0, .L62
+ 251:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 601              		.loc 1 251 0
+ 602 0002 00B5     		push	{lr}
+ 603              	.LCFI22:
+ 604              		.cfi_def_cfa_offset 4
+ 605              		.cfi_offset 14, -4
+ 606 0004 87B0     		sub	sp, sp, #28
+ 607              	.LCFI23:
+ 608              		.cfi_def_cfa_offset 32
+ 609 0006 0346     		mov	r3, r0
+ 259:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     addr = IP4_ADDR_ANY;
+ 610              		.loc 1 259 0
+ 611 0008 51B1     		cbz	r1, .L68
+ 612              	.LVL67:
+ 613              	.L61:
+ 265:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.bc.ipaddr = API_MSG_VAR_REF(addr);
+ 614              		.loc 1 265 0
+ 615 000a 0193     		str	r3, [sp, #4]
+ 266:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.bc.port = port;
+ 616              		.loc 1 266 0
+ 617 000c 0391     		str	r1, [sp, #12]
+ 267:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_bind, &API_MSG_VAR_REF(msg));
+ 618              		.loc 1 267 0
+ 619 000e ADF81020 		strh	r2, [sp, #16]	@ movhi
+ 268:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 620              		.loc 1 268 0
+ 621 0012 01A9     		add	r1, sp, #4
+ 622              	.LVL68:
+ 623 0014 0548     		ldr	r0, .L69
+ 624              	.LVL69:
+ 625 0016 FFF7FEFF 		bl	netconn_apimsg
+ 626              	.LVL70:
+ 272:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 627              		.loc 1 272 0
+ 628 001a 07B0     		add	sp, sp, #28
+ 629              	.LCFI24:
+ 630              		.cfi_remember_state
+ 631              		.cfi_def_cfa_offset 4
+ 632              		@ sp needed
+ 633 001c 5DF804FB 		ldr	pc, [sp], #4
+ 634              	.LVL71:
+ 635              	.L68:
+ 636              	.LCFI25:
+ 637              		.cfi_restore_state
+ 260:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 638              		.loc 1 260 0
+ 639 0020 0349     		ldr	r1, .L69+4
+ 640              	.LVL72:
+ 641 0022 F2E7     		b	.L61
+ 642              	.LVL73:
+ 643              	.L62:
+ 644              	.LCFI26:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 28
+
+
+ 645              		.cfi_def_cfa_offset 0
+ 646              		.cfi_restore 14
+ 255:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 647              		.loc 1 255 0
+ 648 0024 6FF00F00 		mvn	r0, #15
+ 649              	.LVL74:
+ 650 0028 7047     		bx	lr
+ 651              	.L70:
+ 652 002a 00BF     		.align	2
+ 653              	.L69:
+ 654 002c 00000000 		.word	lwip_netconn_do_bind
+ 655 0030 00000000 		.word	ip_addr_any
+ 656              		.cfi_endproc
+ 657              	.LFE145:
+ 659              		.section	.text.netconn_connect,"ax",%progbits
+ 660              		.align	1
+ 661              		.global	netconn_connect
+ 662              		.syntax unified
+ 663              		.thumb
+ 664              		.thumb_func
+ 665              		.fpu fpv5-sp-d16
+ 667              	netconn_connect:
+ 668              	.LFB146:
+ 285:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 669              		.loc 1 285 0
+ 670              		.cfi_startproc
+ 671              		@ args = 0, pretend = 0, frame = 24
+ 672              		@ frame_needed = 0, uses_anonymous_args = 0
+ 673              	.LVL75:
+ 289:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 674              		.loc 1 289 0
+ 675 0000 80B1     		cbz	r0, .L74
+ 285:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 676              		.loc 1 285 0
+ 677 0002 00B5     		push	{lr}
+ 678              	.LCFI27:
+ 679              		.cfi_def_cfa_offset 4
+ 680              		.cfi_offset 14, -4
+ 681 0004 87B0     		sub	sp, sp, #28
+ 682              	.LCFI28:
+ 683              		.cfi_def_cfa_offset 32
+ 684 0006 0346     		mov	r3, r0
+ 293:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     addr = IP4_ADDR_ANY;
+ 685              		.loc 1 293 0
+ 686 0008 51B1     		cbz	r1, .L80
+ 687              	.LVL76:
+ 688              	.L73:
+ 299:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.bc.ipaddr = API_MSG_VAR_REF(addr);
+ 689              		.loc 1 299 0
+ 690 000a 0193     		str	r3, [sp, #4]
+ 300:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.bc.port = port;
+ 691              		.loc 1 300 0
+ 692 000c 0391     		str	r1, [sp, #12]
+ 301:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_connect, &API_MSG_VAR_REF(msg));
+ 693              		.loc 1 301 0
+ 694 000e ADF81020 		strh	r2, [sp, #16]	@ movhi
+ 302:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 29
+
+
+ 695              		.loc 1 302 0
+ 696 0012 01A9     		add	r1, sp, #4
+ 697              	.LVL77:
+ 698 0014 0548     		ldr	r0, .L81
+ 699              	.LVL78:
+ 700 0016 FFF7FEFF 		bl	netconn_apimsg
+ 701              	.LVL79:
+ 306:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 702              		.loc 1 306 0
+ 703 001a 07B0     		add	sp, sp, #28
+ 704              	.LCFI29:
+ 705              		.cfi_remember_state
+ 706              		.cfi_def_cfa_offset 4
+ 707              		@ sp needed
+ 708 001c 5DF804FB 		ldr	pc, [sp], #4
+ 709              	.LVL80:
+ 710              	.L80:
+ 711              	.LCFI30:
+ 712              		.cfi_restore_state
+ 294:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 713              		.loc 1 294 0
+ 714 0020 0349     		ldr	r1, .L81+4
+ 715              	.LVL81:
+ 716 0022 F2E7     		b	.L73
+ 717              	.LVL82:
+ 718              	.L74:
+ 719              	.LCFI31:
+ 720              		.cfi_def_cfa_offset 0
+ 721              		.cfi_restore 14
+ 289:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 722              		.loc 1 289 0
+ 723 0024 6FF00F00 		mvn	r0, #15
+ 724              	.LVL83:
+ 725 0028 7047     		bx	lr
+ 726              	.L82:
+ 727 002a 00BF     		.align	2
+ 728              	.L81:
+ 729 002c 00000000 		.word	lwip_netconn_do_connect
+ 730 0030 00000000 		.word	ip_addr_any
+ 731              		.cfi_endproc
+ 732              	.LFE146:
+ 734              		.section	.text.netconn_disconnect,"ax",%progbits
+ 735              		.align	1
+ 736              		.global	netconn_disconnect
+ 737              		.syntax unified
+ 738              		.thumb
+ 739              		.thumb_func
+ 740              		.fpu fpv5-sp-d16
+ 742              	netconn_disconnect:
+ 743              	.LFB147:
+ 317:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 744              		.loc 1 317 0
+ 745              		.cfi_startproc
+ 746              		@ args = 0, pretend = 0, frame = 24
+ 747              		@ frame_needed = 0, uses_anonymous_args = 0
+ 748              	.LVL84:
+ 321:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 30
+
+
+ 749              		.loc 1 321 0
+ 750 0000 50B1     		cbz	r0, .L85
+ 317:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 751              		.loc 1 317 0
+ 752 0002 00B5     		push	{lr}
+ 753              	.LCFI32:
+ 754              		.cfi_def_cfa_offset 4
+ 755              		.cfi_offset 14, -4
+ 756 0004 87B0     		sub	sp, sp, #28
+ 757              	.LCFI33:
+ 758              		.cfi_def_cfa_offset 32
+ 324:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_disconnect, &API_MSG_VAR_REF(msg));
+ 759              		.loc 1 324 0
+ 760 0006 06A9     		add	r1, sp, #24
+ 761 0008 41F8140D 		str	r0, [r1, #-20]!
+ 325:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 762              		.loc 1 325 0
+ 763 000c 0448     		ldr	r0, .L90
+ 764              	.LVL85:
+ 765 000e FFF7FEFF 		bl	netconn_apimsg
+ 766              	.LVL86:
+ 329:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 767              		.loc 1 329 0
+ 768 0012 07B0     		add	sp, sp, #28
+ 769              	.LCFI34:
+ 770              		.cfi_def_cfa_offset 4
+ 771              		@ sp needed
+ 772 0014 5DF804FB 		ldr	pc, [sp], #4
+ 773              	.LVL87:
+ 774              	.L85:
+ 775              	.LCFI35:
+ 776              		.cfi_def_cfa_offset 0
+ 777              		.cfi_restore 14
+ 321:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 778              		.loc 1 321 0
+ 779 0018 6FF00F00 		mvn	r0, #15
+ 780              	.LVL88:
+ 781 001c 7047     		bx	lr
+ 782              	.L91:
+ 783 001e 00BF     		.align	2
+ 784              	.L90:
+ 785 0020 00000000 		.word	lwip_netconn_do_disconnect
+ 786              		.cfi_endproc
+ 787              	.LFE147:
+ 789              		.section	.text.netconn_listen_with_backlog,"ax",%progbits
+ 790              		.align	1
+ 791              		.global	netconn_listen_with_backlog
+ 792              		.syntax unified
+ 793              		.thumb
+ 794              		.thumb_func
+ 795              		.fpu fpv5-sp-d16
+ 797              	netconn_listen_with_backlog:
+ 798              	.LFB148:
+ 342:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 799              		.loc 1 342 0
+ 800              		.cfi_startproc
+ 801              		@ args = 0, pretend = 0, frame = 24
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 31
+
+
+ 802              		@ frame_needed = 0, uses_anonymous_args = 0
+ 803              	.LVL89:
+ 350:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 804              		.loc 1 350 0
+ 805 0000 50B1     		cbz	r0, .L94
+ 342:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 806              		.loc 1 342 0
+ 807 0002 00B5     		push	{lr}
+ 808              	.LCFI36:
+ 809              		.cfi_def_cfa_offset 4
+ 810              		.cfi_offset 14, -4
+ 811 0004 87B0     		sub	sp, sp, #28
+ 812              	.LCFI37:
+ 813              		.cfi_def_cfa_offset 32
+ 353:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 814              		.loc 1 353 0
+ 815 0006 06A9     		add	r1, sp, #24
+ 816              	.LVL90:
+ 817 0008 41F8140D 		str	r0, [r1, #-20]!
+ 357:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 818              		.loc 1 357 0
+ 819 000c 0448     		ldr	r0, .L99
+ 820              	.LVL91:
+ 821 000e FFF7FEFF 		bl	netconn_apimsg
+ 822              	.LVL92:
+ 366:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 823              		.loc 1 366 0
+ 824 0012 07B0     		add	sp, sp, #28
+ 825              	.LCFI38:
+ 826              		.cfi_def_cfa_offset 4
+ 827              		@ sp needed
+ 828 0014 5DF804FB 		ldr	pc, [sp], #4
+ 829              	.LVL93:
+ 830              	.L94:
+ 831              	.LCFI39:
+ 832              		.cfi_def_cfa_offset 0
+ 833              		.cfi_restore 14
+ 350:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 834              		.loc 1 350 0
+ 835 0018 6FF00F00 		mvn	r0, #15
+ 836              	.LVL94:
+ 837 001c 7047     		bx	lr
+ 838              	.L100:
+ 839 001e 00BF     		.align	2
+ 840              	.L99:
+ 841 0020 00000000 		.word	lwip_netconn_do_listen
+ 842              		.cfi_endproc
+ 843              	.LFE148:
+ 845              		.section	.text.netconn_accept,"ax",%progbits
+ 846              		.align	1
+ 847              		.global	netconn_accept
+ 848              		.syntax unified
+ 849              		.thumb
+ 850              		.thumb_func
+ 851              		.fpu fpv5-sp-d16
+ 853              	netconn_accept:
+ 854              	.LFB149:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 32
+
+
+ 379:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 855              		.loc 1 379 0
+ 856              		.cfi_startproc
+ 857              		@ args = 0, pretend = 0, frame = 8
+ 858              		@ frame_needed = 0, uses_anonymous_args = 0
+ 859              	.LVL95:
+ 388:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_conn = NULL;
+ 860              		.loc 1 388 0
+ 861 0000 0029     		cmp	r1, #0
+ 862 0002 36D0     		beq	.L106
+ 379:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 863              		.loc 1 379 0
+ 864 0004 70B5     		push	{r4, r5, r6, lr}
+ 865              	.LCFI40:
+ 866              		.cfi_def_cfa_offset 16
+ 867              		.cfi_offset 4, -16
+ 868              		.cfi_offset 5, -12
+ 869              		.cfi_offset 6, -8
+ 870              		.cfi_offset 14, -4
+ 871 0006 82B0     		sub	sp, sp, #8
+ 872              	.LCFI41:
+ 873              		.cfi_def_cfa_offset 24
+ 874 0008 0D46     		mov	r5, r1
+ 389:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_accept: invalid conn",       (conn != NULL),                      return ERR_
+ 875              		.loc 1 389 0
+ 876 000a 0023     		movs	r3, #0
+ 877 000c 0B60     		str	r3, [r1]
+ 390:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 878              		.loc 1 390 0
+ 879 000e A0B3     		cbz	r0, .L107
+ 392:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (ERR_IS_FATAL(err)) {
+ 880              		.loc 1 392 0
+ 881 0010 90F90830 		ldrsb	r3, [r0, #8]
+ 882              	.LVL96:
+ 393:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* don't recv on fatal errors: this might block the application task
+ 883              		.loc 1 393 0
+ 884 0014 13F10C0F 		cmn	r3, #12
+ 885 0018 02DA     		bge	.L114
+ 886              	.LVL97:
+ 887              	.L102:
+ 455:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 888              		.loc 1 455 0
+ 889 001a 1846     		mov	r0, r3
+ 890 001c 02B0     		add	sp, sp, #8
+ 891              	.LCFI42:
+ 892              		.cfi_remember_state
+ 893              		.cfi_def_cfa_offset 16
+ 894              		@ sp needed
+ 895 001e 70BD     		pop	{r4, r5, r6, pc}
+ 896              	.LVL98:
+ 897              	.L114:
+ 898              	.LCFI43:
+ 899              		.cfi_restore_state
+ 900 0020 0446     		mov	r4, r0
+ 398:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_CLSD;
+ 901              		.loc 1 398 0
+ 902 0022 00F11406 		add	r6, r0, #20
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 33
+
+
+ 903 0026 3046     		mov	r0, r6
+ 904              	.LVL99:
+ 905 0028 FFF7FEFF 		bl	sys_mbox_valid
+ 906              	.LVL100:
+ 907 002c 40B3     		cbz	r0, .L108
+ 414:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* LWIP_SO_RCVTIMEO*/
+ 908              		.loc 1 414 0
+ 909 002e 0022     		movs	r2, #0
+ 910 0030 01A9     		add	r1, sp, #4
+ 911 0032 3046     		mov	r0, r6
+ 912 0034 FFF7FEFF 		bl	sys_arch_mbox_fetch
+ 913              	.LVL101:
+ 416:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* Register event with callback */
+ 914              		.loc 1 416 0
+ 915 0038 019E     		ldr	r6, [sp, #4]
+ 916              	.LVL102:
+ 418:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 917              		.loc 1 418 0
+ 918 003a A36A     		ldr	r3, [r4, #40]
+ 919 003c 1BB1     		cbz	r3, .L103
+ 418:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 920              		.loc 1 418 0 is_stmt 0 discriminator 1
+ 921 003e 0022     		movs	r2, #0
+ 922 0040 0121     		movs	r1, #1
+ 923 0042 2046     		mov	r0, r4
+ 924 0044 9847     		blx	r3
+ 925              	.LVL103:
+ 926              	.L103:
+ 420:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* a connection has been aborted: out of pcbs or out of netconns during accept */
+ 927              		.loc 1 420 0 is_stmt 1
+ 928 0046 114B     		ldr	r3, .L116
+ 929 0048 019A     		ldr	r2, [sp, #4]
+ 930 004a 9A42     		cmp	r2, r3
+ 931 004c 1BD0     		beq	.L109
+ 428:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* connection has been aborted */
+ 932              		.loc 1 428 0
+ 933 004e 16B1     		cbz	r6, .L115
+ 447:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* don't set conn->last_err: it's only ERR_OK, anyway */
+ 934              		.loc 1 447 0
+ 935 0050 2E60     		str	r6, [r5]
+ 449:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #else /* LWIP_TCP */
+ 936              		.loc 1 449 0
+ 937 0052 0023     		movs	r3, #0
+ 938 0054 E1E7     		b	.L102
+ 939              	.L115:
+ 940              	.LBB4:
+ 433:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 941              		.loc 1 433 0 discriminator 1
+ 942 0056 FFF7FEFF 		bl	sys_arch_protect
+ 943              	.LVL104:
+ 944 005a 94F90830 		ldrsb	r3, [r4, #8]
+ 945 005e 13F10C0F 		cmn	r3, #12
+ 946 0062 01DB     		blt	.L105
+ 433:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 947              		.loc 1 433 0 is_stmt 0 discriminator 2
+ 948 0064 F123     		movs	r3, #241
+ 949 0066 2372     		strb	r3, [r4, #8]
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 34
+
+
+ 950              	.L105:
+ 433:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if TCP_LISTEN_BACKLOG
+ 951              		.loc 1 433 0 discriminator 4
+ 952 0068 FFF7FEFF 		bl	sys_arch_unprotect
+ 953              	.LVL105:
+ 954              	.LBE4:
+ 437:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 955              		.loc 1 437 0 is_stmt 1 discriminator 4
+ 956 006c 6FF00E03 		mvn	r3, #14
+ 957 0070 D3E7     		b	.L102
+ 958              	.LVL106:
+ 959              	.L106:
+ 960              	.LCFI44:
+ 961              		.cfi_def_cfa_offset 0
+ 962              		.cfi_restore 4
+ 963              		.cfi_restore 5
+ 964              		.cfi_restore 6
+ 965              		.cfi_restore 14
+ 388:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_conn = NULL;
+ 966              		.loc 1 388 0
+ 967 0072 6FF00F03 		mvn	r3, #15
+ 455:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 968              		.loc 1 455 0
+ 969 0076 1846     		mov	r0, r3
+ 970              	.LVL107:
+ 971 0078 7047     		bx	lr
+ 972              	.LVL108:
+ 973              	.L107:
+ 974              	.LCFI45:
+ 975              		.cfi_def_cfa_offset 24
+ 976              		.cfi_offset 4, -16
+ 977              		.cfi_offset 5, -12
+ 978              		.cfi_offset 6, -8
+ 979              		.cfi_offset 14, -4
+ 390:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 980              		.loc 1 390 0
+ 981 007a 6FF00F03 		mvn	r3, #15
+ 982 007e CCE7     		b	.L102
+ 983              	.LVL109:
+ 984              	.L108:
+ 399:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 985              		.loc 1 399 0
+ 986 0080 6FF00E03 		mvn	r3, #14
+ 987 0084 C9E7     		b	.L102
+ 988              	.LVL110:
+ 989              	.L109:
+ 426:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 990              		.loc 1 426 0
+ 991 0086 6FF00C03 		mvn	r3, #12
+ 992 008a C6E7     		b	.L102
+ 993              	.L117:
+ 994              		.align	2
+ 995              	.L116:
+ 996 008c 00000000 		.word	netconn_aborted
+ 997              		.cfi_endproc
+ 998              	.LFE149:
+ 1000              		.section	.text.netconn_recv_tcp_pbuf,"ax",%progbits
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 35
+
+
+ 1001              		.align	1
+ 1002              		.global	netconn_recv_tcp_pbuf
+ 1003              		.syntax unified
+ 1004              		.thumb
+ 1005              		.thumb_func
+ 1006              		.fpu fpv5-sp-d16
+ 1008              	netconn_recv_tcp_pbuf:
+ 1009              	.LFB151:
+ 598:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid conn", (conn != NULL) &&
+ 1010              		.loc 1 598 0
+ 1011              		.cfi_startproc
+ 1012              		@ args = 0, pretend = 0, frame = 0
+ 1013              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1014              	.LVL111:
+ 599:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****              NETCONNTYPE_GROUP(netconn_type(conn)) == NETCONN_TCP, return ERR_ARG;);
+ 1015              		.loc 1 599 0
+ 1016 0000 40B1     		cbz	r0, .L120
+ 598:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid conn", (conn != NULL) &&
+ 1017              		.loc 1 598 0 discriminator 2
+ 1018 0002 08B5     		push	{r3, lr}
+ 1019              	.LCFI46:
+ 1020              		.cfi_def_cfa_offset 8
+ 1021              		.cfi_offset 3, -8
+ 1022              		.cfi_offset 14, -4
+ 599:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****              NETCONNTYPE_GROUP(netconn_type(conn)) == NETCONN_TCP, return ERR_ARG;);
+ 1023              		.loc 1 599 0 discriminator 2
+ 1024 0004 0278     		ldrb	r2, [r0]	@ zero_extendqisi2
+ 1025 0006 02F0F002 		and	r2, r2, #240
+ 1026 000a 102A     		cmp	r2, #16
+ 1027 000c 05D1     		bne	.L121
+ 602:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 1028              		.loc 1 602 0
+ 1029 000e FFF7FEFF 		bl	netconn_recv_data
+ 1030              	.LVL112:
+ 1031 0012 08BD     		pop	{r3, pc}
+ 1032              	.LVL113:
+ 1033              	.L120:
+ 1034              	.LCFI47:
+ 1035              		.cfi_def_cfa_offset 0
+ 1036              		.cfi_restore 3
+ 1037              		.cfi_restore 14
+ 599:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****              NETCONNTYPE_GROUP(netconn_type(conn)) == NETCONN_TCP, return ERR_ARG;);
+ 1038              		.loc 1 599 0
+ 1039 0014 6FF00F00 		mvn	r0, #15
+ 1040              	.LVL114:
+ 1041 0018 7047     		bx	lr
+ 1042              	.LVL115:
+ 1043              	.L121:
+ 1044              	.LCFI48:
+ 1045              		.cfi_def_cfa_offset 8
+ 1046              		.cfi_offset 3, -8
+ 1047              		.cfi_offset 14, -4
+ 1048 001a 6FF00F00 		mvn	r0, #15
+ 1049              	.LVL116:
+ 603:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1050              		.loc 1 603 0
+ 1051 001e 08BD     		pop	{r3, pc}
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 36
+
+
+ 1052              		.cfi_endproc
+ 1053              	.LFE151:
+ 1055              		.section	.text.netconn_recv,"ax",%progbits
+ 1056              		.align	1
+ 1057              		.global	netconn_recv
+ 1058              		.syntax unified
+ 1059              		.thumb
+ 1060              		.thumb_func
+ 1061              		.fpu fpv5-sp-d16
+ 1063              	netconn_recv:
+ 1064              	.LFB152:
+ 616:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_TCP
+ 1065              		.loc 1 616 0
+ 1066              		.cfi_startproc
+ 1067              		@ args = 0, pretend = 0, frame = 8
+ 1068              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1069              	.LVL117:
+ 1070 0000 70B5     		push	{r4, r5, r6, lr}
+ 1071              	.LCFI49:
+ 1072              		.cfi_def_cfa_offset 16
+ 1073              		.cfi_offset 4, -16
+ 1074              		.cfi_offset 5, -12
+ 1075              		.cfi_offset 6, -8
+ 1076              		.cfi_offset 14, -4
+ 1077 0002 82B0     		sub	sp, sp, #8
+ 1078              	.LCFI50:
+ 1079              		.cfi_def_cfa_offset 24
+ 1080              	.LVL118:
+ 622:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_buf = NULL;
+ 1081              		.loc 1 622 0
+ 1082 0004 61B3     		cbz	r1, .L131
+ 1083 0006 0D46     		mov	r5, r1
+ 623:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_recv: invalid conn",    (conn != NULL),    return ERR_ARG;);
+ 1084              		.loc 1 623 0
+ 1085 0008 0022     		movs	r2, #0
+ 1086 000a 0A60     		str	r2, [r1]
+ 624:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1087              		.loc 1 624 0
+ 1088 000c 58B3     		cbz	r0, .L132
+ 1089 000e 0446     		mov	r4, r0
+ 628:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 1090              		.loc 1 628 0
+ 1091 0010 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+ 1092 0012 03F0F003 		and	r3, r3, #240
+ 1093 0016 102B     		cmp	r3, #16
+ 1094 0018 05D0     		beq	.L135
+ 660:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #endif /* (LWIP_UDP || LWIP_RAW) */
+ 1095              		.loc 1 660 0
+ 1096 001a FFF7FEFF 		bl	netconn_recv_data
+ 1097              	.LVL119:
+ 1098 001e 0446     		mov	r4, r0
+ 1099              	.LVL120:
+ 1100              	.L127:
+ 663:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1101              		.loc 1 663 0 discriminator 1
+ 1102 0020 2046     		mov	r0, r4
+ 1103 0022 02B0     		add	sp, sp, #8
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 37
+
+
+ 1104              	.LCFI51:
+ 1105              		.cfi_remember_state
+ 1106              		.cfi_def_cfa_offset 16
+ 1107              		@ sp needed
+ 1108 0024 70BD     		pop	{r4, r5, r6, pc}
+ 1109              	.LVL121:
+ 1110              	.L135:
+ 1111              	.LCFI52:
+ 1112              		.cfi_restore_state
+ 1113              	.LBB5:
+ 631:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* This is not a listening netconn, since recvmbox is set */
+ 1114              		.loc 1 631 0
+ 1115 0026 0192     		str	r2, [sp, #4]
+ 634:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (buf == NULL) {
+ 1116              		.loc 1 634 0
+ 1117 0028 0620     		movs	r0, #6
+ 1118              	.LVL122:
+ 1119 002a FFF7FEFF 		bl	memp_malloc
+ 1120              	.LVL123:
+ 635:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       return ERR_MEM;
+ 1121              		.loc 1 635 0
+ 1122 002e 0646     		mov	r6, r0
+ 1123 0030 98B1     		cbz	r0, .L133
+ 639:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (err != ERR_OK) {
+ 1124              		.loc 1 639 0
+ 1125 0032 01A9     		add	r1, sp, #4
+ 1126 0034 2046     		mov	r0, r4
+ 1127              	.LVL124:
+ 1128 0036 FFF7FEFF 		bl	netconn_recv_data
+ 1129              	.LVL125:
+ 640:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       memp_free(MEMP_NETBUF, buf);
+ 1130              		.loc 1 640 0
+ 1131 003a 0446     		mov	r4, r0
+ 1132              	.LVL126:
+ 1133 003c 40B9     		cbnz	r0, .L136
+ 644:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1134              		.loc 1 644 0
+ 1135 003e 019B     		ldr	r3, [sp, #4]
+ 646:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->ptr = p;
+ 1136              		.loc 1 646 0
+ 1137 0040 3360     		str	r3, [r6]
+ 647:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->port = 0;
+ 1138              		.loc 1 647 0
+ 1139 0042 019B     		ldr	r3, [sp, #4]
+ 1140 0044 7360     		str	r3, [r6, #4]
+ 648:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     ip_addr_set_zero(&buf->addr);
+ 1141              		.loc 1 648 0
+ 1142 0046 0023     		movs	r3, #0
+ 1143 0048 B381     		strh	r3, [r6, #12]	@ movhi
+ 649:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     *new_buf = buf;
+ 1144              		.loc 1 649 0
+ 1145 004a B360     		str	r3, [r6, #8]
+ 650:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* don't set conn->last_err: it's only ERR_OK, anyway */
+ 1146              		.loc 1 650 0
+ 1147 004c 2E60     		str	r6, [r5]
+ 652:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 1148              		.loc 1 652 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 38
+
+
+ 1149 004e E7E7     		b	.L127
+ 1150              	.L136:
+ 641:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****       return err;
+ 1151              		.loc 1 641 0
+ 1152 0050 3146     		mov	r1, r6
+ 1153 0052 0620     		movs	r0, #6
+ 1154              	.LVL127:
+ 1155 0054 FFF7FEFF 		bl	memp_free
+ 1156              	.LVL128:
+ 642:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 1157              		.loc 1 642 0
+ 1158 0058 E2E7     		b	.L127
+ 1159              	.LVL129:
+ 1160              	.L133:
+ 636:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 1161              		.loc 1 636 0
+ 1162 005a 4FF0FF34 		mov	r4, #-1
+ 1163              	.LVL130:
+ 1164 005e DFE7     		b	.L127
+ 1165              	.LVL131:
+ 1166              	.L131:
+ 1167              	.LBE5:
+ 622:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   *new_buf = NULL;
+ 1168              		.loc 1 622 0
+ 1169 0060 6FF00F04 		mvn	r4, #15
+ 1170 0064 DCE7     		b	.L127
+ 1171              	.L132:
+ 624:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1172              		.loc 1 624 0
+ 1173 0066 6FF00F04 		mvn	r4, #15
+ 1174 006a D9E7     		b	.L127
+ 1175              		.cfi_endproc
+ 1176              	.LFE152:
+ 1178              		.section	.text.netconn_send,"ax",%progbits
+ 1179              		.align	1
+ 1180              		.global	netconn_send
+ 1181              		.syntax unified
+ 1182              		.thumb
+ 1183              		.thumb_func
+ 1184              		.fpu fpv5-sp-d16
+ 1186              	netconn_send:
+ 1187              	.LFB154:
+ 697:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 1188              		.loc 1 697 0
+ 1189              		.cfi_startproc
+ 1190              		@ args = 0, pretend = 0, frame = 24
+ 1191              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1192              	.LVL132:
+ 701:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1193              		.loc 1 701 0
+ 1194 0000 50B1     		cbz	r0, .L139
+ 697:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 1195              		.loc 1 697 0
+ 1196 0002 00B5     		push	{lr}
+ 1197              	.LCFI53:
+ 1198              		.cfi_def_cfa_offset 4
+ 1199              		.cfi_offset 14, -4
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 39
+
+
+ 1200 0004 87B0     		sub	sp, sp, #28
+ 1201              	.LCFI54:
+ 1202              		.cfi_def_cfa_offset 32
+ 705:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.b = buf;
+ 1203              		.loc 1 705 0
+ 1204 0006 0190     		str	r0, [sp, #4]
+ 706:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   err = netconn_apimsg(lwip_netconn_do_send, &API_MSG_VAR_REF(msg));
+ 1205              		.loc 1 706 0
+ 1206 0008 0391     		str	r1, [sp, #12]
+ 707:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_FREE(msg);
+ 1207              		.loc 1 707 0
+ 1208 000a 01A9     		add	r1, sp, #4
+ 1209              	.LVL133:
+ 1210 000c 0448     		ldr	r0, .L144
+ 1211              	.LVL134:
+ 1212 000e FFF7FEFF 		bl	netconn_apimsg
+ 1213              	.LVL135:
+ 711:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1214              		.loc 1 711 0
+ 1215 0012 07B0     		add	sp, sp, #28
+ 1216              	.LCFI55:
+ 1217              		.cfi_def_cfa_offset 4
+ 1218              		@ sp needed
+ 1219 0014 5DF804FB 		ldr	pc, [sp], #4
+ 1220              	.LVL136:
+ 1221              	.L139:
+ 1222              	.LCFI56:
+ 1223              		.cfi_def_cfa_offset 0
+ 1224              		.cfi_restore 14
+ 701:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1225              		.loc 1 701 0
+ 1226 0018 6FF00F00 		mvn	r0, #15
+ 1227              	.LVL137:
+ 1228 001c 7047     		bx	lr
+ 1229              	.L145:
+ 1230 001e 00BF     		.align	2
+ 1231              	.L144:
+ 1232 0020 00000000 		.word	lwip_netconn_do_send
+ 1233              		.cfi_endproc
+ 1234              	.LFE154:
+ 1236              		.section	.text.netconn_sendto,"ax",%progbits
+ 1237              		.align	1
+ 1238              		.global	netconn_sendto
+ 1239              		.syntax unified
+ 1240              		.thumb
+ 1241              		.thumb_func
+ 1242              		.fpu fpv5-sp-d16
+ 1244              	netconn_sendto:
+ 1245              	.LFB153:
+ 678:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (buf != NULL) {
+ 1246              		.loc 1 678 0
+ 1247              		.cfi_startproc
+ 1248              		@ args = 0, pretend = 0, frame = 0
+ 1249              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1250              	.LVL138:
+ 679:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     ip_addr_set(&buf->addr, addr);
+ 1251              		.loc 1 679 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 40
+
+
+ 1252 0000 59B1     		cbz	r1, .L149
+ 678:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (buf != NULL) {
+ 1253              		.loc 1 678 0
+ 1254 0002 10B5     		push	{r4, lr}
+ 1255              	.LCFI57:
+ 1256              		.cfi_def_cfa_offset 8
+ 1257              		.cfi_offset 4, -8
+ 1258              		.cfi_offset 14, -4
+ 1259 0004 0C46     		mov	r4, r1
+ 680:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->port = port;
+ 1260              		.loc 1 680 0
+ 1261 0006 32B1     		cbz	r2, .L150
+ 680:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->port = port;
+ 1262              		.loc 1 680 0 is_stmt 0 discriminator 1
+ 1263 0008 1268     		ldr	r2, [r2]
+ 1264              	.LVL139:
+ 1265              	.L148:
+ 1266 000a 2146     		mov	r1, r4
+ 1267              	.LVL140:
+ 680:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->port = port;
+ 1268              		.loc 1 680 0 discriminator 4
+ 1269 000c A260     		str	r2, [r4, #8]
+ 681:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return netconn_send(conn, buf);
+ 1270              		.loc 1 681 0 is_stmt 1 discriminator 4
+ 1271 000e A381     		strh	r3, [r4, #12]	@ movhi
+ 682:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 1272              		.loc 1 682 0 discriminator 4
+ 1273 0010 FFF7FEFF 		bl	netconn_send
+ 1274              	.LVL141:
+ 1275 0014 10BD     		pop	{r4, pc}
+ 1276              	.LVL142:
+ 1277              	.L150:
+ 680:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     buf->port = port;
+ 1278              		.loc 1 680 0
+ 1279 0016 0022     		movs	r2, #0
+ 1280              	.LVL143:
+ 1281 0018 F7E7     		b	.L148
+ 1282              	.LVL144:
+ 1283              	.L149:
+ 1284              	.LCFI58:
+ 1285              		.cfi_def_cfa_offset 0
+ 1286              		.cfi_restore 4
+ 1287              		.cfi_restore 14
+ 684:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 1288              		.loc 1 684 0
+ 1289 001a 6FF00500 		mvn	r0, #5
+ 1290              	.LVL145:
+ 1291 001e 7047     		bx	lr
+ 1292              		.cfi_endproc
+ 1293              	.LFE153:
+ 1295              		.section	.text.netconn_write_partly,"ax",%progbits
+ 1296              		.align	1
+ 1297              		.global	netconn_write_partly
+ 1298              		.syntax unified
+ 1299              		.thumb
+ 1300              		.thumb_func
+ 1301              		.fpu fpv5-sp-d16
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 41
+
+
+ 1303              	netconn_write_partly:
+ 1304              	.LFB155:
+ 730:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_DECLARE(msg);
+ 1305              		.loc 1 730 0
+ 1306              		.cfi_startproc
+ 1307              		@ args = 4, pretend = 0, frame = 24
+ 1308              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1309              	.LVL146:
+ 1310 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 1311              	.LCFI59:
+ 1312              		.cfi_def_cfa_offset 20
+ 1313              		.cfi_offset 4, -20
+ 1314              		.cfi_offset 5, -16
+ 1315              		.cfi_offset 6, -12
+ 1316              		.cfi_offset 7, -8
+ 1317              		.cfi_offset 14, -4
+ 1318 0002 87B0     		sub	sp, sp, #28
+ 1319              	.LCFI60:
+ 1320              		.cfi_def_cfa_offset 48
+ 1321 0004 0C9D     		ldr	r5, [sp, #48]
+ 735:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_write: invalid conn->type",  (NETCONNTYPE_GROUP(conn->type)== NETCONN_TCP), r
+ 1322              		.loc 1 735 0
+ 1323 0006 90B3     		cbz	r0, .L159
+ 1324 0008 0446     		mov	r4, r0
+ 736:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (size == 0) {
+ 1325              		.loc 1 736 0
+ 1326 000a 0078     		ldrb	r0, [r0]	@ zero_extendqisi2
+ 1327              	.LVL147:
+ 1328 000c 00F0F000 		and	r0, r0, #240
+ 1329 0010 1028     		cmp	r0, #16
+ 1330 0012 2FD1     		bne	.L160
+ 737:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     return ERR_OK;
+ 1331              		.loc 1 737 0
+ 1332 0014 8AB3     		cbz	r2, .L161
+ 740:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (dontblock && !bytes_written) {
+ 1333              		.loc 1 740 0
+ 1334 0016 207F     		ldrb	r0, [r4, #28]	@ zero_extendqisi2
+ 1335 0018 10F0020F 		tst	r0, #2
+ 1336 001c 04D1     		bne	.L162
+ 740:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (dontblock && !bytes_written) {
+ 1337              		.loc 1 740 0 is_stmt 0 discriminator 2
+ 1338 001e 13F0040F 		tst	r3, #4
+ 1339 0022 1FD0     		beq	.L163
+ 740:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (dontblock && !bytes_written) {
+ 1340              		.loc 1 740 0
+ 1341 0024 0120     		movs	r0, #1
+ 1342 0026 00E0     		b	.L157
+ 1343              	.L162:
+ 1344 0028 0120     		movs	r0, #1
+ 1345              	.L157:
+ 1346              	.LVL148:
+ 741:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     /* This implies netconn_write() cannot be used for non-blocking send, since
+ 1347              		.loc 1 741 0 is_stmt 1 discriminator 6
+ 1348 002a 00F0FF06 		and	r6, r0, #255
+ 1349 002e 002D     		cmp	r5, #0
+ 1350 0030 14BF     		ite	ne
+ 1351 0032 0020     		movne	r0, #0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 42
+
+
+ 1352 0034 00F00100 		andeq	r0, r0, #1
+ 1353              	.LVL149:
+ 1354 0038 18BB     		cbnz	r0, .L164
+ 1355 003a 1746     		mov	r7, r2
+ 749:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.w.dataptr = dataptr;
+ 1356              		.loc 1 749 0
+ 1357 003c 0194     		str	r4, [sp, #4]
+ 750:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.w.apiflags = apiflags;
+ 1358              		.loc 1 750 0
+ 1359 003e 0391     		str	r1, [sp, #12]
+ 751:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   API_MSG_VAR_REF(msg).msg.w.len = size;
+ 1360              		.loc 1 751 0
+ 1361 0040 8DF81430 		strb	r3, [sp, #20]
+ 752:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_SNDTIMEO
+ 1362              		.loc 1 752 0
+ 1363 0044 0492     		str	r2, [sp, #16]
+ 766:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if ((err == ERR_OK) && (bytes_written != NULL)) {
+ 1364              		.loc 1 766 0
+ 1365 0046 01A9     		add	r1, sp, #4
+ 1366              	.LVL150:
+ 1367 0048 0F48     		ldr	r0, .L167
+ 1368 004a FFF7FEFF 		bl	netconn_apimsg
+ 1369              	.LVL151:
+ 767:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     if (dontblock
+ 1370              		.loc 1 767 0
+ 1371 004e 0346     		mov	r3, r0
+ 1372 0050 B0FA80F0 		clz	r0, r0
+ 1373              	.LVL152:
+ 1374 0054 4009     		lsrs	r0, r0, #5
+ 1375 0056 002D     		cmp	r5, #0
+ 1376 0058 08BF     		it	eq
+ 1377 005a 0020     		moveq	r0, #0
+ 1378 005c 70B1     		cbz	r0, .L156
+ 768:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** #if LWIP_SO_SNDTIMEO
+ 1379              		.loc 1 768 0
+ 1380 005e 1EB9     		cbnz	r6, .L166
+ 777:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     }
+ 1381              		.loc 1 777 0
+ 1382 0060 2F60     		str	r7, [r5]
+ 1383 0062 0BE0     		b	.L156
+ 1384              	.LVL153:
+ 1385              	.L163:
+ 740:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (dontblock && !bytes_written) {
+ 1386              		.loc 1 740 0
+ 1387 0064 0020     		movs	r0, #0
+ 1388 0066 E0E7     		b	.L157
+ 1389              	.LVL154:
+ 1390              	.L166:
+ 774:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****     } else {
+ 1391              		.loc 1 774 0
+ 1392 0068 049A     		ldr	r2, [sp, #16]
+ 1393 006a 2A60     		str	r2, [r5]
+ 1394 006c 06E0     		b	.L156
+ 1395              	.LVL155:
+ 1396              	.L159:
+ 735:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   LWIP_ERROR("netconn_write: invalid conn->type",  (NETCONNTYPE_GROUP(conn->type)== NETCONN_TCP), r
+ 1397              		.loc 1 735 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 43
+
+
+ 1398 006e 6FF00F03 		mvn	r3, #15
+ 1399              	.LVL156:
+ 1400 0072 03E0     		b	.L156
+ 1401              	.LVL157:
+ 1402              	.L160:
+ 736:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   if (size == 0) {
+ 1403              		.loc 1 736 0
+ 1404 0074 6FF00503 		mvn	r3, #5
+ 1405              	.LVL158:
+ 1406 0078 00E0     		b	.L156
+ 1407              	.LVL159:
+ 1408              	.L161:
+ 738:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 1409              		.loc 1 738 0
+ 1410 007a 0023     		movs	r3, #0
+ 1411              	.LVL160:
+ 1412              	.L156:
+ 783:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 1413              		.loc 1 783 0
+ 1414 007c 1846     		mov	r0, r3
+ 1415 007e 07B0     		add	sp, sp, #28
+ 1416              	.LCFI61:
+ 1417              		.cfi_remember_state
+ 1418              		.cfi_def_cfa_offset 20
+ 1419              		@ sp needed
+ 1420 0080 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 1421              	.LVL161:
+ 1422              	.L164:
+ 1423              	.LCFI62:
+ 1424              		.cfi_restore_state
+ 744:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   }
+ 1425              		.loc 1 744 0
+ 1426 0082 6FF00503 		mvn	r3, #5
+ 1427              	.LVL162:
+ 1428 0086 F9E7     		b	.L156
+ 1429              	.L168:
+ 1430              		.align	2
+ 1431              	.L167:
+ 1432 0088 00000000 		.word	lwip_netconn_do_write
+ 1433              		.cfi_endproc
+ 1434              	.LFE155:
+ 1436              		.section	.text.netconn_close,"ax",%progbits
+ 1437              		.align	1
+ 1438              		.global	netconn_close
+ 1439              		.syntax unified
+ 1440              		.thumb
+ 1441              		.thumb_func
+ 1442              		.fpu fpv5-sp-d16
+ 1444              	netconn_close:
+ 1445              	.LFB157:
+ 821:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 822:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 823:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_tcp
+ 824:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Close a TCP netconn (doesn't delete it).
+ 825:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 826:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the TCP netconn to close
+ 827:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if the netconn was closed, any other err_t on error
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 44
+
+
+ 828:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 829:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 830:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_close(struct netconn *conn)
+ 831:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 1446              		.loc 1 831 0
+ 1447              		.cfi_startproc
+ 1448              		@ args = 0, pretend = 0, frame = 0
+ 1449              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1450              	.LVL163:
+ 1451 0000 08B5     		push	{r3, lr}
+ 1452              	.LCFI63:
+ 1453              		.cfi_def_cfa_offset 8
+ 1454              		.cfi_offset 3, -8
+ 1455              		.cfi_offset 14, -4
+ 832:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   /* shutting down both ends is the same as closing */
+ 833:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return netconn_close_shutdown(conn, NETCONN_SHUT_RDWR);
+ 1456              		.loc 1 833 0
+ 1457 0002 0321     		movs	r1, #3
+ 1458 0004 FFF7FEFF 		bl	netconn_close_shutdown
+ 1459              	.LVL164:
+ 834:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 1460              		.loc 1 834 0
+ 1461 0008 08BD     		pop	{r3, pc}
+ 1462              		.cfi_endproc
+ 1463              	.LFE157:
+ 1465              		.section	.text.netconn_shutdown,"ax",%progbits
+ 1466              		.align	1
+ 1467              		.global	netconn_shutdown
+ 1468              		.syntax unified
+ 1469              		.thumb
+ 1470              		.thumb_func
+ 1471              		.fpu fpv5-sp-d16
+ 1473              	netconn_shutdown:
+ 1474              	.LFB158:
+ 835:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** 
+ 836:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** /**
+ 837:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @ingroup netconn_tcp
+ 838:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * Shut down one or both sides of a TCP netconn (doesn't delete it).
+ 839:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  *
+ 840:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param conn the TCP netconn to shut down
+ 841:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param shut_rx shut down the RX side (no more read possible after this)
+ 842:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @param shut_tx shut down the TX side (no more write possible after this)
+ 843:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  * @return ERR_OK if the netconn was closed, any other err_t on error
+ 844:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****  */
+ 845:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** err_t
+ 846:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** netconn_shutdown(struct netconn *conn, u8_t shut_rx, u8_t shut_tx)
+ 847:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** {
+ 1475              		.loc 1 847 0
+ 1476              		.cfi_startproc
+ 1477              		@ args = 0, pretend = 0, frame = 0
+ 1478              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1479              	.LVL165:
+ 1480 0000 08B5     		push	{r3, lr}
+ 1481              	.LCFI64:
+ 1482              		.cfi_def_cfa_offset 8
+ 1483              		.cfi_offset 3, -8
+ 1484              		.cfi_offset 14, -4
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 45
+
+
+ 848:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return netconn_close_shutdown(conn, (shut_rx ? NETCONN_SHUT_RD : 0) | (shut_tx ? NETCONN_SHUT_WR 
+ 1485              		.loc 1 848 0
+ 1486 0002 0031     		adds	r1, r1, #0
+ 1487              	.LVL166:
+ 1488 0004 18BF     		it	ne
+ 1489 0006 0121     		movne	r1, #1
+ 1490 0008 22B9     		cbnz	r2, .L175
+ 1491 000a 0023     		movs	r3, #0
+ 1492              	.L172:
+ 1493              		.loc 1 848 0 is_stmt 0 discriminator 4
+ 1494 000c 1943     		orrs	r1, r1, r3
+ 1495 000e FFF7FEFF 		bl	netconn_close_shutdown
+ 1496              	.LVL167:
+ 849:Middlewares/Third_Party/LwIP/src/api/api_lib.c **** }
+ 1497              		.loc 1 849 0 is_stmt 1 discriminator 4
+ 1498 0012 08BD     		pop	{r3, pc}
+ 1499              	.LVL168:
+ 1500              	.L175:
+ 848:Middlewares/Third_Party/LwIP/src/api/api_lib.c ****   return netconn_close_shutdown(conn, (shut_rx ? NETCONN_SHUT_RD : 0) | (shut_tx ? NETCONN_SHUT_WR 
+ 1501              		.loc 1 848 0
+ 1502 0014 0223     		movs	r3, #2
+ 1503 0016 F9E7     		b	.L172
+ 1504              		.cfi_endproc
+ 1505              	.LFE158:
+ 1507              		.text
+ 1508              	.Letext0:
+ 1509              		.file 2 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1510              		.file 3 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1511              		.file 4 "Drivers/CMSIS/Include/core_cm7.h"
+ 1512              		.file 5 "Drivers/CMSIS/Device/ST/STM32F7xx/Include/system_stm32f7xx.h"
+ 1513              		.file 6 "c:\\gcc_toolchain\\6_2017-q1-update\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1514              		.file 7 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\lock.h"
+ 1515              		.file 8 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_types.h"
+ 1516              		.file 9 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\reent.h"
+ 1517              		.file 10 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\stdlib.h"
+ 1518              		.file 11 "Middlewares/Third_Party/LwIP/system/arch/cc.h"
+ 1519              		.file 12 "Middlewares/Third_Party/LwIP/src/include/lwip/arch.h"
+ 1520              		.file 13 "Middlewares/Third_Party/LwIP/src/include/lwip/err.h"
+ 1521              		.file 14 "Middlewares/Third_Party/LwIP/src/include/lwip/pbuf.h"
+ 1522              		.file 15 "Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h"
+ 1523              		.file 16 "Middlewares/Third_Party/LwIP/src/include/lwip/ip_addr.h"
+ 1524              		.file 17 "Middlewares/Third_Party/LwIP/src/include/lwip/netbuf.h"
+ 1525              		.file 18 "Middlewares/Third_Party/FreeRTOS/Source/include/queue.h"
+ 1526              		.file 19 "Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h"
+ 1527              		.file 20 "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h"
+ 1528              		.file 21 "Middlewares/Third_Party/LwIP/system/arch/sys_arch.h"
+ 1529              		.file 22 "Middlewares/Third_Party/LwIP/src/include/lwip/api.h"
+ 1530              		.file 23 "Middlewares/Third_Party/LwIP/src/include/lwip/ip.h"
+ 1531              		.file 24 "Middlewares/Third_Party/LwIP/src/include/lwip/tcp.h"
+ 1532              		.file 25 "Middlewares/Third_Party/LwIP/src/include/lwip/udp.h"
+ 1533              		.file 26 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/api_msg.h"
+ 1534              		.file 27 "Middlewares/Third_Party/LwIP/src/include/lwip/memp.h"
+ 1535              		.file 28 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/memp_priv.h"
+ 1536              		.file 29 "Middlewares/Third_Party/LwIP/src/include/lwip/netif.h"
+ 1537              		.file 30 "Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip4.h"
+ 1538              		.file 31 "Middlewares/Third_Party/LwIP/src/include/lwip/timeouts.h"
+ 1539              		.file 32 "Middlewares/Third_Party/LwIP/src/include/lwip/tcpip.h"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 46
+
+
+ 1540              		.file 33 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/tcp_priv.h"
+ 1541              		.file 34 "Middlewares/Third_Party/LwIP/src/include/lwip/prot/tcp.h"
+ 1542              		.file 35 "Middlewares/Third_Party/LwIP/src/include/lwip/sys.h"
+ 1543              		.file 36 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/tcpip_priv.h"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 47
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 api_lib.c
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:18     .text.netconn_apimsg:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:24     .text.netconn_apimsg:00000000 netconn_apimsg
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:57     .text.netconn_close_shutdown:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:63     .text.netconn_close_shutdown:00000000 netconn_close_shutdown
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:112    .text.netconn_close_shutdown:00000028 $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:117    .text.netconn_recv_data:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:123    .text.netconn_recv_data:00000000 netconn_recv_data
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:318    .text.netconn_recv_data:000000e8 $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:323    .text.netconn_new_with_proto_and_callback:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:330    .text.netconn_new_with_proto_and_callback:00000000 netconn_new_with_proto_and_callback
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:420    .text.netconn_new_with_proto_and_callback:0000005c $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:426    .text.netconn_delete:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:433    .text.netconn_delete:00000000 netconn_delete
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:495    .text.netconn_delete:00000030 $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:500    .text.netconn_getaddr:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:507    .text.netconn_getaddr:00000000 netconn_getaddr
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:580    .text.netconn_getaddr:00000034 $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:585    .text.netconn_bind:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:592    .text.netconn_bind:00000000 netconn_bind
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:654    .text.netconn_bind:0000002c $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:660    .text.netconn_connect:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:667    .text.netconn_connect:00000000 netconn_connect
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:729    .text.netconn_connect:0000002c $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:735    .text.netconn_disconnect:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:742    .text.netconn_disconnect:00000000 netconn_disconnect
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:785    .text.netconn_disconnect:00000020 $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:790    .text.netconn_listen_with_backlog:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:797    .text.netconn_listen_with_backlog:00000000 netconn_listen_with_backlog
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:841    .text.netconn_listen_with_backlog:00000020 $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:846    .text.netconn_accept:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:853    .text.netconn_accept:00000000 netconn_accept
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:996    .text.netconn_accept:0000008c $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1001   .text.netconn_recv_tcp_pbuf:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1008   .text.netconn_recv_tcp_pbuf:00000000 netconn_recv_tcp_pbuf
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1056   .text.netconn_recv:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1063   .text.netconn_recv:00000000 netconn_recv
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1179   .text.netconn_send:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1186   .text.netconn_send:00000000 netconn_send
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1232   .text.netconn_send:00000020 $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1237   .text.netconn_sendto:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1244   .text.netconn_sendto:00000000 netconn_sendto
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1296   .text.netconn_write_partly:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1303   .text.netconn_write_partly:00000000 netconn_write_partly
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1432   .text.netconn_write_partly:00000088 $d
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1437   .text.netconn_close:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1444   .text.netconn_close:00000000 netconn_close
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1466   .text.netconn_shutdown:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccuQrURO.s:1473   .text.netconn_shutdown:00000000 netconn_shutdown
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+tcpip_send_msg_wait_sem
+lwip_netconn_do_close
+sys_mbox_valid
+sys_arch_mbox_fetch
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccuQrURO.s 			page 48
+
+
+lwip_netconn_do_recv
+netconn_alloc
+sys_sem_valid
+sys_sem_free
+sys_mbox_free
+memp_free
+lwip_netconn_do_newconn
+netconn_free
+lwip_netconn_do_delconn
+lwip_netconn_do_getaddr
+lwip_netconn_do_bind
+ip_addr_any
+lwip_netconn_do_connect
+lwip_netconn_do_disconnect
+lwip_netconn_do_listen
+sys_arch_protect
+sys_arch_unprotect
+netconn_aborted
+memp_malloc
+lwip_netconn_do_send
+lwip_netconn_do_write

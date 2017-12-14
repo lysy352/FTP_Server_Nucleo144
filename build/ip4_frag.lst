@@ -1,0 +1,2743 @@
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"ip4_frag.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.ip_reass_dequeue_datagram,"ax",%progbits
+  18              		.align	1
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu fpv5-sp-d16
+  24              	ip_reass_dequeue_datagram:
+  25              	.LFB140:
+  26              		.file 1 "Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c"
+   1:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+   2:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @file
+   3:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * This is the IPv4 packet segmentation and reassembly implementation.
+   4:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+   5:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+   6:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+   7:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /*
+   8:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
+   9:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * All rights reserved.
+  10:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+  11:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  12:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * are permitted provided that the following conditions are met:
+  13:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+  14:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  15:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *    this list of conditions and the following disclaimer.
+  16:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *    and/or other materials provided with the distribution.
+  19:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * 3. The name of the author may not be used to endorse or promote products
+  20:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *    derived from this software without specific prior written permission.
+  21:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+  22:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  23:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  24:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  25:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  26:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  27:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  30:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  31:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * OF SUCH DAMAGE.
+  32:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 2
+
+
+  33:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * This file is part of the lwIP TCP/IP stack.
+  34:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+  35:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Author: Jani Monoses <jani@iv.ro>
+  36:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *         Simon Goldschmidt
+  37:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * original reassembly code by Adam Dunkels <adam@sics.se>
+  38:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+  39:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+  40:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  41:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #include "lwip/opt.h"
+  42:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  43:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if LWIP_IPV4
+  44:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  45:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #include "lwip/ip4_frag.h"
+  46:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #include "lwip/def.h"
+  47:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #include "lwip/inet_chksum.h"
+  48:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #include "lwip/netif.h"
+  49:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #include "lwip/stats.h"
+  50:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #include "lwip/icmp.h"
+  51:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  52:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #include <string.h>
+  53:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  54:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASSEMBLY
+  55:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+  56:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * The IP reassembly code currently has the following limitations:
+  57:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * - IP header options are not supported
+  58:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * - fragments must not overlap (e.g. due to different routes),
+  59:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *   currently, overlapping or duplicate fragments are thrown away
+  60:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *   if IP_REASS_CHECK_OVERLAP=1 (the default)!
+  61:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+  62:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @todo: work with IP header options
+  63:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+  64:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  65:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /** Setting this to 0, you can turn off checking the fragments for overlapping
+  66:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * regions. The code gets a little smaller. Only use this if you know that
+  67:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * overlapping won't occur on your network! */
+  68:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #ifndef IP_REASS_CHECK_OVERLAP
+  69:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #define IP_REASS_CHECK_OVERLAP 1
+  70:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_CHECK_OVERLAP */
+  71:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  72:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /** Set to 0 to prevent freeing the oldest datagram when the reassembly buffer is
+  73:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * full (IP_REASS_MAX_PBUFS pbufs are enqueued). The code gets a little smaller.
+  74:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Datagrams will be freed by timeout only. Especially useful when MEMP_NUM_REASSDATA
+  75:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * is set to 1, so one datagram can be reassembled at a time, only. */
+  76:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #ifndef IP_REASS_FREE_OLDEST
+  77:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #define IP_REASS_FREE_OLDEST 1
+  78:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_FREE_OLDEST */
+  79:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  80:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #define IP_REASS_FLAG_LASTFRAG 0x01
+  81:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+  82:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /** This is a helper struct which holds the starting
+  83:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * offset and the ending offset of this fragment to
+  84:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * easily chain the fragments.
+  85:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * It has the same packing requirements as the IP header, since it replaces
+  86:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * the IP header in memory in incoming fragments (after copying it) to keep
+  87:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * track of the various fragments. (-> If the IP header doesn't need packing,
+  88:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * this struct doesn't need packing, too.)
+  89:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 3
+
+
+  90:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #ifdef PACK_STRUCT_USE_INCLUDES
+  91:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #  include "arch/bpstruct.h"
+  92:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif
+  93:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** PACK_STRUCT_BEGIN
+  94:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** struct ip_reass_helper {
+  95:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   PACK_STRUCT_FIELD(struct pbuf *next_pbuf);
+  96:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   PACK_STRUCT_FIELD(u16_t start);
+  97:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   PACK_STRUCT_FIELD(u16_t end);
+  98:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** } PACK_STRUCT_STRUCT;
+  99:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** PACK_STRUCT_END
+ 100:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #ifdef PACK_STRUCT_USE_INCLUDES
+ 101:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #  include "arch/epstruct.h"
+ 102:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif
+ 103:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 104:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #define IP_ADDRESSES_AND_ID_MATCH(iphdrA, iphdrB)  \
+ 105:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   (ip4_addr_cmp(&(iphdrA)->src, &(iphdrB)->src) && \
+ 106:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    ip4_addr_cmp(&(iphdrA)->dest, &(iphdrB)->dest) && \
+ 107:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    IPH_ID(iphdrA) == IPH_ID(iphdrB)) ? 1 : 0
+ 108:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 109:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /* global variables */
+ 110:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static struct ip_reassdata *reassdatagrams;
+ 111:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static u16_t ip_reass_pbufcount;
+ 112:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 113:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /* function prototypes */
+ 114:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static void ip_reass_dequeue_datagram(struct ip_reassdata *ipr, struct ip_reassdata *prev);
+ 115:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static int ip_reass_free_complete_datagram(struct ip_reassdata *ipr, struct ip_reassdata *prev);
+ 116:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 117:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+ 118:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Reassembly timer base function
+ 119:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * for both NO_SYS == 0 and 1 (!).
+ 120:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+ 121:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Should be called every 1000 msec (defined by IP_TMR_INTERVAL).
+ 122:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ 123:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** void
+ 124:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip_reass_tmr(void)
+ 125:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 126:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reassdata *r, *prev = NULL;
+ 127:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 128:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   r = reassdatagrams;
+ 129:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   while (r != NULL) {
+ 130:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Decrement the timer. Once it reaches 0,
+ 131:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * clean up the incomplete fragment assembly */
+ 132:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (r->timer > 0) {
+ 133:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       r->timer--;
+ 134:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG, ("ip_reass_tmr: timer dec %"U16_F"\n",(u16_t)r->timer));
+ 135:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       prev = r;
+ 136:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       r = r->next;
+ 137:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     } else {
+ 138:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* reassembly timed out */
+ 139:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       struct ip_reassdata *tmp;
+ 140:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG, ("ip_reass_tmr: timer timed out\n"));
+ 141:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       tmp = r;
+ 142:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* get the next pointer before freeing */
+ 143:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       r = r->next;
+ 144:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* free the helper struct and all enqueued pbufs */
+ 145:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ip_reass_free_complete_datagram(tmp, prev);
+ 146:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      }
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 4
+
+
+ 147:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    }
+ 148:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 149:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 150:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+ 151:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Free a datagram (struct ip_reassdata) and all its pbufs.
+ 152:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Updates the total count of enqueued pbufs (ip_reass_pbufcount),
+ 153:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * SNMP counters and sends an ICMP time exceeded packet.
+ 154:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+ 155:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param ipr datagram to free
+ 156:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param prev the previous datagram in the linked list
+ 157:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @return the number of pbufs freed
+ 158:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ 159:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static int
+ 160:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip_reass_free_complete_datagram(struct ip_reassdata *ipr, struct ip_reassdata *prev)
+ 161:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 162:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t pbufs_freed = 0;
+ 163:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t clen;
+ 164:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct pbuf *p;
+ 165:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reass_helper *iprh;
+ 166:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 167:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ASSERT("prev != ipr", prev != ipr);
+ 168:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (prev != NULL) {
+ 169:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_ASSERT("prev->next == ipr", prev->next == ipr);
+ 170:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 171:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 172:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   MIB2_STATS_INC(mib2.ipreasmfails);
+ 173:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if LWIP_ICMP
+ 174:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iprh = (struct ip_reass_helper *)ipr->p->payload;
+ 175:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (iprh->start == 0) {
+ 176:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* The first fragment was received, send ICMP time exceeded. */
+ 177:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* First, de-queue the first pbuf from r->p. */
+ 178:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     p = ipr->p;
+ 179:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ipr->p = iprh->next_pbuf;
+ 180:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Then, copy the original header into it. */
+ 181:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     SMEMCPY(p->payload, &ipr->iphdr, IP_HLEN);
+ 182:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     icmp_time_exceeded(p, ICMP_TE_FRAG);
+ 183:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     clen = pbuf_clen(p);
+ 184:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_ASSERT("pbufs_freed + clen <= 0xffff", pbufs_freed + clen <= 0xffff);
+ 185:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pbufs_freed += clen;
+ 186:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pbuf_free(p);
+ 187:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 188:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* LWIP_ICMP */
+ 189:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 190:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* First, free all received pbufs.  The individual pbufs need to be released
+ 191:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      separately as they have not yet been chained */
+ 192:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   p = ipr->p;
+ 193:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   while (p != NULL) {
+ 194:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     struct pbuf *pcur;
+ 195:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iprh = (struct ip_reass_helper *)p->payload;
+ 196:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pcur = p;
+ 197:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* get the next pointer before freeing */
+ 198:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     p = iprh->next_pbuf;
+ 199:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     clen = pbuf_clen(pcur);
+ 200:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_ASSERT("pbufs_freed + clen <= 0xffff", pbufs_freed + clen <= 0xffff);
+ 201:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pbufs_freed += clen;
+ 202:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pbuf_free(pcur);
+ 203:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 5
+
+
+ 204:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Then, unchain the struct ip_reassdata from the list and free it. */
+ 205:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ip_reass_dequeue_datagram(ipr, prev);
+ 206:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ASSERT("ip_reass_pbufcount >= clen", ip_reass_pbufcount >= pbufs_freed);
+ 207:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ip_reass_pbufcount -= pbufs_freed;
+ 208:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 209:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return pbufs_freed;
+ 210:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 211:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 212:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_FREE_OLDEST
+ 213:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+ 214:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Free the oldest datagram to make room for enqueueing new fragments.
+ 215:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * The datagram 'fraghdr' belongs to is not freed!
+ 216:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+ 217:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param fraghdr IP header of the current fragment
+ 218:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param pbufs_needed number of pbufs needed to enqueue
+ 219:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *        (used for freeing other datagrams if not enough space)
+ 220:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @return the number of pbufs freed
+ 221:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ 222:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static int
+ 223:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip_reass_remove_oldest_datagram(struct ip_hdr *fraghdr, int pbufs_needed)
+ 224:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 225:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* @todo Can't we simply remove the last datagram in the
+ 226:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    *       linked list behind reassdatagrams?
+ 227:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    */
+ 228:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reassdata *r, *oldest, *prev, *oldest_prev;
+ 229:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   int pbufs_freed = 0, pbufs_freed_current;
+ 230:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   int other_datagrams;
+ 231:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 232:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Free datagrams until being allowed to enqueue 'pbufs_needed' pbufs,
+ 233:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    * but don't free the datagram that 'fraghdr' belongs to! */
+ 234:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   do {
+ 235:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     oldest = NULL;
+ 236:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     prev = NULL;
+ 237:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     oldest_prev = NULL;
+ 238:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     other_datagrams = 0;
+ 239:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     r = reassdatagrams;
+ 240:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     while (r != NULL) {
+ 241:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (!IP_ADDRESSES_AND_ID_MATCH(&r->iphdr, fraghdr)) {
+ 242:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* Not the same datagram as fraghdr */
+ 243:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         other_datagrams++;
+ 244:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if (oldest == NULL) {
+ 245:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           oldest = r;
+ 246:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           oldest_prev = prev;
+ 247:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         } else if (r->timer <= oldest->timer) {
+ 248:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           /* older than the previous oldest */
+ 249:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           oldest = r;
+ 250:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           oldest_prev = prev;
+ 251:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 252:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 253:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (r->next != NULL) {
+ 254:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         prev = r;
+ 255:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 256:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       r = r->next;
+ 257:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 258:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (oldest != NULL) {
+ 259:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbufs_freed_current = ip_reass_free_complete_datagram(oldest, oldest_prev);
+ 260:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbufs_freed += pbufs_freed_current;
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 6
+
+
+ 261:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 262:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   } while ((pbufs_freed < pbufs_needed) && (other_datagrams > 1));
+ 263:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return pbufs_freed;
+ 264:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 265:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_FREE_OLDEST */
+ 266:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 267:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+ 268:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Enqueues a new fragment into the fragment queue
+ 269:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param fraghdr points to the new fragments IP hdr
+ 270:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param clen number of pbufs needed to enqueue (used for freeing other datagrams if not enough sp
+ 271:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @return A pointer to the queue location into which the fragment was enqueued
+ 272:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ 273:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static struct ip_reassdata*
+ 274:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip_reass_enqueue_new_datagram(struct ip_hdr *fraghdr, int clen)
+ 275:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 276:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reassdata* ipr;
+ 277:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if ! IP_REASS_FREE_OLDEST
+ 278:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_UNUSED_ARG(clen);
+ 279:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif
+ 280:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 281:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* No matching previous fragment found, allocate a new reassdata struct */
+ 282:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ipr = (struct ip_reassdata *)memp_malloc(MEMP_REASSDATA);
+ 283:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (ipr == NULL) {
+ 284:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_FREE_OLDEST
+ 285:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (ip_reass_remove_oldest_datagram(fraghdr, clen) >= clen) {
+ 286:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ipr = (struct ip_reassdata *)memp_malloc(MEMP_REASSDATA);
+ 287:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 288:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (ipr == NULL)
+ 289:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_FREE_OLDEST */
+ 290:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     {
+ 291:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       IPFRAG_STATS_INC(ip_frag.memerr);
+ 292:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG,("Failed to alloc reassdata struct\n"));
+ 293:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       return NULL;
+ 294:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 295:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 296:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   memset(ipr, 0, sizeof(struct ip_reassdata));
+ 297:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ipr->timer = IP_REASS_MAXAGE;
+ 298:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 299:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* enqueue the new structure to the front of the list */
+ 300:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ipr->next = reassdatagrams;
+ 301:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   reassdatagrams = ipr;
+ 302:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* copy the ip header for later tests and input */
+ 303:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* @todo: no ip options supported? */
+ 304:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   SMEMCPY(&(ipr->iphdr), fraghdr, IP_HLEN);
+ 305:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return ipr;
+ 306:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 307:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 308:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+ 309:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Dequeues a datagram from the datagram queue. Doesn't deallocate the pbufs.
+ 310:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param ipr points to the queue entry to dequeue
+ 311:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ 312:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static void
+ 313:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip_reass_dequeue_datagram(struct ip_reassdata *ipr, struct ip_reassdata *prev)
+ 314:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+  27              		.loc 1 314 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 7
+
+
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 08B5     		push	{r3, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 8
+  35              		.cfi_offset 3, -8
+  36              		.cfi_offset 14, -4
+ 315:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* dequeue the reass struct  */
+ 316:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (reassdatagrams == ipr) {
+  37              		.loc 1 316 0
+  38 0002 074B     		ldr	r3, .L6
+  39 0004 1B68     		ldr	r3, [r3]
+  40 0006 8342     		cmp	r3, r0
+  41 0008 06D0     		beq	.L5
+ 317:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* it was the first in the list */
+ 318:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     reassdatagrams = ipr->next;
+ 319:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   } else {
+ 320:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* it wasn't the first, so it must have a valid 'prev' */
+ 321:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_ASSERT("sanity check linked list", prev != NULL);
+ 322:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     prev->next = ipr->next;
+  42              		.loc 1 322 0
+  43 000a 0368     		ldr	r3, [r0]
+  44 000c 0B60     		str	r3, [r1]
+  45              	.L3:
+ 323:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 324:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 325:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* now we can free the ip_reassdata struct */
+ 326:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   memp_free(MEMP_REASSDATA, ipr);
+  46              		.loc 1 326 0
+  47 000e 0146     		mov	r1, r0
+  48              	.LVL1:
+  49 0010 0420     		movs	r0, #4
+  50              	.LVL2:
+  51 0012 FFF7FEFF 		bl	memp_free
+  52              	.LVL3:
+  53 0016 08BD     		pop	{r3, pc}
+  54              	.LVL4:
+  55              	.L5:
+ 318:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   } else {
+  56              		.loc 1 318 0
+  57 0018 0268     		ldr	r2, [r0]
+  58 001a 014B     		ldr	r3, .L6
+  59 001c 1A60     		str	r2, [r3]
+  60 001e F6E7     		b	.L3
+  61              	.L7:
+  62              		.align	2
+  63              	.L6:
+  64 0020 00000000 		.word	.LANCHOR0
+  65              		.cfi_endproc
+  66              	.LFE140:
+  68              		.section	.text.ip_reass_free_complete_datagram,"ax",%progbits
+  69              		.align	1
+  70              		.syntax unified
+  71              		.thumb
+  72              		.thumb_func
+  73              		.fpu fpv5-sp-d16
+  75              	ip_reass_free_complete_datagram:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 8
+
+
+  76              	.LFB137:
+ 161:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t pbufs_freed = 0;
+  77              		.loc 1 161 0
+  78              		.cfi_startproc
+  79              		@ args = 0, pretend = 0, frame = 0
+  80              		@ frame_needed = 0, uses_anonymous_args = 0
+  81              	.LVL5:
+  82 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+  83              	.LCFI1:
+  84              		.cfi_def_cfa_offset 24
+  85              		.cfi_offset 4, -24
+  86              		.cfi_offset 5, -20
+  87              		.cfi_offset 6, -16
+  88              		.cfi_offset 7, -12
+  89              		.cfi_offset 8, -8
+  90              		.cfi_offset 14, -4
+  91 0004 0746     		mov	r7, r0
+  92 0006 8846     		mov	r8, r1
+  93              	.LVL6:
+ 174:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (iprh->start == 0) {
+  94              		.loc 1 174 0
+  95 0008 4468     		ldr	r4, [r0, #4]
+  96 000a 6368     		ldr	r3, [r4, #4]
+  97              	.LVL7:
+ 175:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* The first fragment was received, send ICMP time exceeded. */
+  98              		.loc 1 175 0
+  99 000c 9A88     		ldrh	r2, [r3, #4]	@ unaligned
+ 100 000e 12B1     		cbz	r2, .L14
+ 162:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t clen;
+ 101              		.loc 1 162 0
+ 102 0010 0025     		movs	r5, #0
+ 103              	.LVL8:
+ 104              	.L9:
+ 192:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   while (p != NULL) {
+ 105              		.loc 1 192 0
+ 106 0012 7C68     		ldr	r4, [r7, #4]
+ 107              	.LVL9:
+ 193:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     struct pbuf *pcur;
+ 108              		.loc 1 193 0
+ 109 0014 25E0     		b	.L10
+ 110              	.LVL10:
+ 111              	.L14:
+ 179:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Then, copy the original header into it. */
+ 112              		.loc 1 179 0
+ 113 0016 1B68     		ldr	r3, [r3]	@ unaligned
+ 114              	.LVL11:
+ 115 0018 4360     		str	r3, [r0, #4]
+ 116              	.LVL12:
+ 181:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     icmp_time_exceeded(p, ICMP_TE_FRAG);
+ 117              		.loc 1 181 0
+ 118 001a 0346     		mov	r3, r0
+ 119 001c 6268     		ldr	r2, [r4, #4]
+ 120 001e 53F8081F 		ldr	r1, [r3, #8]!	@ unaligned
+ 121              	.LVL13:
+ 122 0022 5E68     		ldr	r6, [r3, #4]	@ unaligned
+ 123 0024 9D68     		ldr	r5, [r3, #8]	@ unaligned
+ 124 0026 D868     		ldr	r0, [r3, #12]	@ unaligned
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 9
+
+
+ 125              	.LVL14:
+ 126 0028 1160     		str	r1, [r2]	@ unaligned
+ 127 002a 5660     		str	r6, [r2, #4]	@ unaligned
+ 128 002c 9560     		str	r5, [r2, #8]	@ unaligned
+ 129 002e D060     		str	r0, [r2, #12]	@ unaligned
+ 130 0030 1969     		ldr	r1, [r3, #16]	@ unaligned
+ 131 0032 1161     		str	r1, [r2, #16]	@ unaligned
+ 182:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     clen = pbuf_clen(p);
+ 132              		.loc 1 182 0
+ 133 0034 0121     		movs	r1, #1
+ 134 0036 2046     		mov	r0, r4
+ 135 0038 FFF7FEFF 		bl	icmp_time_exceeded
+ 136              	.LVL15:
+ 183:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_ASSERT("pbufs_freed + clen <= 0xffff", pbufs_freed + clen <= 0xffff);
+ 137              		.loc 1 183 0
+ 138 003c 2046     		mov	r0, r4
+ 139 003e FFF7FEFF 		bl	pbuf_clen
+ 140              	.LVL16:
+ 141 0042 0546     		mov	r5, r0
+ 142              	.LVL17:
+ 186:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 143              		.loc 1 186 0
+ 144 0044 2046     		mov	r0, r4
+ 145 0046 FFF7FEFF 		bl	pbuf_free
+ 146              	.LVL18:
+ 147 004a E2E7     		b	.L9
+ 148              	.LVL19:
+ 149              	.L11:
+ 150              	.LBB2:
+ 195:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pcur = p;
+ 151              		.loc 1 195 0
+ 152 004c 6368     		ldr	r3, [r4, #4]
+ 153              	.LVL20:
+ 198:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     clen = pbuf_clen(pcur);
+ 154              		.loc 1 198 0
+ 155 004e 1E68     		ldr	r6, [r3]	@ unaligned
+ 156              	.LVL21:
+ 199:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_ASSERT("pbufs_freed + clen <= 0xffff", pbufs_freed + clen <= 0xffff);
+ 157              		.loc 1 199 0
+ 158 0050 2046     		mov	r0, r4
+ 159 0052 FFF7FEFF 		bl	pbuf_clen
+ 160              	.LVL22:
+ 201:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pbuf_free(pcur);
+ 161              		.loc 1 201 0
+ 162 0056 0544     		add	r5, r5, r0
+ 163              	.LVL23:
+ 164 0058 ADB2     		uxth	r5, r5
+ 165              	.LVL24:
+ 202:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 166              		.loc 1 202 0
+ 167 005a 2046     		mov	r0, r4
+ 168              	.LVL25:
+ 169 005c FFF7FEFF 		bl	pbuf_free
+ 170              	.LVL26:
+ 198:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     clen = pbuf_clen(pcur);
+ 171              		.loc 1 198 0
+ 172 0060 3446     		mov	r4, r6
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 10
+
+
+ 173              	.LVL27:
+ 174              	.L10:
+ 175              	.LBE2:
+ 193:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     struct pbuf *pcur;
+ 176              		.loc 1 193 0
+ 177 0062 002C     		cmp	r4, #0
+ 178 0064 F2D1     		bne	.L11
+ 205:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ASSERT("ip_reass_pbufcount >= clen", ip_reass_pbufcount >= pbufs_freed);
+ 179              		.loc 1 205 0
+ 180 0066 4146     		mov	r1, r8
+ 181 0068 3846     		mov	r0, r7
+ 182 006a FFF7FEFF 		bl	ip_reass_dequeue_datagram
+ 183              	.LVL28:
+ 206:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ip_reass_pbufcount -= pbufs_freed;
+ 184              		.loc 1 206 0
+ 185 006e 034A     		ldr	r2, .L15
+ 186 0070 1388     		ldrh	r3, [r2]
+ 207:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 187              		.loc 1 207 0
+ 188 0072 5B1B     		subs	r3, r3, r5
+ 189 0074 1380     		strh	r3, [r2]	@ movhi
+ 210:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 190              		.loc 1 210 0
+ 191 0076 2846     		mov	r0, r5
+ 192 0078 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 193              	.LVL29:
+ 194              	.L16:
+ 195              		.align	2
+ 196              	.L15:
+ 197 007c 00000000 		.word	.LANCHOR1
+ 198              		.cfi_endproc
+ 199              	.LFE137:
+ 201              		.section	.text.ip_reass_remove_oldest_datagram,"ax",%progbits
+ 202              		.align	1
+ 203              		.syntax unified
+ 204              		.thumb
+ 205              		.thumb_func
+ 206              		.fpu fpv5-sp-d16
+ 208              	ip_reass_remove_oldest_datagram:
+ 209              	.LFB138:
+ 224:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* @todo Can't we simply remove the last datagram in the
+ 210              		.loc 1 224 0
+ 211              		.cfi_startproc
+ 212              		@ args = 0, pretend = 0, frame = 0
+ 213              		@ frame_needed = 0, uses_anonymous_args = 0
+ 214              	.LVL30:
+ 215 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 216              	.LCFI2:
+ 217              		.cfi_def_cfa_offset 24
+ 218              		.cfi_offset 4, -24
+ 219              		.cfi_offset 5, -20
+ 220              		.cfi_offset 6, -16
+ 221              		.cfi_offset 7, -12
+ 222              		.cfi_offset 8, -8
+ 223              		.cfi_offset 14, -4
+ 224 0004 0546     		mov	r5, r0
+ 225 0006 8846     		mov	r8, r1
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 11
+
+
+ 226              	.LVL31:
+ 229:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   int other_datagrams;
+ 227              		.loc 1 229 0
+ 228 0008 0026     		movs	r6, #0
+ 229 000a 2EE0     		b	.L24
+ 230              	.LVL32:
+ 231              	.L30:
+ 241:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* Not the same datagram as fraghdr */
+ 232              		.loc 1 241 0 discriminator 1
+ 233 000c 9A69     		ldr	r2, [r3, #24]
+ 234 000e D5F810C0 		ldr	ip, [r5, #16]	@ unaligned
+ 235 0012 6245     		cmp	r2, ip
+ 236 0014 10D1     		bne	.L19
+ 241:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* Not the same datagram as fraghdr */
+ 237              		.loc 1 241 0 is_stmt 0 discriminator 2
+ 238 0016 B3F80CC0 		ldrh	ip, [r3, #12]
+ 239 001a AA88     		ldrh	r2, [r5, #4]	@ unaligned
+ 240 001c 9445     		cmp	ip, r2
+ 241 001e 0BD1     		bne	.L19
+ 242 0020 01E0     		b	.L20
+ 243              	.L25:
+ 246:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         } else if (r->timer <= oldest->timer) {
+ 244              		.loc 1 246 0 is_stmt 1
+ 245 0022 7146     		mov	r1, lr
+ 246              	.LVL33:
+ 245:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           oldest_prev = prev;
+ 247              		.loc 1 245 0
+ 248 0024 1846     		mov	r0, r3
+ 249              	.LVL34:
+ 250              	.L20:
+ 253:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         prev = r;
+ 251              		.loc 1 253 0
+ 252 0026 1A68     		ldr	r2, [r3]
+ 253 0028 8AB1     		cbz	r2, .L28
+ 254              	.LVL35:
+ 255              	.L21:
+ 256 002a 9E46     		mov	lr, r3
+ 257              	.LVL36:
+ 258 002c 1346     		mov	r3, r2
+ 259              	.LVL37:
+ 260              	.L18:
+ 240:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (!IP_ADDRESSES_AND_ID_MATCH(&r->iphdr, fraghdr)) {
+ 261              		.loc 1 240 0
+ 262 002e 83B1     		cbz	r3, .L29
+ 241:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* Not the same datagram as fraghdr */
+ 263              		.loc 1 241 0
+ 264 0030 EA68     		ldr	r2, [r5, #12]	@ unaligned
+ 265 0032 5F69     		ldr	r7, [r3, #20]
+ 266 0034 9742     		cmp	r7, r2
+ 267 0036 E9D0     		beq	.L30
+ 268              	.L19:
+ 243:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if (oldest == NULL) {
+ 269              		.loc 1 243 0
+ 270 0038 0134     		adds	r4, r4, #1
+ 271              	.LVL38:
+ 244:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           oldest = r;
+ 272              		.loc 1 244 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 12
+
+
+ 273 003a 0028     		cmp	r0, #0
+ 274 003c F1D0     		beq	.L25
+ 247:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           /* older than the previous oldest */
+ 275              		.loc 1 247 0
+ 276 003e 93F81FC0 		ldrb	ip, [r3, #31]	@ zero_extendqisi2
+ 277 0042 C27F     		ldrb	r2, [r0, #31]	@ zero_extendqisi2
+ 278 0044 9445     		cmp	ip, r2
+ 279 0046 EED8     		bhi	.L20
+ 250:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 280              		.loc 1 250 0
+ 281 0048 7146     		mov	r1, lr
+ 282              	.LVL39:
+ 249:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           oldest_prev = prev;
+ 283              		.loc 1 249 0
+ 284 004a 1846     		mov	r0, r3
+ 285              	.LVL40:
+ 286 004c EBE7     		b	.L20
+ 287              	.LVL41:
+ 288              	.L28:
+ 253:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         prev = r;
+ 289              		.loc 1 253 0
+ 290 004e 7346     		mov	r3, lr
+ 291              	.LVL42:
+ 292 0050 EBE7     		b	.L21
+ 293              	.LVL43:
+ 294              	.L29:
+ 258:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbufs_freed_current = ip_reass_free_complete_datagram(oldest, oldest_prev);
+ 295              		.loc 1 258 0
+ 296 0052 10B1     		cbz	r0, .L23
+ 259:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbufs_freed += pbufs_freed_current;
+ 297              		.loc 1 259 0
+ 298 0054 FFF7FEFF 		bl	ip_reass_free_complete_datagram
+ 299              	.LVL44:
+ 260:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 300              		.loc 1 260 0
+ 301 0058 0644     		add	r6, r6, r0
+ 302              	.LVL45:
+ 303              	.L23:
+ 262:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return pbufs_freed;
+ 304              		.loc 1 262 0
+ 305 005a 4645     		cmp	r6, r8
+ 306 005c ACBF     		ite	ge
+ 307 005e 0023     		movge	r3, #0
+ 308 0060 0123     		movlt	r3, #1
+ 309 0062 012C     		cmp	r4, #1
+ 310 0064 D8BF     		it	le
+ 311 0066 0023     		movle	r3, #0
+ 312 0068 33B1     		cbz	r3, .L31
+ 313              	.LVL46:
+ 314              	.L24:
+ 239:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     while (r != NULL) {
+ 315              		.loc 1 239 0
+ 316 006a 054B     		ldr	r3, .L32
+ 317 006c 1B68     		ldr	r3, [r3]
+ 318              	.LVL47:
+ 238:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     r = reassdatagrams;
+ 319              		.loc 1 238 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 13
+
+
+ 320 006e 0024     		movs	r4, #0
+ 237:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     other_datagrams = 0;
+ 321              		.loc 1 237 0
+ 322 0070 2146     		mov	r1, r4
+ 236:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     oldest_prev = NULL;
+ 323              		.loc 1 236 0
+ 324 0072 A646     		mov	lr, r4
+ 235:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     prev = NULL;
+ 325              		.loc 1 235 0
+ 326 0074 2046     		mov	r0, r4
+ 240:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (!IP_ADDRESSES_AND_ID_MATCH(&r->iphdr, fraghdr)) {
+ 327              		.loc 1 240 0
+ 328 0076 DAE7     		b	.L18
+ 329              	.LVL48:
+ 330              	.L31:
+ 264:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_FREE_OLDEST */
+ 331              		.loc 1 264 0
+ 332 0078 3046     		mov	r0, r6
+ 333 007a BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 334              	.LVL49:
+ 335              	.L33:
+ 336 007e 00BF     		.align	2
+ 337              	.L32:
+ 338 0080 00000000 		.word	.LANCHOR0
+ 339              		.cfi_endproc
+ 340              	.LFE138:
+ 342              		.section	.text.ip_frag_free_pbuf_custom_ref,"ax",%progbits
+ 343              		.align	1
+ 344              		.syntax unified
+ 345              		.thumb
+ 346              		.thumb_func
+ 347              		.fpu fpv5-sp-d16
+ 349              	ip_frag_free_pbuf_custom_ref:
+ 350              	.LFB144:
+ 327:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 328:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 329:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+ 330:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Chain a new pbuf into the pbuf list that composes the datagram.  The pbuf list
+ 331:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * will grow over time as  new pbufs are rx.
+ 332:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Also checks that the datagram passes basic continuity checks (if the last
+ 333:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * fragment was received at least once).
+ 334:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param ipr points to the reassembly state
+ 335:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param new_p points to the pbuf for the current fragment
+ 336:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @return 0 if invalid, >0 otherwise
+ 337:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ 338:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static int
+ 339:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip_reass_chain_frag_into_datagram_and_validate(struct ip_reassdata *ipr, struct pbuf *new_p)
+ 340:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 341:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reass_helper *iprh, *iprh_tmp, *iprh_prev=NULL;
+ 342:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct pbuf *q;
+ 343:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t offset, len;
+ 344:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_hdr *fraghdr;
+ 345:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   int valid = 1;
+ 346:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 347:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Extract length and fragment offset from current fragment */
+ 348:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   fraghdr = (struct ip_hdr*)new_p->payload;
+ 349:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   len = lwip_ntohs(IPH_LEN(fraghdr)) - IPH_HL(fraghdr) * 4;
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 14
+
+
+ 350:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   offset = (lwip_ntohs(IPH_OFFSET(fraghdr)) & IP_OFFMASK) * 8;
+ 351:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 352:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* overwrite the fragment's ip header from the pbuf with our helper struct,
+ 353:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    * and setup the embedded helper structure. */
+ 354:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* make sure the struct ip_reass_helper fits into the IP header */
+ 355:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ASSERT("sizeof(struct ip_reass_helper) <= IP_HLEN",
+ 356:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****               sizeof(struct ip_reass_helper) <= IP_HLEN);
+ 357:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iprh = (struct ip_reass_helper*)new_p->payload;
+ 358:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iprh->next_pbuf = NULL;
+ 359:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iprh->start = offset;
+ 360:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iprh->end = offset + len;
+ 361:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 362:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Iterate through until we either get to the end of the list (append),
+ 363:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    * or we find one with a larger offset (insert). */
+ 364:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   for (q = ipr->p; q != NULL;) {
+ 365:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iprh_tmp = (struct ip_reass_helper*)q->payload;
+ 366:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (iprh->start < iprh_tmp->start) {
+ 367:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* the new pbuf should be inserted before this */
+ 368:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       iprh->next_pbuf = q;
+ 369:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (iprh_prev != NULL) {
+ 370:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* not the fragment with the lowest offset */
+ 371:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_CHECK_OVERLAP
+ 372:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if ((iprh->start < iprh_prev->end) || (iprh->end > iprh_tmp->start)) {
+ 373:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           /* fragment overlaps with previous or following, throw away */
+ 374:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           goto freepbuf;
+ 375:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 376:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_CHECK_OVERLAP */
+ 377:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         iprh_prev->next_pbuf = new_p;
+ 378:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       } else {
+ 379:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* fragment with the lowest offset */
+ 380:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         ipr->p = new_p;
+ 381:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 382:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       break;
+ 383:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     } else if (iprh->start == iprh_tmp->start) {
+ 384:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* received the same datagram twice: no need to keep the datagram */
+ 385:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto freepbuf;
+ 386:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_CHECK_OVERLAP
+ 387:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     } else if (iprh->start < iprh_tmp->end) {
+ 388:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* overlap: no need to keep the new datagram */
+ 389:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto freepbuf;
+ 390:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_CHECK_OVERLAP */
+ 391:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     } else {
+ 392:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* Check if the fragments received so far have no holes. */
+ 393:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (iprh_prev != NULL) {
+ 394:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if (iprh_prev->end != iprh_tmp->start) {
+ 395:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           /* There is a fragment missing between the current
+ 396:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****            * and the previous fragment */
+ 397:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           valid = 0;
+ 398:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 399:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 400:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 401:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     q = iprh_tmp->next_pbuf;
+ 402:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iprh_prev = iprh_tmp;
+ 403:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 404:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 405:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* If q is NULL, then we made it to the end of the list. Determine what to do now */
+ 406:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (q == NULL) {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 15
+
+
+ 407:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (iprh_prev != NULL) {
+ 408:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* this is (for now), the fragment with the highest offset:
+ 409:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****        * chain it to the last fragment */
+ 410:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_CHECK_OVERLAP
+ 411:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_ASSERT("check fragments don't overlap", iprh_prev->end <= iprh->start);
+ 412:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_CHECK_OVERLAP */
+ 413:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       iprh_prev->next_pbuf = new_p;
+ 414:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (iprh_prev->end != iprh->start) {
+ 415:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         valid = 0;
+ 416:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 417:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     } else {
+ 418:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_CHECK_OVERLAP
+ 419:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_ASSERT("no previous fragment, this must be the first fragment!",
+ 420:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         ipr->p == NULL);
+ 421:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_CHECK_OVERLAP */
+ 422:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* this is the first fragment we ever received for this ip datagram */
+ 423:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ipr->p = new_p;
+ 424:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 425:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 426:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 427:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* At this point, the validation part begins: */
+ 428:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* If we already received the last fragment */
+ 429:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if ((ipr->flags & IP_REASS_FLAG_LASTFRAG) != 0) {
+ 430:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* and had no holes so far */
+ 431:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (valid) {
+ 432:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* then check if the rest of the fragments is here */
+ 433:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* Check if the queue starts with the first datagram */
+ 434:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if ((ipr->p == NULL) || (((struct ip_reass_helper*)ipr->p->payload)->start != 0)) {
+ 435:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         valid = 0;
+ 436:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       } else {
+ 437:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* and check that there are no holes after this datagram */
+ 438:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         iprh_prev = iprh;
+ 439:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         q = iprh->next_pbuf;
+ 440:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         while (q != NULL) {
+ 441:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           iprh = (struct ip_reass_helper*)q->payload;
+ 442:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           if (iprh_prev->end != iprh->start) {
+ 443:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****             valid = 0;
+ 444:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****             break;
+ 445:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           }
+ 446:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           iprh_prev = iprh;
+ 447:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           q = iprh->next_pbuf;
+ 448:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 449:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* if still valid, all fragments are received
+ 450:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****          * (because to the MF==0 already arrived */
+ 451:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if (valid) {
+ 452:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           LWIP_ASSERT("sanity check", ipr->p != NULL);
+ 453:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           LWIP_ASSERT("sanity check",
+ 454:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****             ((struct ip_reass_helper*)ipr->p->payload) != iprh);
+ 455:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           LWIP_ASSERT("validate_datagram:next_pbuf!=NULL",
+ 456:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****             iprh->next_pbuf == NULL);
+ 457:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           LWIP_ASSERT("validate_datagram:datagram end!=datagram len",
+ 458:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****             iprh->end == ipr->datagram_len);
+ 459:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 460:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 461:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 462:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* If valid is 0 here, there are some fragments missing in the middle
+ 463:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * (since MF == 0 has already arrived). Such datagrams simply time out if
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 16
+
+
+ 464:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * no more fragments are received... */
+ 465:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     return valid;
+ 466:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 467:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* If we come here, not all fragments were received, yet! */
+ 468:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return 0; /* not yet valid! */
+ 469:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_CHECK_OVERLAP
+ 470:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** freepbuf:
+ 471:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ip_reass_pbufcount -= pbuf_clen(new_p);
+ 472:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   pbuf_free(new_p);
+ 473:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return 0;
+ 474:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_CHECK_OVERLAP */
+ 475:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 476:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 477:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+ 478:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Reassembles incoming IP fragments into an IP datagram.
+ 479:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+ 480:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param p points to a pbuf chain of the fragment
+ 481:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @return NULL if reassembly is incomplete, ? otherwise
+ 482:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ 483:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** struct pbuf *
+ 484:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip4_reass(struct pbuf *p)
+ 485:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 486:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct pbuf *r;
+ 487:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_hdr *fraghdr;
+ 488:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reassdata *ipr;
+ 489:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reass_helper *iprh;
+ 490:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t offset, len, clen;
+ 491:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 492:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   IPFRAG_STATS_INC(ip_frag.recv);
+ 493:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   MIB2_STATS_INC(mib2.ipreasmreqds);
+ 494:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 495:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   fraghdr = (struct ip_hdr*)p->payload;
+ 496:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 497:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if ((IPH_HL(fraghdr) * 4) != IP_HLEN) {
+ 498:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_DEBUGF(IP_REASS_DEBUG,("ip4_reass: IP options currently not supported!\n"));
+ 499:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPFRAG_STATS_INC(ip_frag.err);
+ 500:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     goto nullreturn;
+ 501:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 502:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 503:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   offset = (lwip_ntohs(IPH_OFFSET(fraghdr)) & IP_OFFMASK) * 8;
+ 504:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   len = lwip_ntohs(IPH_LEN(fraghdr)) - IPH_HL(fraghdr) * 4;
+ 505:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 506:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Check if we are allowed to enqueue more datagrams. */
+ 507:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   clen = pbuf_clen(p);
+ 508:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if ((ip_reass_pbufcount + clen) > IP_REASS_MAX_PBUFS) {
+ 509:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_FREE_OLDEST
+ 510:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (!ip_reass_remove_oldest_datagram(fraghdr, clen) ||
+ 511:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         ((ip_reass_pbufcount + clen) > IP_REASS_MAX_PBUFS))
+ 512:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_FREE_OLDEST */
+ 513:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     {
+ 514:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* No datagram could be freed and still too many pbufs enqueued */
+ 515:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG,("ip4_reass: Overflow condition: pbufct=%d, clen=%d, MAX=%d\n",
+ 516:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         ip_reass_pbufcount, clen, IP_REASS_MAX_PBUFS));
+ 517:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       IPFRAG_STATS_INC(ip_frag.memerr);
+ 518:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* @todo: send ICMP time exceeded here? */
+ 519:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* drop this pbuf */
+ 520:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto nullreturn;
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 17
+
+
+ 521:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 522:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 523:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 524:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Look for the datagram the fragment belongs to in the current datagram queue,
+ 525:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    * remembering the previous in the queue for later dequeueing. */
+ 526:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   for (ipr = reassdatagrams; ipr != NULL; ipr = ipr->next) {
+ 527:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Check if the incoming fragment matches the one currently present
+ 528:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****        in the reassembly buffer. If so, we proceed with copying the
+ 529:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****        fragment into the buffer. */
+ 530:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (IP_ADDRESSES_AND_ID_MATCH(&ipr->iphdr, fraghdr)) {
+ 531:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG, ("ip4_reass: matching previous fragment ID=%"X16_F"\n",
+ 532:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         lwip_ntohs(IPH_ID(fraghdr))));
+ 533:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       IPFRAG_STATS_INC(ip_frag.cachehit);
+ 534:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       break;
+ 535:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 536:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 537:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 538:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (ipr == NULL) {
+ 539:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Enqueue a new datagram into the datagram queue */
+ 540:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ipr = ip_reass_enqueue_new_datagram(fraghdr, clen);
+ 541:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Bail if unable to enqueue */
+ 542:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (ipr == NULL) {
+ 543:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto nullreturn;
+ 544:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 545:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   } else {
+ 546:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (((lwip_ntohs(IPH_OFFSET(fraghdr)) & IP_OFFMASK) == 0) &&
+ 547:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ((lwip_ntohs(IPH_OFFSET(&ipr->iphdr)) & IP_OFFMASK) != 0)) {
+ 548:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* ipr->iphdr is not the header from the first fragment, but fraghdr is
+ 549:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****        * -> copy fraghdr into ipr->iphdr since we want to have the header
+ 550:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****        * of the first fragment (for ICMP time exceeded and later, for copying
+ 551:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****        * all options, if supported)*/
+ 552:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       SMEMCPY(&ipr->iphdr, fraghdr, IP_HLEN);
+ 553:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 554:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 555:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Track the current number of pbufs current 'in-flight', in order to limit
+ 556:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   the number of fragments that may be enqueued at any one time */
+ 557:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ip_reass_pbufcount += clen;
+ 558:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 559:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* At this point, we have either created a new entry or pointing
+ 560:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****    * to an existing one */
+ 561:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 562:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* check for 'no more fragments', and update queue entry*/
+ 563:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if ((IPH_OFFSET(fraghdr) & PP_NTOHS(IP_MF)) == 0) {
+ 564:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ipr->flags |= IP_REASS_FLAG_LASTFRAG;
+ 565:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ipr->datagram_len = offset + len;
+ 566:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_DEBUGF(IP_REASS_DEBUG,
+ 567:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      ("ip4_reass: last fragment seen, total len %"S16_F"\n",
+ 568:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ipr->datagram_len));
+ 569:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 570:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* find the right place to insert this pbuf */
+ 571:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* @todo: trim pbufs if fragments are overlapping */
+ 572:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (ip_reass_chain_frag_into_datagram_and_validate(ipr, p)) {
+ 573:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     struct ip_reassdata *ipr_prev;
+ 574:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* the totally last fragment (flag more fragments = 0) was received at least
+ 575:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * once AND all fragments are received */
+ 576:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ipr->datagram_len += IP_HLEN;
+ 577:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 18
+
+
+ 578:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* save the second pbuf before copying the header over the pointer */
+ 579:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     r = ((struct ip_reass_helper*)ipr->p->payload)->next_pbuf;
+ 580:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 581:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* copy the original ip header back to the first pbuf */
+ 582:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     fraghdr = (struct ip_hdr*)(ipr->p->payload);
+ 583:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     SMEMCPY(fraghdr, &ipr->iphdr, IP_HLEN);
+ 584:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_LEN_SET(fraghdr, lwip_htons(ipr->datagram_len));
+ 585:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_OFFSET_SET(fraghdr, 0);
+ 586:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_CHKSUM_SET(fraghdr, 0);
+ 587:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* @todo: do we need to set/calculate the correct checksum? */
+ 588:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if CHECKSUM_GEN_IP
+ 589:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IF__NETIF_CHECKSUM_ENABLED(ip_current_input_netif(), NETIF_CHECKSUM_GEN_IP) {
+ 590:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       IPH_CHKSUM_SET(fraghdr, inet_chksum(fraghdr, IP_HLEN));
+ 591:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 592:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* CHECKSUM_GEN_IP */
+ 593:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 594:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     p = ipr->p;
+ 595:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 596:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* chain together the pbufs contained within the reass_data list. */
+ 597:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     while (r != NULL) {
+ 598:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       iprh = (struct ip_reass_helper*)r->payload;
+ 599:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 600:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* hide the ip header for every succeeding fragment */
+ 601:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbuf_header(r, -IP_HLEN);
+ 602:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbuf_cat(p, r);
+ 603:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       r = iprh->next_pbuf;
+ 604:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 605:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 606:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* find the previous entry in the linked list */
+ 607:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (ipr == reassdatagrams) {
+ 608:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ipr_prev = NULL;
+ 609:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     } else {
+ 610:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       for (ipr_prev = reassdatagrams; ipr_prev != NULL; ipr_prev = ipr_prev->next) {
+ 611:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if (ipr_prev->next == ipr) {
+ 612:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           break;
+ 613:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 614:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 615:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 616:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 617:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* release the sources allocate for the fragment queue entry */
+ 618:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ip_reass_dequeue_datagram(ipr, ipr_prev);
+ 619:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 620:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* and adjust the number of pbufs currently queued for reassembly. */
+ 621:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ip_reass_pbufcount -= pbuf_clen(p);
+ 622:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 623:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     MIB2_STATS_INC(mib2.ipreasmoks);
+ 624:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 625:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Return the pbuf chain */
+ 626:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     return p;
+ 627:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 628:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* the datagram is not (yet?) reassembled completely */
+ 629:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_DEBUGF(IP_REASS_DEBUG,("ip_reass_pbufcount: %d out\n", ip_reass_pbufcount));
+ 630:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return NULL;
+ 631:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 632:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** nullreturn:
+ 633:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_DEBUGF(IP_REASS_DEBUG,("ip4_reass: nullreturn\n"));
+ 634:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   IPFRAG_STATS_INC(ip_frag.drop);
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 19
+
+
+ 635:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   pbuf_free(p);
+ 636:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return NULL;
+ 637:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 638:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASSEMBLY */
+ 639:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 640:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_FRAG
+ 641:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if !LWIP_NETIF_TX_SINGLE_PBUF
+ 642:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /** Allocate a new struct pbuf_custom_ref */
+ 643:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static struct pbuf_custom_ref*
+ 644:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip_frag_alloc_pbuf_custom_ref(void)
+ 645:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 646:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return (struct pbuf_custom_ref*)memp_malloc(MEMP_FRAG_PBUF);
+ 647:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 648:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 649:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /** Free a struct pbuf_custom_ref */
+ 650:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static void
+ 651:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip_frag_free_pbuf_custom_ref(struct pbuf_custom_ref* p)
+ 652:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 351              		.loc 1 652 0
+ 352              		.cfi_startproc
+ 353              		@ args = 0, pretend = 0, frame = 0
+ 354              		@ frame_needed = 0, uses_anonymous_args = 0
+ 355              	.LVL50:
+ 356 0000 08B5     		push	{r3, lr}
+ 357              	.LCFI3:
+ 358              		.cfi_def_cfa_offset 8
+ 359              		.cfi_offset 3, -8
+ 360              		.cfi_offset 14, -4
+ 653:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ASSERT("p != NULL", p != NULL);
+ 654:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   memp_free(MEMP_FRAG_PBUF, p);
+ 361              		.loc 1 654 0
+ 362 0002 0146     		mov	r1, r0
+ 363 0004 0520     		movs	r0, #5
+ 364              	.LVL51:
+ 365 0006 FFF7FEFF 		bl	memp_free
+ 366              	.LVL52:
+ 367 000a 08BD     		pop	{r3, pc}
+ 368              		.cfi_endproc
+ 369              	.LFE144:
+ 371              		.section	.text.ipfrag_free_pbuf_custom,"ax",%progbits
+ 372              		.align	1
+ 373              		.syntax unified
+ 374              		.thumb
+ 375              		.thumb_func
+ 376              		.fpu fpv5-sp-d16
+ 378              	ipfrag_free_pbuf_custom:
+ 379              	.LFB145:
+ 655:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 656:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 657:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /** Free-callback function to free a 'struct pbuf_custom_ref', called by
+ 658:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * pbuf_free. */
+ 659:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** static void
+ 660:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ipfrag_free_pbuf_custom(struct pbuf *p)
+ 661:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 380              		.loc 1 661 0
+ 381              		.cfi_startproc
+ 382              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 20
+
+
+ 383              		@ frame_needed = 0, uses_anonymous_args = 0
+ 384              	.LVL53:
+ 385 0000 10B5     		push	{r4, lr}
+ 386              	.LCFI4:
+ 387              		.cfi_def_cfa_offset 8
+ 388              		.cfi_offset 4, -8
+ 389              		.cfi_offset 14, -4
+ 390 0002 0446     		mov	r4, r0
+ 391              	.LVL54:
+ 662:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct pbuf_custom_ref *pcr = (struct pbuf_custom_ref*)p;
+ 663:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ASSERT("pcr != NULL", pcr != NULL);
+ 664:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ASSERT("pcr == p", (void*)pcr == (void*)p);
+ 665:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (pcr->original != NULL) {
+ 392              		.loc 1 665 0
+ 393 0004 4069     		ldr	r0, [r0, #20]
+ 394              	.LVL55:
+ 395 0006 08B1     		cbz	r0, .L37
+ 666:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pbuf_free(pcr->original);
+ 396              		.loc 1 666 0
+ 397 0008 FFF7FEFF 		bl	pbuf_free
+ 398              	.LVL56:
+ 399              	.L37:
+ 667:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 668:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ip_frag_free_pbuf_custom_ref(pcr);
+ 400              		.loc 1 668 0
+ 401 000c 2046     		mov	r0, r4
+ 402 000e FFF7FEFF 		bl	ip_frag_free_pbuf_custom_ref
+ 403              	.LVL57:
+ 404 0012 10BD     		pop	{r4, pc}
+ 405              		.cfi_endproc
+ 406              	.LFE145:
+ 408              		.section	.text.ip_reass_chain_frag_into_datagram_and_validate,"ax",%progbits
+ 409              		.align	1
+ 410              		.syntax unified
+ 411              		.thumb
+ 412              		.thumb_func
+ 413              		.fpu fpv5-sp-d16
+ 415              	ip_reass_chain_frag_into_datagram_and_validate:
+ 416              	.LFB141:
+ 340:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reass_helper *iprh, *iprh_tmp, *iprh_prev=NULL;
+ 417              		.loc 1 340 0
+ 418              		.cfi_startproc
+ 419              		@ args = 0, pretend = 0, frame = 0
+ 420              		@ frame_needed = 0, uses_anonymous_args = 0
+ 421              	.LVL58:
+ 422 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 423              	.LCFI5:
+ 424              		.cfi_def_cfa_offset 24
+ 425              		.cfi_offset 3, -24
+ 426              		.cfi_offset 4, -20
+ 427              		.cfi_offset 5, -16
+ 428              		.cfi_offset 6, -12
+ 429              		.cfi_offset 7, -8
+ 430              		.cfi_offset 14, -4
+ 431 0002 0746     		mov	r7, r0
+ 432 0004 0E46     		mov	r6, r1
+ 433              	.LVL59:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 21
+
+
+ 348:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   len = lwip_ntohs(IPH_LEN(fraghdr)) - IPH_HL(fraghdr) * 4;
+ 434              		.loc 1 348 0
+ 435 0006 4C68     		ldr	r4, [r1, #4]
+ 436              	.LVL60:
+ 349:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   offset = (lwip_ntohs(IPH_OFFSET(fraghdr)) & IP_OFFMASK) * 8;
+ 437              		.loc 1 349 0
+ 438 0008 6088     		ldrh	r0, [r4, #2]	@ unaligned
+ 439              	.LVL61:
+ 440 000a FFF7FEFF 		bl	lwip_htons
+ 441              	.LVL62:
+ 442 000e 2578     		ldrb	r5, [r4]	@ zero_extendqisi2
+ 443 0010 05F00F05 		and	r5, r5, #15
+ 444 0014 A0EB8505 		sub	r5, r0, r5, lsl #2
+ 445 0018 ADB2     		uxth	r5, r5
+ 446              	.LVL63:
+ 350:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 447              		.loc 1 350 0
+ 448 001a E088     		ldrh	r0, [r4, #6]	@ unaligned
+ 449 001c FFF7FEFF 		bl	lwip_htons
+ 450              	.LVL64:
+ 451 0020 C0F30C00 		ubfx	r0, r0, #0, #13
+ 452 0024 C100     		lsls	r1, r0, #3
+ 453              	.LVL65:
+ 357:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iprh->next_pbuf = NULL;
+ 454              		.loc 1 357 0
+ 455 0026 D6F804C0 		ldr	ip, [r6, #4]
+ 456              	.LVL66:
+ 358:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iprh->start = offset;
+ 457              		.loc 1 358 0
+ 458 002a 0024     		movs	r4, #0
+ 459              	.LVL67:
+ 460 002c 8CF80040 		strb	r4, [ip]
+ 461 0030 8CF80140 		strb	r4, [ip, #1]
+ 462 0034 8CF80240 		strb	r4, [ip, #2]
+ 463 0038 8CF80340 		strb	r4, [ip, #3]
+ 359:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iprh->end = offset + len;
+ 464              		.loc 1 359 0
+ 465 003c ACF80410 		strh	r1, [ip, #4]	@ unaligned
+ 360:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 466              		.loc 1 360 0
+ 467 0040 05EB010E 		add	lr, r5, r1
+ 468 0044 1FFA8EFE 		uxth	lr, lr
+ 469 0048 ACF806E0 		strh	lr, [ip, #6]	@ unaligned
+ 364:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iprh_tmp = (struct ip_reass_helper*)q->payload;
+ 470              		.loc 1 364 0
+ 471 004c 7D68     		ldr	r5, [r7, #4]
+ 472              	.LVL68:
+ 345:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 473              		.loc 1 345 0
+ 474 004e 0120     		movs	r0, #1
+ 364:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iprh_tmp = (struct ip_reass_helper*)q->payload;
+ 475              		.loc 1 364 0
+ 476 0050 27E0     		b	.L40
+ 477              	.LVL69:
+ 478              	.L62:
+ 368:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (iprh_prev != NULL) {
+ 479              		.loc 1 368 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 22
+
+
+ 480 0052 CCF80050 		str	r5, [ip]	@ unaligned
+ 369:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         /* not the fragment with the lowest offset */
+ 481              		.loc 1 369 0
+ 482 0056 04B3     		cbz	r4, .L42
+ 372:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           /* fragment overlaps with previous or following, throw away */
+ 483              		.loc 1 372 0
+ 484 0058 E288     		ldrh	r2, [r4, #6]	@ unaligned
+ 485 005a 9142     		cmp	r1, r2
+ 486 005c 41D3     		bcc	.L43
+ 372:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           /* fragment overlaps with previous or following, throw away */
+ 487              		.loc 1 372 0 is_stmt 0 discriminator 1
+ 488 005e 9B88     		ldrh	r3, [r3, #4]	@ unaligned
+ 489              	.LVL70:
+ 490 0060 9E45     		cmp	lr, r3
+ 491 0062 3ED8     		bhi	.L43
+ 377:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       } else {
+ 492              		.loc 1 377 0 is_stmt 1
+ 493 0064 2660     		str	r6, [r4]	@ unaligned
+ 494              	.L44:
+ 406:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (iprh_prev != NULL) {
+ 495              		.loc 1 406 0
+ 496 0066 75B3     		cbz	r5, .L60
+ 497              	.LVL71:
+ 498              	.L47:
+ 429:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* and had no holes so far */
+ 499              		.loc 1 429 0
+ 500 0068 BB7F     		ldrb	r3, [r7, #30]	@ zero_extendqisi2
+ 501 006a 13F0010F 		tst	r3, #1
+ 502 006e 44D0     		beq	.L55
+ 431:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* then check if the rest of the fragments is here */
+ 503              		.loc 1 431 0
+ 504 0070 0028     		cmp	r0, #0
+ 505 0072 47D0     		beq	.L39
+ 434:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         valid = 0;
+ 506              		.loc 1 434 0
+ 507 0074 7B68     		ldr	r3, [r7, #4]
+ 508 0076 002B     		cmp	r3, #0
+ 509 0078 41D0     		beq	.L56
+ 434:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         valid = 0;
+ 510              		.loc 1 434 0 is_stmt 0 discriminator 1
+ 511 007a 5B68     		ldr	r3, [r3, #4]
+ 512 007c 9B88     		ldrh	r3, [r3, #4]	@ unaligned
+ 513 007e 002B     		cmp	r3, #0
+ 514 0080 3FD1     		bne	.L57
+ 515              	.LVL72:
+ 439:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         while (q != NULL) {
+ 516              		.loc 1 439 0 is_stmt 1
+ 517 0082 DCF80020 		ldr	r2, [ip]	@ unaligned
+ 518              	.LVL73:
+ 519              	.L50:
+ 440:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           iprh = (struct ip_reass_helper*)q->payload;
+ 520              		.loc 1 440 0
+ 521 0086 4AB3     		cbz	r2, .L61
+ 441:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           if (iprh_prev->end != iprh->start) {
+ 522              		.loc 1 441 0
+ 523 0088 5368     		ldr	r3, [r2, #4]
+ 524              	.LVL74:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 23
+
+
+ 442:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****             valid = 0;
+ 525              		.loc 1 442 0
+ 526 008a BCF80610 		ldrh	r1, [ip, #6]	@ unaligned
+ 527 008e 9A88     		ldrh	r2, [r3, #4]	@ unaligned
+ 528              	.LVL75:
+ 529 0090 9142     		cmp	r1, r2
+ 530 0092 24D1     		bne	.L58
+ 531              	.LVL76:
+ 447:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 532              		.loc 1 447 0
+ 533 0094 1A68     		ldr	r2, [r3]	@ unaligned
+ 534              	.LVL77:
+ 441:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           if (iprh_prev->end != iprh->start) {
+ 535              		.loc 1 441 0
+ 536 0096 9C46     		mov	ip, r3
+ 537 0098 F5E7     		b	.L50
+ 538              	.LVL78:
+ 539              	.L42:
+ 380:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 540              		.loc 1 380 0
+ 541 009a 7E60     		str	r6, [r7, #4]
+ 542 009c E3E7     		b	.L44
+ 543              	.LVL79:
+ 544              	.L45:
+ 401:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iprh_prev = iprh_tmp;
+ 545              		.loc 1 401 0
+ 546 009e 1D68     		ldr	r5, [r3]	@ unaligned
+ 547              	.LVL80:
+ 402:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 548              		.loc 1 402 0
+ 549 00a0 1C46     		mov	r4, r3
+ 550              	.LVL81:
+ 551              	.L40:
+ 364:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iprh_tmp = (struct ip_reass_helper*)q->payload;
+ 552              		.loc 1 364 0 discriminator 1
+ 553 00a2 002D     		cmp	r5, #0
+ 554 00a4 DFD0     		beq	.L44
+ 365:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (iprh->start < iprh_tmp->start) {
+ 555              		.loc 1 365 0
+ 556 00a6 6B68     		ldr	r3, [r5, #4]
+ 557              	.LVL82:
+ 366:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* the new pbuf should be inserted before this */
+ 558              		.loc 1 366 0
+ 559 00a8 9A88     		ldrh	r2, [r3, #4]	@ unaligned
+ 560 00aa 9142     		cmp	r1, r2
+ 561 00ac D1D3     		bcc	.L62
+ 383:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* received the same datagram twice: no need to keep the datagram */
+ 562              		.loc 1 383 0
+ 563 00ae 9142     		cmp	r1, r2
+ 564 00b0 17D0     		beq	.L43
+ 387:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* overlap: no need to keep the new datagram */
+ 565              		.loc 1 387 0
+ 566 00b2 DD88     		ldrh	r5, [r3, #6]	@ unaligned
+ 567              	.LVL83:
+ 568 00b4 A942     		cmp	r1, r5
+ 569 00b6 14D3     		bcc	.L43
+ 393:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if (iprh_prev->end != iprh_tmp->start) {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 24
+
+
+ 570              		.loc 1 393 0
+ 571 00b8 002C     		cmp	r4, #0
+ 572 00ba F0D0     		beq	.L45
+ 394:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           /* There is a fragment missing between the current
+ 573              		.loc 1 394 0
+ 574 00bc E488     		ldrh	r4, [r4, #6]	@ unaligned
+ 575              	.LVL84:
+ 576 00be A242     		cmp	r2, r4
+ 577 00c0 EDD0     		beq	.L45
+ 397:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         }
+ 578              		.loc 1 397 0
+ 579 00c2 0020     		movs	r0, #0
+ 580              	.LVL85:
+ 581 00c4 EBE7     		b	.L45
+ 582              	.LVL86:
+ 583              	.L60:
+ 407:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* this is (for now), the fragment with the highest offset:
+ 584              		.loc 1 407 0
+ 585 00c6 3CB1     		cbz	r4, .L48
+ 411:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_CHECK_OVERLAP */
+ 586              		.loc 1 411 0
+ 587 00c8 E288     		ldrh	r2, [r4, #6]	@ unaligned
+ 413:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (iprh_prev->end != iprh->start) {
+ 588              		.loc 1 413 0
+ 589 00ca 2660     		str	r6, [r4]	@ unaligned
+ 414:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         valid = 0;
+ 590              		.loc 1 414 0
+ 591 00cc BCF80430 		ldrh	r3, [ip, #4]	@ unaligned
+ 592 00d0 9A42     		cmp	r2, r3
+ 593 00d2 C9D0     		beq	.L47
+ 415:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 594              		.loc 1 415 0
+ 595 00d4 0020     		movs	r0, #0
+ 596              	.LVL87:
+ 597 00d6 C7E7     		b	.L47
+ 598              	.LVL88:
+ 599              	.L48:
+ 423:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 600              		.loc 1 423 0
+ 601 00d8 7E60     		str	r6, [r7, #4]
+ 602 00da C5E7     		b	.L47
+ 603              	.LVL89:
+ 604              	.L61:
+ 605 00dc F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 606              	.LVL90:
+ 607              	.L58:
+ 443:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****             break;
+ 608              		.loc 1 443 0
+ 609 00de 0020     		movs	r0, #0
+ 610              	.LVL91:
+ 611 00e0 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 612              	.LVL92:
+ 613              	.L43:
+ 471:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   pbuf_free(new_p);
+ 614              		.loc 1 471 0
+ 615 00e2 3046     		mov	r0, r6
+ 616              	.LVL93:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 25
+
+
+ 617 00e4 FFF7FEFF 		bl	pbuf_clen
+ 618              	.LVL94:
+ 619 00e8 074A     		ldr	r2, .L63
+ 620 00ea 1388     		ldrh	r3, [r2]
+ 621 00ec 181A     		subs	r0, r3, r0
+ 622 00ee 1080     		strh	r0, [r2]	@ movhi
+ 472:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return 0;
+ 623              		.loc 1 472 0
+ 624 00f0 3046     		mov	r0, r6
+ 625 00f2 FFF7FEFF 		bl	pbuf_free
+ 626              	.LVL95:
+ 473:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_CHECK_OVERLAP */
+ 627              		.loc 1 473 0
+ 628 00f6 0020     		movs	r0, #0
+ 629 00f8 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 630              	.LVL96:
+ 631              	.L55:
+ 468:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_CHECK_OVERLAP
+ 632              		.loc 1 468 0
+ 633 00fa 0020     		movs	r0, #0
+ 634              	.LVL97:
+ 635 00fc F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 636              	.LVL98:
+ 637              	.L56:
+ 435:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       } else {
+ 638              		.loc 1 435 0
+ 639 00fe 0020     		movs	r0, #0
+ 640              	.LVL99:
+ 641 0100 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 642              	.LVL100:
+ 643              	.L57:
+ 644 0102 0020     		movs	r0, #0
+ 645              	.LVL101:
+ 646              	.L39:
+ 475:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 647              		.loc 1 475 0
+ 648 0104 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 649              	.LVL102:
+ 650              	.L64:
+ 651 0106 00BF     		.align	2
+ 652              	.L63:
+ 653 0108 00000000 		.word	.LANCHOR1
+ 654              		.cfi_endproc
+ 655              	.LFE141:
+ 657              		.section	.text.ip_frag_alloc_pbuf_custom_ref,"ax",%progbits
+ 658              		.align	1
+ 659              		.syntax unified
+ 660              		.thumb
+ 661              		.thumb_func
+ 662              		.fpu fpv5-sp-d16
+ 664              	ip_frag_alloc_pbuf_custom_ref:
+ 665              	.LFB143:
+ 645:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return (struct pbuf_custom_ref*)memp_malloc(MEMP_FRAG_PBUF);
+ 666              		.loc 1 645 0
+ 667              		.cfi_startproc
+ 668              		@ args = 0, pretend = 0, frame = 0
+ 669              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 26
+
+
+ 670 0000 08B5     		push	{r3, lr}
+ 671              	.LCFI6:
+ 672              		.cfi_def_cfa_offset 8
+ 673              		.cfi_offset 3, -8
+ 674              		.cfi_offset 14, -4
+ 646:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 675              		.loc 1 646 0
+ 676 0002 0520     		movs	r0, #5
+ 677 0004 FFF7FEFF 		bl	memp_malloc
+ 678              	.LVL103:
+ 647:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 679              		.loc 1 647 0
+ 680 0008 08BD     		pop	{r3, pc}
+ 681              		.cfi_endproc
+ 682              	.LFE143:
+ 684              		.section	.text.ip_reass_enqueue_new_datagram,"ax",%progbits
+ 685              		.align	1
+ 686              		.syntax unified
+ 687              		.thumb
+ 688              		.thumb_func
+ 689              		.fpu fpv5-sp-d16
+ 691              	ip_reass_enqueue_new_datagram:
+ 692              	.LFB139:
+ 275:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reassdata* ipr;
+ 693              		.loc 1 275 0
+ 694              		.cfi_startproc
+ 695              		@ args = 0, pretend = 0, frame = 0
+ 696              		@ frame_needed = 0, uses_anonymous_args = 0
+ 697              	.LVL104:
+ 698 0000 70B5     		push	{r4, r5, r6, lr}
+ 699              	.LCFI7:
+ 700              		.cfi_def_cfa_offset 16
+ 701              		.cfi_offset 4, -16
+ 702              		.cfi_offset 5, -12
+ 703              		.cfi_offset 6, -8
+ 704              		.cfi_offset 14, -4
+ 705 0002 0546     		mov	r5, r0
+ 706 0004 0E46     		mov	r6, r1
+ 282:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if (ipr == NULL) {
+ 707              		.loc 1 282 0
+ 708 0006 0420     		movs	r0, #4
+ 709              	.LVL105:
+ 710 0008 FFF7FEFF 		bl	memp_malloc
+ 711              	.LVL106:
+ 283:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_FREE_OLDEST
+ 712              		.loc 1 283 0
+ 713 000c 0446     		mov	r4, r0
+ 714 000e B0B1     		cbz	r0, .L72
+ 715              	.LVL107:
+ 716              	.L68:
+ 296:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ipr->timer = IP_REASS_MAXAGE;
+ 717              		.loc 1 296 0
+ 718 0010 2022     		movs	r2, #32
+ 719 0012 0021     		movs	r1, #0
+ 720 0014 2046     		mov	r0, r4
+ 721 0016 FFF7FEFF 		bl	memset
+ 722              	.LVL108:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 27
+
+
+ 297:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 723              		.loc 1 297 0
+ 724 001a 0323     		movs	r3, #3
+ 725 001c E377     		strb	r3, [r4, #31]
+ 300:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   reassdatagrams = ipr;
+ 726              		.loc 1 300 0
+ 727 001e 0F4B     		ldr	r3, .L74
+ 728 0020 1A68     		ldr	r2, [r3]
+ 729 0022 2260     		str	r2, [r4]
+ 301:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* copy the ip header for later tests and input */
+ 730              		.loc 1 301 0
+ 731 0024 1C60     		str	r4, [r3]
+ 304:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return ipr;
+ 732              		.loc 1 304 0
+ 733 0026 2A68     		ldr	r2, [r5]	@ unaligned
+ 734 0028 6E68     		ldr	r6, [r5, #4]	@ unaligned
+ 735              	.LVL109:
+ 736 002a A868     		ldr	r0, [r5, #8]	@ unaligned
+ 737 002c E968     		ldr	r1, [r5, #12]	@ unaligned
+ 738 002e A260     		str	r2, [r4, #8]	@ unaligned
+ 739 0030 E660     		str	r6, [r4, #12]	@ unaligned
+ 740 0032 2061     		str	r0, [r4, #16]	@ unaligned
+ 741 0034 6161     		str	r1, [r4, #20]	@ unaligned
+ 742 0036 2A69     		ldr	r2, [r5, #16]	@ unaligned
+ 743 0038 A261     		str	r2, [r4, #24]	@ unaligned
+ 744              	.L67:
+ 306:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 745              		.loc 1 306 0
+ 746 003a 2046     		mov	r0, r4
+ 747 003c 70BD     		pop	{r4, r5, r6, pc}
+ 748              	.LVL110:
+ 749              	.L72:
+ 285:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ipr = (struct ip_reassdata *)memp_malloc(MEMP_REASSDATA);
+ 750              		.loc 1 285 0
+ 751 003e 3146     		mov	r1, r6
+ 752 0040 2846     		mov	r0, r5
+ 753              	.LVL111:
+ 754 0042 FFF7FEFF 		bl	ip_reass_remove_oldest_datagram
+ 755              	.LVL112:
+ 756 0046 8642     		cmp	r6, r0
+ 757 0048 02DD     		ble	.L73
+ 758              	.L69:
+ 288:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_FREE_OLDEST */
+ 759              		.loc 1 288 0
+ 760 004a 002C     		cmp	r4, #0
+ 761 004c E0D1     		bne	.L68
+ 762 004e F4E7     		b	.L67
+ 763              	.L73:
+ 286:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 764              		.loc 1 286 0
+ 765 0050 0420     		movs	r0, #4
+ 766 0052 FFF7FEFF 		bl	memp_malloc
+ 767              	.LVL113:
+ 768 0056 0446     		mov	r4, r0
+ 769              	.LVL114:
+ 770 0058 F7E7     		b	.L69
+ 771              	.L75:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 28
+
+
+ 772 005a 00BF     		.align	2
+ 773              	.L74:
+ 774 005c 00000000 		.word	.LANCHOR0
+ 775              		.cfi_endproc
+ 776              	.LFE139:
+ 778              		.section	.text.ip_reass_tmr,"ax",%progbits
+ 779              		.align	1
+ 780              		.global	ip_reass_tmr
+ 781              		.syntax unified
+ 782              		.thumb
+ 783              		.thumb_func
+ 784              		.fpu fpv5-sp-d16
+ 786              	ip_reass_tmr:
+ 787              	.LFB136:
+ 125:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_reassdata *r, *prev = NULL;
+ 788              		.loc 1 125 0
+ 789              		.cfi_startproc
+ 790              		@ args = 0, pretend = 0, frame = 0
+ 791              		@ frame_needed = 0, uses_anonymous_args = 0
+ 792 0000 38B5     		push	{r3, r4, r5, lr}
+ 793              	.LCFI8:
+ 794              		.cfi_def_cfa_offset 16
+ 795              		.cfi_offset 3, -16
+ 796              		.cfi_offset 4, -12
+ 797              		.cfi_offset 5, -8
+ 798              		.cfi_offset 14, -4
+ 799              	.LVL115:
+ 128:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   while (r != NULL) {
+ 800              		.loc 1 128 0
+ 801 0002 094B     		ldr	r3, .L83
+ 802 0004 1868     		ldr	r0, [r3]
+ 803              	.LVL116:
+ 126:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 804              		.loc 1 126 0
+ 805 0006 0024     		movs	r4, #0
+ 129:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Decrement the timer. Once it reaches 0,
+ 806              		.loc 1 129 0
+ 807 0008 04E0     		b	.L77
+ 808              	.LVL117:
+ 809              	.L78:
+ 810              	.LBB3:
+ 143:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* free the helper struct and all enqueued pbufs */
+ 811              		.loc 1 143 0
+ 812 000a 0568     		ldr	r5, [r0]
+ 813              	.LVL118:
+ 145:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      }
+ 814              		.loc 1 145 0
+ 815 000c 2146     		mov	r1, r4
+ 816 000e FFF7FEFF 		bl	ip_reass_free_complete_datagram
+ 817              	.LVL119:
+ 143:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* free the helper struct and all enqueued pbufs */
+ 818              		.loc 1 143 0
+ 819 0012 2846     		mov	r0, r5
+ 820              	.LVL120:
+ 821              	.L77:
+ 822              	.LBE3:
+ 129:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Decrement the timer. Once it reaches 0,
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 29
+
+
+ 823              		.loc 1 129 0
+ 824 0014 38B1     		cbz	r0, .L82
+ 132:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       r->timer--;
+ 825              		.loc 1 132 0
+ 826 0016 C37F     		ldrb	r3, [r0, #31]	@ zero_extendqisi2
+ 827 0018 002B     		cmp	r3, #0
+ 828 001a F6D0     		beq	.L78
+ 133:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG, ("ip_reass_tmr: timer dec %"U16_F"\n",(u16_t)r->timer));
+ 829              		.loc 1 133 0
+ 830 001c 013B     		subs	r3, r3, #1
+ 831 001e C377     		strb	r3, [r0, #31]
+ 832              	.LVL121:
+ 135:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       r = r->next;
+ 833              		.loc 1 135 0
+ 834 0020 0446     		mov	r4, r0
+ 136:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     } else {
+ 835              		.loc 1 136 0
+ 836 0022 0068     		ldr	r0, [r0]
+ 837              	.LVL122:
+ 838 0024 F6E7     		b	.L77
+ 839              	.L82:
+ 148:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 840              		.loc 1 148 0
+ 841 0026 38BD     		pop	{r3, r4, r5, pc}
+ 842              	.LVL123:
+ 843              	.L84:
+ 844              		.align	2
+ 845              	.L83:
+ 846 0028 00000000 		.word	.LANCHOR0
+ 847              		.cfi_endproc
+ 848              	.LFE136:
+ 850              		.section	.text.ip4_reass,"ax",%progbits
+ 851              		.align	1
+ 852              		.global	ip4_reass
+ 853              		.syntax unified
+ 854              		.thumb
+ 855              		.thumb_func
+ 856              		.fpu fpv5-sp-d16
+ 858              	ip4_reass:
+ 859              	.LFB142:
+ 485:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct pbuf *r;
+ 860              		.loc 1 485 0
+ 861              		.cfi_startproc
+ 862              		@ args = 0, pretend = 0, frame = 0
+ 863              		@ frame_needed = 0, uses_anonymous_args = 0
+ 864              	.LVL124:
+ 865 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+ 866              	.LCFI9:
+ 867              		.cfi_def_cfa_offset 32
+ 868              		.cfi_offset 3, -32
+ 869              		.cfi_offset 4, -28
+ 870              		.cfi_offset 5, -24
+ 871              		.cfi_offset 6, -20
+ 872              		.cfi_offset 7, -16
+ 873              		.cfi_offset 8, -12
+ 874              		.cfi_offset 9, -8
+ 875              		.cfi_offset 14, -4
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 30
+
+
+ 876 0004 8046     		mov	r8, r0
+ 495:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 877              		.loc 1 495 0
+ 878 0006 4568     		ldr	r5, [r0, #4]
+ 879              	.LVL125:
+ 497:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_DEBUGF(IP_REASS_DEBUG,("ip4_reass: IP options currently not supported!\n"));
+ 880              		.loc 1 497 0
+ 881 0008 2B78     		ldrb	r3, [r5]	@ zero_extendqisi2
+ 882 000a 03F00F03 		and	r3, r3, #15
+ 883 000e 052B     		cmp	r3, #5
+ 884 0010 25D1     		bne	.L86
+ 503:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   len = lwip_ntohs(IPH_LEN(fraghdr)) - IPH_HL(fraghdr) * 4;
+ 885              		.loc 1 503 0
+ 886 0012 E888     		ldrh	r0, [r5, #6]	@ unaligned
+ 887              	.LVL126:
+ 888 0014 FFF7FEFF 		bl	lwip_htons
+ 889              	.LVL127:
+ 890 0018 C0F30C00 		ubfx	r0, r0, #0, #13
+ 891 001c 4FEAC009 		lsl	r9, r0, #3
+ 892              	.LVL128:
+ 504:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 893              		.loc 1 504 0
+ 894 0020 6888     		ldrh	r0, [r5, #2]	@ unaligned
+ 895 0022 FFF7FEFF 		bl	lwip_htons
+ 896              	.LVL129:
+ 897 0026 2E78     		ldrb	r6, [r5]	@ zero_extendqisi2
+ 898 0028 06F00F06 		and	r6, r6, #15
+ 899 002c A0EB8606 		sub	r6, r0, r6, lsl #2
+ 900 0030 B6B2     		uxth	r6, r6
+ 901              	.LVL130:
+ 507:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   if ((ip_reass_pbufcount + clen) > IP_REASS_MAX_PBUFS) {
+ 902              		.loc 1 507 0
+ 903 0032 4046     		mov	r0, r8
+ 904 0034 FFF7FEFF 		bl	pbuf_clen
+ 905              	.LVL131:
+ 906 0038 0746     		mov	r7, r0
+ 907              	.LVL132:
+ 508:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if IP_REASS_FREE_OLDEST
+ 908              		.loc 1 508 0
+ 909 003a 504B     		ldr	r3, .L109
+ 910 003c 1B88     		ldrh	r3, [r3]
+ 911 003e 0344     		add	r3, r3, r0
+ 912 0040 0A2B     		cmp	r3, #10
+ 913 0042 02DC     		bgt	.L104
+ 914              	.LVL133:
+ 915              	.L87:
+ 526:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Check if the incoming fragment matches the one currently present
+ 916              		.loc 1 526 0
+ 917 0044 4E4B     		ldr	r3, .L109+4
+ 918 0046 1C68     		ldr	r4, [r3]
+ 919              	.LVL134:
+ 920 0048 0FE0     		b	.L88
+ 921              	.LVL135:
+ 922              	.L104:
+ 510:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         ((ip_reass_pbufcount + clen) > IP_REASS_MAX_PBUFS))
+ 923              		.loc 1 510 0
+ 924 004a 0146     		mov	r1, r0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 31
+
+
+ 925 004c 2846     		mov	r0, r5
+ 926              	.LVL136:
+ 927 004e FFF7FEFF 		bl	ip_reass_remove_oldest_datagram
+ 928              	.LVL137:
+ 929 0052 20B1     		cbz	r0, .L86
+ 511:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASS_FREE_OLDEST */
+ 930              		.loc 1 511 0 discriminator 1
+ 931 0054 494B     		ldr	r3, .L109
+ 932 0056 1B88     		ldrh	r3, [r3]
+ 933 0058 3B44     		add	r3, r3, r7
+ 510:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         ((ip_reass_pbufcount + clen) > IP_REASS_MAX_PBUFS))
+ 934              		.loc 1 510 0 discriminator 1
+ 935 005a 0A2B     		cmp	r3, #10
+ 936 005c F2DD     		ble	.L87
+ 937              	.LVL138:
+ 938              	.L86:
+ 635:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return NULL;
+ 939              		.loc 1 635 0
+ 940 005e 4046     		mov	r0, r8
+ 941 0060 FFF7FEFF 		bl	pbuf_free
+ 942              	.LVL139:
+ 636:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 943              		.loc 1 636 0
+ 944 0064 0027     		movs	r7, #0
+ 945 0066 84E0     		b	.L85
+ 946              	.LVL140:
+ 947              	.L89:
+ 526:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Check if the incoming fragment matches the one currently present
+ 948              		.loc 1 526 0 discriminator 2
+ 949 0068 2468     		ldr	r4, [r4]
+ 950              	.LVL141:
+ 951              	.L88:
+ 526:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Check if the incoming fragment matches the one currently present
+ 952              		.loc 1 526 0 is_stmt 0 discriminator 1
+ 953 006a 5CB1     		cbz	r4, .L90
+ 530:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG, ("ip4_reass: matching previous fragment ID=%"X16_F"\n",
+ 954              		.loc 1 530 0 is_stmt 1
+ 955 006c 6269     		ldr	r2, [r4, #20]
+ 956 006e EB68     		ldr	r3, [r5, #12]	@ unaligned
+ 957 0070 9A42     		cmp	r2, r3
+ 958 0072 F9D1     		bne	.L89
+ 530:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG, ("ip4_reass: matching previous fragment ID=%"X16_F"\n",
+ 959              		.loc 1 530 0 is_stmt 0 discriminator 1
+ 960 0074 A269     		ldr	r2, [r4, #24]
+ 961 0076 2B69     		ldr	r3, [r5, #16]	@ unaligned
+ 962 0078 9A42     		cmp	r2, r3
+ 963 007a F5D1     		bne	.L89
+ 530:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       LWIP_DEBUGF(IP_REASS_DEBUG, ("ip4_reass: matching previous fragment ID=%"X16_F"\n",
+ 964              		.loc 1 530 0 discriminator 2
+ 965 007c A289     		ldrh	r2, [r4, #12]
+ 966 007e AB88     		ldrh	r3, [r5, #4]	@ unaligned
+ 967 0080 9A42     		cmp	r2, r3
+ 968 0082 F1D1     		bne	.L89
+ 969              	.L90:
+ 538:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Enqueue a new datagram into the datagram queue */
+ 970              		.loc 1 538 0 is_stmt 1
+ 971 0084 002C     		cmp	r4, #0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 32
+
+
+ 972 0086 43D0     		beq	.L105
+ 546:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ((lwip_ntohs(IPH_OFFSET(&ipr->iphdr)) & IP_OFFMASK) != 0)) {
+ 973              		.loc 1 546 0
+ 974 0088 E888     		ldrh	r0, [r5, #6]	@ unaligned
+ 975 008a FFF7FEFF 		bl	lwip_htons
+ 976              	.LVL142:
+ 977 008e C0F30C00 		ubfx	r0, r0, #0, #13
+ 978 0092 0028     		cmp	r0, #0
+ 979 0094 44D0     		beq	.L106
+ 980              	.L93:
+ 557:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 981              		.loc 1 557 0
+ 982 0096 394B     		ldr	r3, .L109
+ 983 0098 1A88     		ldrh	r2, [r3]
+ 984 009a 1744     		add	r7, r7, r2
+ 985 009c 1F80     		strh	r7, [r3]	@ movhi
+ 563:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ipr->flags |= IP_REASS_FLAG_LASTFRAG;
+ 986              		.loc 1 563 0
+ 987 009e EB88     		ldrh	r3, [r5, #6]	@ unaligned
+ 988 00a0 13F0200F 		tst	r3, #32
+ 989 00a4 05D1     		bne	.L94
+ 564:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ipr->datagram_len = offset + len;
+ 990              		.loc 1 564 0
+ 991 00a6 A37F     		ldrb	r3, [r4, #30]	@ zero_extendqisi2
+ 992 00a8 43F00103 		orr	r3, r3, #1
+ 993 00ac A377     		strb	r3, [r4, #30]
+ 565:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_DEBUGF(IP_REASS_DEBUG,
+ 994              		.loc 1 565 0
+ 995 00ae 4E44     		add	r6, r6, r9
+ 996              	.LVL143:
+ 997 00b0 A683     		strh	r6, [r4, #28]	@ movhi
+ 998              	.L94:
+ 572:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     struct ip_reassdata *ipr_prev;
+ 999              		.loc 1 572 0
+ 1000 00b2 4146     		mov	r1, r8
+ 1001 00b4 2046     		mov	r0, r4
+ 1002 00b6 FFF7FEFF 		bl	ip_reass_chain_frag_into_datagram_and_validate
+ 1003              	.LVL144:
+ 1004 00ba 0028     		cmp	r0, #0
+ 1005 00bc 5CD0     		beq	.L101
+ 1006              	.LBB4:
+ 576:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1007              		.loc 1 576 0
+ 1008 00be A38B     		ldrh	r3, [r4, #28]
+ 1009 00c0 1433     		adds	r3, r3, #20
+ 1010 00c2 A383     		strh	r3, [r4, #28]	@ movhi
+ 579:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1011              		.loc 1 579 0
+ 1012 00c4 6368     		ldr	r3, [r4, #4]
+ 1013 00c6 5E68     		ldr	r6, [r3, #4]
+ 1014 00c8 3568     		ldr	r5, [r6]	@ unaligned
+ 1015              	.LVL145:
+ 583:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_LEN_SET(fraghdr, lwip_htons(ipr->datagram_len));
+ 1016              		.loc 1 583 0
+ 1017 00ca 2346     		mov	r3, r4
+ 1018 00cc 53F8082F 		ldr	r2, [r3, #8]!	@ unaligned
+ 1019 00d0 5F68     		ldr	r7, [r3, #4]	@ unaligned
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 33
+
+
+ 1020 00d2 9868     		ldr	r0, [r3, #8]	@ unaligned
+ 1021 00d4 D968     		ldr	r1, [r3, #12]	@ unaligned
+ 1022 00d6 3260     		str	r2, [r6]	@ unaligned
+ 1023 00d8 7760     		str	r7, [r6, #4]	@ unaligned
+ 1024 00da B060     		str	r0, [r6, #8]	@ unaligned
+ 1025 00dc F160     		str	r1, [r6, #12]	@ unaligned
+ 1026 00de 1A69     		ldr	r2, [r3, #16]	@ unaligned
+ 1027 00e0 3261     		str	r2, [r6, #16]	@ unaligned
+ 584:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_OFFSET_SET(fraghdr, 0);
+ 1028              		.loc 1 584 0
+ 1029 00e2 A08B     		ldrh	r0, [r4, #28]
+ 1030 00e4 FFF7FEFF 		bl	lwip_htons
+ 1031              	.LVL146:
+ 1032 00e8 7080     		strh	r0, [r6, #2]	@ unaligned
+ 585:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_CHKSUM_SET(fraghdr, 0);
+ 1033              		.loc 1 585 0
+ 1034 00ea 0023     		movs	r3, #0
+ 1035 00ec B371     		strb	r3, [r6, #6]
+ 1036 00ee F371     		strb	r3, [r6, #7]
+ 586:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* @todo: do we need to set/calculate the correct checksum? */
+ 1037              		.loc 1 586 0
+ 1038 00f0 B372     		strb	r3, [r6, #10]
+ 1039 00f2 F372     		strb	r3, [r6, #11]
+ 594:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1040              		.loc 1 594 0
+ 1041 00f4 6768     		ldr	r7, [r4, #4]
+ 1042              	.LVL147:
+ 1043              	.L96:
+ 597:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       iprh = (struct ip_reass_helper*)r->payload;
+ 1044              		.loc 1 597 0
+ 1045 00f6 3DB3     		cbz	r5, .L107
+ 598:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1046              		.loc 1 598 0
+ 1047 00f8 6E68     		ldr	r6, [r5, #4]
+ 1048              	.LVL148:
+ 601:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbuf_cat(p, r);
+ 1049              		.loc 1 601 0
+ 1050 00fa 6FF01301 		mvn	r1, #19
+ 1051 00fe 2846     		mov	r0, r5
+ 1052 0100 FFF7FEFF 		bl	pbuf_header
+ 1053              	.LVL149:
+ 602:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       r = iprh->next_pbuf;
+ 1054              		.loc 1 602 0
+ 1055 0104 2946     		mov	r1, r5
+ 1056 0106 3846     		mov	r0, r7
+ 1057 0108 FFF7FEFF 		bl	pbuf_cat
+ 1058              	.LVL150:
+ 603:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 1059              		.loc 1 603 0
+ 1060 010c 3568     		ldr	r5, [r6]	@ unaligned
+ 1061              	.LVL151:
+ 1062 010e F2E7     		b	.L96
+ 1063              	.LVL152:
+ 1064              	.L105:
+ 1065              	.LBE4:
+ 540:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Bail if unable to enqueue */
+ 1066              		.loc 1 540 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 34
+
+
+ 1067 0110 3946     		mov	r1, r7
+ 1068 0112 2846     		mov	r0, r5
+ 1069 0114 FFF7FEFF 		bl	ip_reass_enqueue_new_datagram
+ 1070              	.LVL153:
+ 542:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto nullreturn;
+ 1071              		.loc 1 542 0
+ 1072 0118 0446     		mov	r4, r0
+ 1073 011a 0028     		cmp	r0, #0
+ 1074 011c BBD1     		bne	.L93
+ 1075 011e 9EE7     		b	.L86
+ 1076              	.LVL154:
+ 1077              	.L106:
+ 547:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* ipr->iphdr is not the header from the first fragment, but fraghdr is
+ 1078              		.loc 1 547 0 discriminator 1
+ 1079 0120 E089     		ldrh	r0, [r4, #14]
+ 1080 0122 FFF7FEFF 		bl	lwip_htons
+ 1081              	.LVL155:
+ 546:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ((lwip_ntohs(IPH_OFFSET(&ipr->iphdr)) & IP_OFFMASK) != 0)) {
+ 1082              		.loc 1 546 0 discriminator 1
+ 1083 0126 C0F30C00 		ubfx	r0, r0, #0, #13
+ 1084 012a 0028     		cmp	r0, #0
+ 1085 012c B3D0     		beq	.L93
+ 552:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 1086              		.loc 1 552 0
+ 1087 012e 2A68     		ldr	r2, [r5]	@ unaligned
+ 1088 0130 D5F804E0 		ldr	lr, [r5, #4]	@ unaligned
+ 1089 0134 A868     		ldr	r0, [r5, #8]	@ unaligned
+ 1090 0136 E968     		ldr	r1, [r5, #12]	@ unaligned
+ 1091 0138 A260     		str	r2, [r4, #8]	@ unaligned
+ 1092 013a C4F80CE0 		str	lr, [r4, #12]	@ unaligned
+ 1093 013e 2061     		str	r0, [r4, #16]	@ unaligned
+ 1094 0140 6161     		str	r1, [r4, #20]	@ unaligned
+ 1095 0142 2A69     		ldr	r2, [r5, #16]	@ unaligned
+ 1096 0144 A261     		str	r2, [r4, #24]	@ unaligned
+ 1097 0146 A6E7     		b	.L93
+ 1098              	.LVL156:
+ 1099              	.L107:
+ 1100              	.LBB5:
+ 607:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       ipr_prev = NULL;
+ 1101              		.loc 1 607 0
+ 1102 0148 0D4B     		ldr	r3, .L109+4
+ 1103 014a 1968     		ldr	r1, [r3]
+ 1104 014c 8C42     		cmp	r4, r1
+ 1105 014e 05D0     		beq	.L108
+ 1106              	.L99:
+ 1107              	.LVL157:
+ 610:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if (ipr_prev->next == ipr) {
+ 1108              		.loc 1 610 0 discriminator 1
+ 1109 0150 29B1     		cbz	r1, .L98
+ 611:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****           break;
+ 1110              		.loc 1 611 0
+ 1111 0152 0B68     		ldr	r3, [r1]
+ 1112 0154 9C42     		cmp	r4, r3
+ 1113 0156 02D0     		beq	.L98
+ 610:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         if (ipr_prev->next == ipr) {
+ 1114              		.loc 1 610 0
+ 1115 0158 1946     		mov	r1, r3
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 35
+
+
+ 1116              	.LVL158:
+ 1117 015a F9E7     		b	.L99
+ 1118              	.L108:
+ 608:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     } else {
+ 1119              		.loc 1 608 0
+ 1120 015c 0021     		movs	r1, #0
+ 1121              	.L98:
+ 1122              	.LVL159:
+ 618:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1123              		.loc 1 618 0
+ 1124 015e 2046     		mov	r0, r4
+ 1125 0160 FFF7FEFF 		bl	ip_reass_dequeue_datagram
+ 1126              	.LVL160:
+ 621:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1127              		.loc 1 621 0
+ 1128 0164 3846     		mov	r0, r7
+ 1129 0166 FFF7FEFF 		bl	pbuf_clen
+ 1130              	.LVL161:
+ 1131 016a 044A     		ldr	r2, .L109
+ 1132 016c 1388     		ldrh	r3, [r2]
+ 1133 016e 181A     		subs	r0, r3, r0
+ 1134 0170 1080     		strh	r0, [r2]	@ movhi
+ 1135              	.LVL162:
+ 1136              	.L85:
+ 1137              	.LBE5:
+ 637:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* IP_REASSEMBLY */
+ 1138              		.loc 1 637 0
+ 1139 0172 3846     		mov	r0, r7
+ 1140 0174 BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 1141              	.LVL163:
+ 1142              	.L101:
+ 630:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1143              		.loc 1 630 0
+ 1144 0178 0027     		movs	r7, #0
+ 1145 017a FAE7     		b	.L85
+ 1146              	.L110:
+ 1147              		.align	2
+ 1148              	.L109:
+ 1149 017c 00000000 		.word	.LANCHOR1
+ 1150 0180 00000000 		.word	.LANCHOR0
+ 1151              		.cfi_endproc
+ 1152              	.LFE142:
+ 1154              		.section	.text.ip4_frag,"ax",%progbits
+ 1155              		.align	1
+ 1156              		.global	ip4_frag
+ 1157              		.syntax unified
+ 1158              		.thumb
+ 1159              		.thumb_func
+ 1160              		.fpu fpv5-sp-d16
+ 1162              	ip4_frag:
+ 1163              	.LFB146:
+ 669:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 670:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* !LWIP_NETIF_TX_SINGLE_PBUF */
+ 671:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 672:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** /**
+ 673:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Fragment an IP datagram if too large for the netif.
+ 674:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 36
+
+
+ 675:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * Chop the datagram in MTU sized chunks and send them in order
+ 676:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * by pointing PBUF_REFs into p.
+ 677:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+ 678:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param p ip packet to send
+ 679:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param netif the netif on which to send
+ 680:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @param dest destination ip address to which to send
+ 681:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  *
+ 682:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  * @return ERR_OK if sent successfully, err_t otherwise
+ 683:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****  */
+ 684:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** err_t
+ 685:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** ip4_frag(struct pbuf *p, struct netif *netif, const ip4_addr_t *dest)
+ 686:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** {
+ 1164              		.loc 1 686 0
+ 1165              		.cfi_startproc
+ 1166              		@ args = 0, pretend = 0, frame = 40
+ 1167              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1168              	.LVL164:
+ 1169 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 1170              	.LCFI10:
+ 1171              		.cfi_def_cfa_offset 36
+ 1172              		.cfi_offset 4, -36
+ 1173              		.cfi_offset 5, -32
+ 1174              		.cfi_offset 6, -28
+ 1175              		.cfi_offset 7, -24
+ 1176              		.cfi_offset 8, -20
+ 1177              		.cfi_offset 9, -16
+ 1178              		.cfi_offset 10, -12
+ 1179              		.cfi_offset 11, -8
+ 1180              		.cfi_offset 14, -4
+ 1181 0004 8DB0     		sub	sp, sp, #52
+ 1182              	.LCFI11:
+ 1183              		.cfi_def_cfa_offset 88
+ 1184 0006 0546     		mov	r5, r0
+ 1185 0008 0691     		str	r1, [sp, #24]
+ 1186 000a 0B92     		str	r2, [sp, #44]
+ 687:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct pbuf *rambuf;
+ 688:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if !LWIP_NETIF_TX_SINGLE_PBUF
+ 689:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct pbuf *newpbuf;
+ 690:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif
+ 691:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_hdr *original_iphdr;
+ 692:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   struct ip_hdr *iphdr;
+ 693:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   const u16_t nfb = (netif->mtu - IP_HLEN) / 8;
+ 1187              		.loc 1 693 0
+ 1188 000c CB8C     		ldrh	r3, [r1, #38]
+ 1189 000e 143B     		subs	r3, r3, #20
+ 1190 0010 22D4     		bmi	.L127
+ 1191              	.L112:
+ 1192 0012 DB10     		asrs	r3, r3, #3
+ 1193 0014 0993     		str	r3, [sp, #36]
+ 1194 0016 9BB2     		uxth	r3, r3
+ 1195 0018 0A93     		str	r3, [sp, #40]
+ 1196              	.LVL165:
+ 694:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t left, fragsize;
+ 695:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t ofo;
+ 696:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   int last;
+ 697:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t poff = IP_HLEN;
+ 698:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t tmp;
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 37
+
+
+ 699:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if !LWIP_NETIF_TX_SINGLE_PBUF
+ 700:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t newpbuflen = 0;
+ 701:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t left_to_copy;
+ 702:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif
+ 703:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 704:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   original_iphdr = (struct ip_hdr *)p->payload;
+ 1197              		.loc 1 704 0
+ 1198 001a D5F804A0 		ldr	r10, [r5, #4]
+ 1199              	.LVL166:
+ 705:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   iphdr = original_iphdr;
+ 706:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ERROR("ip4_frag() does not support IP options", IPH_HL(iphdr) * 4 == IP_HLEN, return ERR_VAL
+ 1200              		.loc 1 706 0
+ 1201 001e 9AF80030 		ldrb	r3, [r10]	@ zero_extendqisi2
+ 1202 0022 03F00F03 		and	r3, r3, #15
+ 1203 0026 052B     		cmp	r3, #5
+ 1204 0028 40F0B380 		bne	.L123
+ 707:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 708:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   /* Save original offset */
+ 709:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   tmp = lwip_ntohs(IPH_OFFSET(iphdr));
+ 1205              		.loc 1 709 0
+ 1206 002c BAF80600 		ldrh	r0, [r10, #6]	@ unaligned
+ 1207              	.LVL167:
+ 1208 0030 FFF7FEFF 		bl	lwip_htons
+ 1209              	.LVL168:
+ 710:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   ofo = tmp & IP_OFFMASK;
+ 1210              		.loc 1 710 0
+ 1211 0034 C0F30C03 		ubfx	r3, r0, #0, #13
+ 1212 0038 0593     		str	r3, [sp, #20]
+ 1213              	.LVL169:
+ 711:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   LWIP_ERROR("ip_frag(): MF already set", (tmp & IP_MF) == 0, return ERR_VAL);
+ 1214              		.loc 1 711 0
+ 1215 003a 10F4005F 		tst	r0, #8192
+ 1216 003e 40F0AB80 		bne	.L124
+ 712:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 713:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   left = p->tot_len - IP_HLEN;
+ 1217              		.loc 1 713 0
+ 1218 0042 B5F80890 		ldrh	r9, [r5, #8]
+ 1219 0046 A9F11409 		sub	r9, r9, #20
+ 1220 004a 1FFA89FB 		uxth	fp, r9
+ 1221              	.LVL170:
+ 700:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t left_to_copy;
+ 1222              		.loc 1 700 0
+ 1223 004e 0024     		movs	r4, #0
+ 697:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t tmp;
+ 1224              		.loc 1 697 0
+ 1225 0050 4FF01408 		mov	r8, #20
+ 1226 0054 D946     		mov	r9, fp
+ 714:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 715:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   while (left) {
+ 1227              		.loc 1 715 0
+ 1228 0056 70E0     		b	.L114
+ 1229              	.LVL171:
+ 1230              	.L127:
+ 693:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   u16_t left, fragsize;
+ 1231              		.loc 1 693 0
+ 1232 0058 0733     		adds	r3, r3, #7
+ 1233 005a DAE7     		b	.L112
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 38
+
+
+ 1234              	.LVL172:
+ 1235              	.L116:
+ 1236              	.LBB6:
+ 716:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Fill this fragment */
+ 717:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     fragsize = LWIP_MIN(left, nfb * 8);
+ 718:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 719:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if LWIP_NETIF_TX_SINGLE_PBUF
+ 720:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     rambuf = pbuf_alloc(PBUF_IP, fragsize, PBUF_RAM);
+ 721:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (rambuf == NULL) {
+ 722:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto memerr;
+ 723:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 724:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_ASSERT("this needs a pbuf in one piece!",
+ 725:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       (rambuf->len == rambuf->tot_len) && (rambuf->next == NULL));
+ 726:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     poff += pbuf_copy_partial(p, rambuf->payload, fragsize, poff);
+ 727:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* make room for the IP header */
+ 728:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (pbuf_header(rambuf, IP_HLEN)) {
+ 729:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbuf_free(rambuf);
+ 730:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto memerr;
+ 731:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 732:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* fill in the IP header */
+ 733:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     SMEMCPY(rambuf->payload, original_iphdr, IP_HLEN);
+ 734:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iphdr = (struct ip_hdr*)rambuf->payload;
+ 735:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #else /* LWIP_NETIF_TX_SINGLE_PBUF */
+ 736:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* When not using a static buffer, create a chain of pbufs.
+ 737:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * The first will be a PBUF_RAM holding the link and IP header.
+ 738:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * The rest will be PBUF_REFs mirroring the pbuf chain to be fragged,
+ 739:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * but limited to the size of an mtu.
+ 740:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      */
+ 741:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     rambuf = pbuf_alloc(PBUF_LINK, IP_HLEN, PBUF_RAM);
+ 742:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (rambuf == NULL) {
+ 743:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto memerr;
+ 744:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 745:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     LWIP_ASSERT("this needs a pbuf in one piece!",
+ 746:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****                 (p->len >= (IP_HLEN)));
+ 747:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     SMEMCPY(rambuf->payload, original_iphdr, IP_HLEN);
+ 748:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iphdr = (struct ip_hdr *)rambuf->payload;
+ 749:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 750:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     left_to_copy = fragsize;
+ 751:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     while (left_to_copy) {
+ 752:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       struct pbuf_custom_ref *pcr;
+ 753:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       u16_t plen = p->len - poff;
+ 754:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       newpbuflen = LWIP_MIN(left_to_copy, plen);
+ 755:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* Is this pbuf already empty? */
+ 756:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (!newpbuflen) {
+ 757:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         poff = 0;
+ 758:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         p = p->next;
+ 759:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         continue;
+ 760:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 761:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pcr = ip_frag_alloc_pbuf_custom_ref();
+ 1237              		.loc 1 761 0
+ 1238 005c FFF7FEFF 		bl	ip_frag_alloc_pbuf_custom_ref
+ 1239              	.LVL173:
+ 762:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (pcr == NULL) {
+ 1240              		.loc 1 762 0
+ 1241 0060 0746     		mov	r7, r0
+ 1242 0062 40B3     		cbz	r0, .L128
+ 763:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         pbuf_free(rambuf);
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 39
+
+
+ 764:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         goto memerr;
+ 765:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 766:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* Mirror this pbuf, although we might not need all of it. */
+ 767:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       newpbuf = pbuf_alloced_custom(PBUF_RAW, newpbuflen, PBUF_REF, &pcr->pc,
+ 768:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         (u8_t*)p->payload + poff, newpbuflen);
+ 1243              		.loc 1 768 0
+ 1244 0064 6B68     		ldr	r3, [r5, #4]
+ 767:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         (u8_t*)p->payload + poff, newpbuflen);
+ 1245              		.loc 1 767 0
+ 1246 0066 4344     		add	r3, r3, r8
+ 1247 0068 0194     		str	r4, [sp, #4]
+ 1248 006a 0093     		str	r3, [sp]
+ 1249 006c 0346     		mov	r3, r0
+ 1250 006e 0222     		movs	r2, #2
+ 1251 0070 2146     		mov	r1, r4
+ 1252 0072 0420     		movs	r0, #4
+ 1253              	.LVL174:
+ 1254 0074 FFF7FEFF 		bl	pbuf_alloced_custom
+ 1255              	.LVL175:
+ 769:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (newpbuf == NULL) {
+ 1256              		.loc 1 769 0
+ 1257 0078 0390     		str	r0, [sp, #12]
+ 1258 007a 20B3     		cbz	r0, .L129
+ 770:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         ip_frag_free_pbuf_custom_ref(pcr);
+ 771:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         pbuf_free(rambuf);
+ 772:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         goto memerr;
+ 773:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 774:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbuf_ref(p);
+ 1259              		.loc 1 774 0
+ 1260 007c 2846     		mov	r0, r5
+ 1261              	.LVL176:
+ 1262 007e FFF7FEFF 		bl	pbuf_ref
+ 1263              	.LVL177:
+ 775:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pcr->original = p;
+ 1264              		.loc 1 775 0
+ 1265 0082 7D61     		str	r5, [r7, #20]
+ 776:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pcr->pc.custom_free_function = ipfrag_free_pbuf_custom;
+ 1266              		.loc 1 776 0
+ 1267 0084 474B     		ldr	r3, .L132
+ 1268 0086 3B61     		str	r3, [r7, #16]
+ 777:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 778:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* Add it to end of rambuf's chain, but using pbuf_cat, not pbuf_chain
+ 779:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****        * so that it is removed when pbuf_dechain is later called on rambuf.
+ 780:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****        */
+ 781:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       pbuf_cat(rambuf, newpbuf);
+ 1269              		.loc 1 781 0
+ 1270 0088 0399     		ldr	r1, [sp, #12]
+ 1271 008a 0498     		ldr	r0, [sp, #16]
+ 1272 008c FFF7FEFF 		bl	pbuf_cat
+ 1273              	.LVL178:
+ 782:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       left_to_copy -= newpbuflen;
+ 1274              		.loc 1 782 0
+ 1275 0090 361B     		subs	r6, r6, r4
+ 1276              	.LVL179:
+ 1277 0092 B6B2     		uxth	r6, r6
+ 1278              	.LVL180:
+ 783:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       if (left_to_copy) {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 40
+
+
+ 1279              		.loc 1 783 0
+ 1280 0094 16B1     		cbz	r6, .L115
+ 1281              	.LVL181:
+ 784:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         poff = 0;
+ 785:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         p = p->next;
+ 1282              		.loc 1 785 0
+ 1283 0096 2D68     		ldr	r5, [r5]
+ 1284              	.LVL182:
+ 784:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         poff = 0;
+ 1285              		.loc 1 784 0
+ 1286 0098 4FF00008 		mov	r8, #0
+ 1287              	.LVL183:
+ 1288              	.L115:
+ 1289              	.LBE6:
+ 751:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       struct pbuf_custom_ref *pcr;
+ 1290              		.loc 1 751 0
+ 1291 009c E6B1     		cbz	r6, .L130
+ 1292              	.LBB7:
+ 753:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       newpbuflen = LWIP_MIN(left_to_copy, plen);
+ 1293              		.loc 1 753 0
+ 1294 009e 6C89     		ldrh	r4, [r5, #10]
+ 1295              	.LVL184:
+ 1296 00a0 A4EB0804 		sub	r4, r4, r8
+ 1297 00a4 A4B2     		uxth	r4, r4
+ 1298              	.LVL185:
+ 754:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       /* Is this pbuf already empty? */
+ 1299              		.loc 1 754 0
+ 1300 00a6 B442     		cmp	r4, r6
+ 1301 00a8 28BF     		it	cs
+ 1302 00aa 3446     		movcs	r4, r6
+ 1303              	.LVL186:
+ 756:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         poff = 0;
+ 1304              		.loc 1 756 0
+ 1305 00ac 002C     		cmp	r4, #0
+ 1306 00ae D5D1     		bne	.L116
+ 1307              	.LVL187:
+ 758:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         continue;
+ 1308              		.loc 1 758 0
+ 1309 00b0 2D68     		ldr	r5, [r5]
+ 1310              	.LVL188:
+ 757:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         p = p->next;
+ 1311              		.loc 1 757 0
+ 1312 00b2 A046     		mov	r8, r4
+ 759:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 1313              		.loc 1 759 0
+ 1314 00b4 F2E7     		b	.L115
+ 1315              	.LVL189:
+ 1316              	.L128:
+ 763:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         goto memerr;
+ 1317              		.loc 1 763 0
+ 1318 00b6 0498     		ldr	r0, [sp, #16]
+ 1319              	.LVL190:
+ 1320 00b8 FFF7FEFF 		bl	pbuf_free
+ 1321              	.LVL191:
+ 1322              	.LBE7:
+ 786:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 787:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 41
+
+
+ 788:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     poff += newpbuflen;
+ 789:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* LWIP_NETIF_TX_SINGLE_PBUF */
+ 790:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 791:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Correct header */
+ 792:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     last = (left <= netif->mtu - IP_HLEN);
+ 793:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 794:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Set new offset and MF flag */
+ 795:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     tmp = (IP_OFFMASK & (ofo));
+ 796:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (!last) {
+ 797:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       tmp = tmp | IP_MF;
+ 798:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 799:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_OFFSET_SET(iphdr, lwip_htons(tmp));
+ 800:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_LEN_SET(iphdr, lwip_htons(fragsize + IP_HLEN));
+ 801:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_CHKSUM_SET(iphdr, 0);
+ 802:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if CHECKSUM_GEN_IP
+ 803:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IF__NETIF_CHECKSUM_ENABLED(netif, NETIF_CHECKSUM_GEN_IP) {
+ 804:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       IPH_CHKSUM_SET(iphdr, inet_chksum(iphdr, IP_HLEN));
+ 805:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 806:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* CHECKSUM_GEN_IP */
+ 807:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 808:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* No need for separate header pbuf - we allowed room for it in rambuf
+ 809:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * when allocated.
+ 810:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      */
+ 811:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     netif->output(netif, rambuf, dest);
+ 812:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPFRAG_STATS_INC(ip_frag.xmit);
+ 813:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 814:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Unfortunately we can't reuse rambuf - the hardware may still be
+ 815:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * using the buffer. Instead we free it (and the ensuing chain) and
+ 816:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * recreate it next time round the loop. If we're lucky the hardware
+ 817:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * will have already sent the packet, the free will really free, and
+ 818:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      * there will be zero memory penalty.
+ 819:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****      */
+ 820:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 821:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     pbuf_free(rambuf);
+ 822:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     left -= fragsize;
+ 823:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ofo += nfb;
+ 824:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 825:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   MIB2_STATS_INC(mib2.ipfragoks);
+ 826:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return ERR_OK;
+ 827:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** memerr:
+ 828:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   MIB2_STATS_INC(mib2.ipfragfails);
+ 829:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   return ERR_MEM;
+ 1323              		.loc 1 829 0
+ 1324 00bc 4FF0FF30 		mov	r0, #-1
+ 1325              	.LVL192:
+ 1326              	.L113:
+ 830:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 1327              		.loc 1 830 0
+ 1328 00c0 0DB0     		add	sp, sp, #52
+ 1329              	.LCFI12:
+ 1330              		.cfi_remember_state
+ 1331              		.cfi_def_cfa_offset 36
+ 1332              		@ sp needed
+ 1333 00c2 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1334              	.LVL193:
+ 1335              	.L129:
+ 1336              	.LCFI13:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 42
+
+
+ 1337              		.cfi_restore_state
+ 1338              	.LBB8:
+ 770:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         pbuf_free(rambuf);
+ 1339              		.loc 1 770 0
+ 1340 00c6 3846     		mov	r0, r7
+ 1341              	.LVL194:
+ 1342 00c8 FFF7FEFF 		bl	ip_frag_free_pbuf_custom_ref
+ 1343              	.LVL195:
+ 771:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****         goto memerr;
+ 1344              		.loc 1 771 0
+ 1345 00cc 0498     		ldr	r0, [sp, #16]
+ 1346 00ce FFF7FEFF 		bl	pbuf_free
+ 1347              	.LVL196:
+ 1348              	.LBE8:
+ 829:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 1349              		.loc 1 829 0
+ 1350 00d2 4FF0FF30 		mov	r0, #-1
+ 1351              	.LBB9:
+ 772:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       }
+ 1352              		.loc 1 772 0
+ 1353 00d6 F3E7     		b	.L113
+ 1354              	.LVL197:
+ 1355              	.L130:
+ 1356              	.LBE9:
+ 788:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #endif /* LWIP_NETIF_TX_SINGLE_PBUF */
+ 1357              		.loc 1 788 0
+ 1358 00d8 A044     		add	r8, r8, r4
+ 1359              	.LVL198:
+ 1360 00da 1FFA88F8 		uxth	r8, r8
+ 1361              	.LVL199:
+ 792:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1362              		.loc 1 792 0
+ 1363 00de 069B     		ldr	r3, [sp, #24]
+ 1364 00e0 DB8C     		ldrh	r3, [r3, #38]
+ 1365 00e2 143B     		subs	r3, r3, #20
+ 1366              	.LVL200:
+ 795:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (!last) {
+ 1367              		.loc 1 795 0
+ 1368 00e4 059A     		ldr	r2, [sp, #20]
+ 1369 00e6 C2F30C00 		ubfx	r0, r2, #0, #13
+ 1370              	.LVL201:
+ 796:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       tmp = tmp | IP_MF;
+ 1371              		.loc 1 796 0
+ 1372 00ea 079A     		ldr	r2, [sp, #28]
+ 1373 00ec 9A42     		cmp	r2, r3
+ 1374 00ee 01DD     		ble	.L121
+ 797:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     }
+ 1375              		.loc 1 797 0
+ 1376 00f0 40F40050 		orr	r0, r0, #8192
+ 1377              	.LVL202:
+ 1378              	.L121:
+ 799:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_LEN_SET(iphdr, lwip_htons(fragsize + IP_HLEN));
+ 1379              		.loc 1 799 0
+ 1380 00f4 FFF7FEFF 		bl	lwip_htons
+ 1381              	.LVL203:
+ 1382 00f8 ABF80600 		strh	r0, [fp, #6]	@ unaligned
+ 800:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPH_CHKSUM_SET(iphdr, 0);
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 43
+
+
+ 1383              		.loc 1 800 0
+ 1384 00fc 089E     		ldr	r6, [sp, #32]
+ 1385              	.LVL204:
+ 1386 00fe 06F11400 		add	r0, r6, #20
+ 1387 0102 80B2     		uxth	r0, r0
+ 1388 0104 FFF7FEFF 		bl	lwip_htons
+ 1389              	.LVL205:
+ 1390 0108 ABF80200 		strh	r0, [fp, #2]	@ unaligned
+ 801:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** #if CHECKSUM_GEN_IP
+ 1391              		.loc 1 801 0
+ 1392 010c 0023     		movs	r3, #0
+ 1393 010e 8BF80A30 		strb	r3, [fp, #10]
+ 1394 0112 8BF80B30 		strb	r3, [fp, #11]
+ 811:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     IPFRAG_STATS_INC(ip_frag.xmit);
+ 1395              		.loc 1 811 0
+ 1396 0116 0698     		ldr	r0, [sp, #24]
+ 1397 0118 4369     		ldr	r3, [r0, #20]
+ 1398 011a 0B9A     		ldr	r2, [sp, #44]
+ 1399 011c 049F     		ldr	r7, [sp, #16]
+ 1400 011e 3946     		mov	r1, r7
+ 1401 0120 9847     		blx	r3
+ 1402              	.LVL206:
+ 821:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     left -= fragsize;
+ 1403              		.loc 1 821 0
+ 1404 0122 3846     		mov	r0, r7
+ 1405 0124 FFF7FEFF 		bl	pbuf_free
+ 1406              	.LVL207:
+ 822:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     ofo += nfb;
+ 1407              		.loc 1 822 0
+ 1408 0128 A9EB0603 		sub	r3, r9, r6
+ 1409 012c 1FFA83F9 		uxth	r9, r3
+ 1410              	.LVL208:
+ 823:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****   }
+ 1411              		.loc 1 823 0
+ 1412 0130 059B     		ldr	r3, [sp, #20]
+ 1413 0132 0A9A     		ldr	r2, [sp, #40]
+ 1414 0134 1344     		add	r3, r3, r2
+ 1415 0136 9BB2     		uxth	r3, r3
+ 1416 0138 0593     		str	r3, [sp, #20]
+ 1417              	.LVL209:
+ 1418              	.L114:
+ 715:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     /* Fill this fragment */
+ 1419              		.loc 1 715 0
+ 1420 013a B9F1000F 		cmp	r9, #0
+ 1421 013e 26D0     		beq	.L131
+ 717:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1422              		.loc 1 717 0
+ 1423 0140 BDF82430 		ldrh	r3, [sp, #36]
+ 1424 0144 DB00     		lsls	r3, r3, #3
+ 1425 0146 CDF81C90 		str	r9, [sp, #28]
+ 1426 014a 4B45     		cmp	r3, r9
+ 1427 014c A8BF     		it	ge
+ 1428 014e 4B46     		movge	r3, r9
+ 1429 0150 9BB2     		uxth	r3, r3
+ 1430 0152 1F46     		mov	r7, r3
+ 1431 0154 0893     		str	r3, [sp, #32]
+ 1432              	.LVL210:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 44
+
+
+ 741:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     if (rambuf == NULL) {
+ 1433              		.loc 1 741 0
+ 1434 0156 0022     		movs	r2, #0
+ 1435 0158 1421     		movs	r1, #20
+ 1436 015a 0220     		movs	r0, #2
+ 1437 015c FFF7FEFF 		bl	pbuf_alloc
+ 1438              	.LVL211:
+ 742:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       goto memerr;
+ 1439              		.loc 1 742 0
+ 1440 0160 0490     		str	r0, [sp, #16]
+ 1441 0162 E0B1     		cbz	r0, .L125
+ 747:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     iphdr = (struct ip_hdr *)rambuf->payload;
+ 1442              		.loc 1 747 0
+ 1443 0164 4368     		ldr	r3, [r0, #4]
+ 1444 0166 DAF80020 		ldr	r2, [r10]	@ unaligned
+ 1445 016a DAF80460 		ldr	r6, [r10, #4]	@ unaligned
+ 1446 016e DAF80800 		ldr	r0, [r10, #8]	@ unaligned
+ 1447              	.LVL212:
+ 1448 0172 DAF80C10 		ldr	r1, [r10, #12]	@ unaligned
+ 1449 0176 1A60     		str	r2, [r3]	@ unaligned
+ 1450 0178 5E60     		str	r6, [r3, #4]	@ unaligned
+ 1451 017a 9860     		str	r0, [r3, #8]	@ unaligned
+ 1452 017c D960     		str	r1, [r3, #12]	@ unaligned
+ 1453 017e DAF81020 		ldr	r2, [r10, #16]	@ unaligned
+ 1454 0182 1A61     		str	r2, [r3, #16]	@ unaligned
+ 748:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1455              		.loc 1 748 0
+ 1456 0184 049B     		ldr	r3, [sp, #16]
+ 1457 0186 D3F804B0 		ldr	fp, [r3, #4]
+ 1458              	.LVL213:
+ 750:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****     while (left_to_copy) {
+ 1459              		.loc 1 750 0
+ 1460 018a 3E46     		mov	r6, r7
+ 751:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c ****       struct pbuf_custom_ref *pcr;
+ 1461              		.loc 1 751 0
+ 1462 018c 86E7     		b	.L115
+ 1463              	.LVL214:
+ 1464              	.L131:
+ 826:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** memerr:
+ 1465              		.loc 1 826 0
+ 1466 018e 0020     		movs	r0, #0
+ 1467 0190 96E7     		b	.L113
+ 1468              	.LVL215:
+ 1469              	.L123:
+ 706:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1470              		.loc 1 706 0
+ 1471 0192 6FF00500 		mvn	r0, #5
+ 1472              	.LVL216:
+ 1473 0196 93E7     		b	.L113
+ 1474              	.LVL217:
+ 1475              	.L124:
+ 711:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** 
+ 1476              		.loc 1 711 0
+ 1477 0198 6FF00500 		mvn	r0, #5
+ 1478              	.LVL218:
+ 1479 019c 90E7     		b	.L113
+ 1480              	.LVL219:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 45
+
+
+ 1481              	.L125:
+ 829:Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c **** }
+ 1482              		.loc 1 829 0
+ 1483 019e 4FF0FF30 		mov	r0, #-1
+ 1484              	.LVL220:
+ 1485 01a2 8DE7     		b	.L113
+ 1486              	.L133:
+ 1487              		.align	2
+ 1488              	.L132:
+ 1489 01a4 00000000 		.word	ipfrag_free_pbuf_custom
+ 1490              		.cfi_endproc
+ 1491              	.LFE146:
+ 1493              		.section	.bss.ip_reass_pbufcount,"aw",%nobits
+ 1494              		.align	1
+ 1495              		.set	.LANCHOR1,. + 0
+ 1498              	ip_reass_pbufcount:
+ 1499 0000 0000     		.space	2
+ 1500              		.section	.bss.reassdatagrams,"aw",%nobits
+ 1501              		.align	2
+ 1502              		.set	.LANCHOR0,. + 0
+ 1505              	reassdatagrams:
+ 1506 0000 00000000 		.space	4
+ 1507              		.text
+ 1508              	.Letext0:
+ 1509              		.file 2 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1510              		.file 3 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1511              		.file 4 "Drivers/CMSIS/Include/core_cm7.h"
+ 1512              		.file 5 "Drivers/CMSIS/Device/ST/STM32F7xx/Include/system_stm32f7xx.h"
+ 1513              		.file 6 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\lock.h"
+ 1514              		.file 7 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_types.h"
+ 1515              		.file 8 "c:\\gcc_toolchain\\6_2017-q1-update\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1516              		.file 9 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\reent.h"
+ 1517              		.file 10 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\stdlib.h"
+ 1518              		.file 11 "Middlewares/Third_Party/LwIP/src/include/lwip/arch.h"
+ 1519              		.file 12 "Middlewares/Third_Party/LwIP/src/include/lwip/err.h"
+ 1520              		.file 13 "Middlewares/Third_Party/LwIP/src/include/lwip/pbuf.h"
+ 1521              		.file 14 "Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h"
+ 1522              		.file 15 "Middlewares/Third_Party/LwIP/src/include/lwip/ip_addr.h"
+ 1523              		.file 16 "Middlewares/Third_Party/LwIP/src/include/lwip/memp.h"
+ 1524              		.file 17 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/memp_priv.h"
+ 1525              		.file 18 "Middlewares/Third_Party/LwIP/src/include/lwip/netif.h"
+ 1526              		.file 19 "Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip4.h"
+ 1527              		.file 20 "Middlewares/Third_Party/LwIP/src/include/lwip/ip.h"
+ 1528              		.file 21 "Middlewares/Third_Party/LwIP/src/include/lwip/ip4_frag.h"
+ 1529              		.file 22 "Middlewares/Third_Party/LwIP/src/include/lwip/icmp.h"
+ 1530              		.file 23 "Middlewares/Third_Party/LwIP/src/include/lwip/def.h"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s 			page 46
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 ip4_frag.c
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:18     .text.ip_reass_dequeue_datagram:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:24     .text.ip_reass_dequeue_datagram:00000000 ip_reass_dequeue_datagram
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:64     .text.ip_reass_dequeue_datagram:00000020 $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:69     .text.ip_reass_free_complete_datagram:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:75     .text.ip_reass_free_complete_datagram:00000000 ip_reass_free_complete_datagram
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:197    .text.ip_reass_free_complete_datagram:0000007c $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:202    .text.ip_reass_remove_oldest_datagram:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:208    .text.ip_reass_remove_oldest_datagram:00000000 ip_reass_remove_oldest_datagram
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:338    .text.ip_reass_remove_oldest_datagram:00000080 $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:343    .text.ip_frag_free_pbuf_custom_ref:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:349    .text.ip_frag_free_pbuf_custom_ref:00000000 ip_frag_free_pbuf_custom_ref
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:372    .text.ipfrag_free_pbuf_custom:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:378    .text.ipfrag_free_pbuf_custom:00000000 ipfrag_free_pbuf_custom
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:409    .text.ip_reass_chain_frag_into_datagram_and_validate:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:415    .text.ip_reass_chain_frag_into_datagram_and_validate:00000000 ip_reass_chain_frag_into_datagram_and_validate
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:653    .text.ip_reass_chain_frag_into_datagram_and_validate:00000108 $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:658    .text.ip_frag_alloc_pbuf_custom_ref:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:664    .text.ip_frag_alloc_pbuf_custom_ref:00000000 ip_frag_alloc_pbuf_custom_ref
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:685    .text.ip_reass_enqueue_new_datagram:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:691    .text.ip_reass_enqueue_new_datagram:00000000 ip_reass_enqueue_new_datagram
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:774    .text.ip_reass_enqueue_new_datagram:0000005c $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:779    .text.ip_reass_tmr:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:786    .text.ip_reass_tmr:00000000 ip_reass_tmr
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:846    .text.ip_reass_tmr:00000028 $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:851    .text.ip4_reass:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:858    .text.ip4_reass:00000000 ip4_reass
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:1149   .text.ip4_reass:0000017c $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:1155   .text.ip4_frag:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:1162   .text.ip4_frag:00000000 ip4_frag
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:1489   .text.ip4_frag:000001a4 $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:1494   .bss.ip_reass_pbufcount:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:1498   .bss.ip_reass_pbufcount:00000000 ip_reass_pbufcount
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:1501   .bss.reassdatagrams:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccnLqW3g.s:1505   .bss.reassdatagrams:00000000 reassdatagrams
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+memp_free
+icmp_time_exceeded
+pbuf_clen
+pbuf_free
+lwip_htons
+memp_malloc
+memset
+pbuf_header
+pbuf_cat
+pbuf_alloced_custom
+pbuf_ref
+pbuf_alloc

@@ -1,0 +1,296 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"mo",
+				"mount_usb"
+			],
+			[
+				"fi",
+				"fprintf\tfprintf …"
+			],
+			[
+				"moun",
+				"mount_usb\tint mount_usb()"
+			],
+			[
+				"read",
+				"read_file"
+			],
+			[
+				"re",
+				"read_file"
+			],
+			[
+				"free",
+				"free_Request"
+			],
+			[
+				"tcp",
+				"tcp_pcb"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"contents": "#include \"test.h\"\n#include \"memory_access.h\"\n#include \"ftp_server.h\"\n#include \"fatfs.h\"\n\nvoid test() {\n\tprintf(\"TEST BEGIN\\r\\n\");\n\tprintf(\"%s\\n\", USBHPath);\n\tFATFS *fs;\n\n\tfs = malloc(sizeof(FATFS));\n\tif(f_mount(fs, USBHPath, 1) != FR_OK) {\n\t\tprintf(\"usb mount error\\r\\n\");\n\t\tfree(fs);\n\t\treturn;\n\t} \n\n\tmount_usb();\n\tprintf(\"%s\\r\\n\", get_current_directory());\n\tprintf(\"%s\\r\\n\", list_directory());\n\n\tFIL *f = open_file(\"/123.txt\");\n\n\tuint16_t buf_size = 1024;\n\tchar *buf = malloc(sizeof(char)*buf_size);\n\tuint16_t rb = read_file(f, buf, buf_size);\n\tprintf(\"Read %u\\r\\n%s\\r\\n\", rb, buf);\n\tfree(buf);\n\n\tunmount_usb();\n\tprintf(\"TEST END\\r\\n\");\n}\n",
+			"file": "Src/test.c",
+			"file_size": 672,
+			"file_write_time": 131576639796817656,
+			"settings":
+			{
+				"buffer_size": 640,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 137.0,
+		"last_filter": "Package Control: insta",
+		"selected_items":
+		[
+			[
+				"Package Control: insta",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: remo",
+				"Package Control: Remove Package"
+			],
+			[
+				"Package Control: ena",
+				"Package Control: Enable Package"
+			],
+			[
+				"Package Control: disa",
+				"Package Control: Disable Package"
+			],
+			[
+				"Package Control:",
+				"Package Control: Enable Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Remove Package"
+			],
+			[
+				"Package Control: ins",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 412.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/D/Studia/Semestr_5/SW/serw",
+		"/D/Studia/Semestr_5/SW/serw/Inc",
+		"/D/Studia/Semestr_5/SW/serw/Src"
+	],
+	"file_history":
+	[
+		"/D/Studia/Semestr_5/SW/serw/.clang_complete",
+		"/D/Studia/Semestr_5/SW/serw/Src/ftp_server.c",
+		"/D/Studia/Semestr_5/SW/serw/Src/memory_access.c",
+		"/D/Studia/Semestr_5/SW/serw/Inc/memory_access.h",
+		"/D/Studia/Semestr_5/SW/serw/Src/usb_host.c",
+		"/D/Studia/Semestr_5/SW/serw/Src/main.c",
+		"/D/Studia/Semestr_5/SW/serw/Makefile",
+		"/D/Studia/Semestr_5/SW/serw/serw.sublime-project",
+		"/C/Users/Dawid/AppData/Roaming/Sublime Text 3/Packages/ClangAutoComplete/ClangAutoComplete.sublime-settings",
+		"/D/Studia/Semestr_5/SW/SERWER_FTP/serwerFTP_gcc/Src/usb_host.c",
+		"/D/Studia/Semestr_5/SW/TrueStudio/serwerFTP/Src/main.c",
+		"/D/Studia/Semestr_5/SW/SERWER_FTP/serwerFTP_gcc/Src/main.c",
+		"/D/Studia/Semestr_5/SW/TrueStudio/serwerFTP/Src/memory_access.c",
+		"/D/Studia/Semestr_5/SW/SERWER_FTP/serwerFTPgcc/Src/main.c",
+		"/D/Studia/Semestr_5/Bazy/lab4/sprawozdanie",
+		"/D/Studia/Semestr_5/SW/example/STM32-E407-FtpServer-master/FtpServer/ftps/ftps.h",
+		"/D/Studia/Semestr_5/SW/example/STM32-E407-FtpServer-master/FtpServer/ftps/ftpsser.c",
+		"/D/Studia/Semestr_5/SW/example/STM32-E407-FtpServer-master/FtpServer/ftps/ftps.c",
+		"/D/Studia/Semestr_5/SW/TrueStudio/ftp/ftp_server.c",
+		"/D/Studia/Semestr_5/SW/TrueStudio/ftp/ftp_commands.c",
+		"/D/Studia/Semestr_5/SW/TrueStudio/ftp/ftp_storage.c",
+		"/D/Studia/Semestr_5/SW/SerwerFTP/160919_FreeRTOS_Labs/160919_FreeRTOS_Labs/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/protocols/FTP/FreeRTOS_FTP_server.c",
+		"/D/Desktop_Windows/main.c",
+		"/D/Studia/Semestr_5/SW/TrueStudio/serwerFTP/Src/fatfs.c"
+	],
+	"find":
+	{
+		"height": 40.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "Src/test.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 640,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								182,
+								182
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "serw.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 321.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

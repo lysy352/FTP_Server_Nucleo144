@@ -1,0 +1,1450 @@
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"memory_access.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text._is_full_path,"ax",%progbits
+  18              		.align	1
+  19              		.global	_is_full_path
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  23              		.fpu fpv5-sp-d16
+  25              	_is_full_path:
+  26              	.LFB141:
+  27              		.file 1 "Src/memory_access.c"
+   1:Src/memory_access.c **** #include "memory_access.h"
+   2:Src/memory_access.c **** #include "usb_host.h"
+   3:Src/memory_access.c **** 
+   4:Src/memory_access.c **** FATFS *fs;
+   5:Src/memory_access.c **** char *current_dir;
+   6:Src/memory_access.c **** 
+   7:Src/memory_access.c **** int _is_full_path(char *path) {
+  28              		.loc 1 7 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		@ link register save eliminated.
+  33              	.LVL0:
+   8:Src/memory_access.c **** 	if(path[0] == '/') {
+  34              		.loc 1 8 0
+  35 0000 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+  36 0002 2F2B     		cmp	r3, #47
+  37 0004 01D0     		beq	.L4
+   9:Src/memory_access.c **** 		return 1;
+  10:Src/memory_access.c **** 	}
+  11:Src/memory_access.c **** 	return 0;
+  38              		.loc 1 11 0
+  39 0006 0020     		movs	r0, #0
+  40              	.LVL1:
+  12:Src/memory_access.c **** }
+  41              		.loc 1 12 0
+  42 0008 7047     		bx	lr
+  43              	.LVL2:
+  44              	.L4:
+   9:Src/memory_access.c **** 		return 1;
+  45              		.loc 1 9 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 2
+
+
+  46 000a 0120     		movs	r0, #1
+  47              	.LVL3:
+  48 000c 7047     		bx	lr
+  49              		.cfi_endproc
+  50              	.LFE141:
+  52              		.section	.text._get_full_path,"ax",%progbits
+  53              		.align	1
+  54              		.global	_get_full_path
+  55              		.syntax unified
+  56              		.thumb
+  57              		.thumb_func
+  58              		.fpu fpv5-sp-d16
+  60              	_get_full_path:
+  61              	.LFB142:
+  13:Src/memory_access.c **** 
+  14:Src/memory_access.c **** char *_get_full_path(char *path) {
+  62              		.loc 1 14 0
+  63              		.cfi_startproc
+  64              		@ args = 0, pretend = 0, frame = 0
+  65              		@ frame_needed = 0, uses_anonymous_args = 0
+  66              	.LVL4:
+  67 0000 70B5     		push	{r4, r5, r6, lr}
+  68              	.LCFI0:
+  69              		.cfi_def_cfa_offset 16
+  70              		.cfi_offset 4, -16
+  71              		.cfi_offset 5, -12
+  72              		.cfi_offset 6, -8
+  73              		.cfi_offset 14, -4
+  74 0002 0446     		mov	r4, r0
+  15:Src/memory_access.c **** 	char *new_path;
+  16:Src/memory_access.c **** 	if(_is_full_path(path)) {
+  75              		.loc 1 16 0
+  76 0004 FFF7FEFF 		bl	_is_full_path
+  77              	.LVL5:
+  78 0008 A0B9     		cbnz	r0, .L9
+  17:Src/memory_access.c **** 		new_path = malloc(sizeof(char)*strlen(path));
+  18:Src/memory_access.c **** 		sprintf(new_path, "%s/", path);
+  19:Src/memory_access.c **** 	} else {
+  20:Src/memory_access.c **** 		new_path = malloc(sizeof(char)*(strlen(current_dir) + strlen(path) + 2));
+  79              		.loc 1 20 0
+  80 000a 104B     		ldr	r3, .L10
+  81 000c 1E68     		ldr	r6, [r3]
+  82 000e 3046     		mov	r0, r6
+  83 0010 FFF7FEFF 		bl	strlen
+  84              	.LVL6:
+  85 0014 0546     		mov	r5, r0
+  86 0016 2046     		mov	r0, r4
+  87 0018 FFF7FEFF 		bl	strlen
+  88              	.LVL7:
+  89 001c 2844     		add	r0, r0, r5
+  90 001e 0230     		adds	r0, r0, #2
+  91 0020 FFF7FEFF 		bl	malloc
+  92              	.LVL8:
+  93 0024 0546     		mov	r5, r0
+  94              	.LVL9:
+  21:Src/memory_access.c **** 		sprintf(new_path, "%s%s/", current_dir, path);
+  95              		.loc 1 21 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 3
+
+
+  96 0026 2346     		mov	r3, r4
+  97 0028 3246     		mov	r2, r6
+  98 002a 0949     		ldr	r1, .L10+4
+  99 002c FFF7FEFF 		bl	sprintf
+ 100              	.LVL10:
+ 101              	.L5:
+  22:Src/memory_access.c **** 	}
+  23:Src/memory_access.c **** 	return new_path;
+  24:Src/memory_access.c **** }
+ 102              		.loc 1 24 0
+ 103 0030 2846     		mov	r0, r5
+ 104 0032 70BD     		pop	{r4, r5, r6, pc}
+ 105              	.LVL11:
+ 106              	.L9:
+  17:Src/memory_access.c **** 		sprintf(new_path, "%s/", path);
+ 107              		.loc 1 17 0
+ 108 0034 2046     		mov	r0, r4
+ 109 0036 FFF7FEFF 		bl	strlen
+ 110              	.LVL12:
+ 111 003a FFF7FEFF 		bl	malloc
+ 112              	.LVL13:
+ 113 003e 0546     		mov	r5, r0
+ 114              	.LVL14:
+  18:Src/memory_access.c **** 	} else {
+ 115              		.loc 1 18 0
+ 116 0040 2246     		mov	r2, r4
+ 117 0042 0449     		ldr	r1, .L10+8
+ 118 0044 FFF7FEFF 		bl	sprintf
+ 119              	.LVL15:
+ 120 0048 F2E7     		b	.L5
+ 121              	.L11:
+ 122 004a 00BF     		.align	2
+ 123              	.L10:
+ 124 004c 00000000 		.word	current_dir
+ 125 0050 04000000 		.word	.LC1
+ 126 0054 00000000 		.word	.LC0
+ 127              		.cfi_endproc
+ 128              	.LFE142:
+ 130              		.section	.text.mount_usb,"ax",%progbits
+ 131              		.align	1
+ 132              		.global	mount_usb
+ 133              		.syntax unified
+ 134              		.thumb
+ 135              		.thumb_func
+ 136              		.fpu fpv5-sp-d16
+ 138              	mount_usb:
+ 139              	.LFB143:
+  25:Src/memory_access.c **** 
+  26:Src/memory_access.c **** int mount_usb() {
+ 140              		.loc 1 26 0
+ 141              		.cfi_startproc
+ 142              		@ args = 0, pretend = 0, frame = 0
+ 143              		@ frame_needed = 0, uses_anonymous_args = 0
+ 144 0000 08B5     		push	{r3, lr}
+ 145              	.LCFI1:
+ 146              		.cfi_def_cfa_offset 8
+ 147              		.cfi_offset 3, -8
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 4
+
+
+ 148              		.cfi_offset 14, -4
+  27:Src/memory_access.c **** 	fs = malloc(sizeof(FATFS));
+ 149              		.loc 1 27 0
+ 150 0002 4FF40D70 		mov	r0, #564
+ 151 0006 FFF7FEFF 		bl	malloc
+ 152              	.LVL16:
+ 153 000a 0F4B     		ldr	r3, .L17
+ 154 000c 1860     		str	r0, [r3]
+  28:Src/memory_access.c **** 	if(f_mount(fs, "", 1) != FR_OK) {
+ 155              		.loc 1 28 0
+ 156 000e 0122     		movs	r2, #1
+ 157 0010 0E49     		ldr	r1, .L17+4
+ 158 0012 FFF7FEFF 		bl	f_mount
+ 159              	.LVL17:
+ 160 0016 60B9     		cbnz	r0, .L16
+  29:Src/memory_access.c **** 		printf("usb mount error\r\n");
+  30:Src/memory_access.c **** 		free(fs);
+  31:Src/memory_access.c **** 		return -1;
+  32:Src/memory_access.c **** 	}
+  33:Src/memory_access.c **** 
+  34:Src/memory_access.c **** 	current_dir = malloc(sizeof(char)*2);
+ 161              		.loc 1 34 0
+ 162 0018 0220     		movs	r0, #2
+ 163 001a FFF7FEFF 		bl	malloc
+ 164              	.LVL18:
+ 165 001e 0C4B     		ldr	r3, .L17+8
+ 166 0020 1860     		str	r0, [r3]
+  35:Src/memory_access.c **** 	strcpy(current_dir, "/");
+ 167              		.loc 1 35 0
+ 168 0022 0C4B     		ldr	r3, .L17+12
+ 169 0024 1B88     		ldrh	r3, [r3]	@ unaligned
+ 170 0026 0380     		strh	r3, [r0]	@ unaligned
+  36:Src/memory_access.c **** 
+  37:Src/memory_access.c **** 	printf("Mounted USB\r\n");
+ 171              		.loc 1 37 0
+ 172 0028 0B48     		ldr	r0, .L17+16
+ 173 002a FFF7FEFF 		bl	puts
+ 174              	.LVL19:
+  38:Src/memory_access.c **** 	return 1;
+ 175              		.loc 1 38 0
+ 176 002e 0120     		movs	r0, #1
+  39:Src/memory_access.c **** }
+ 177              		.loc 1 39 0
+ 178 0030 08BD     		pop	{r3, pc}
+ 179              	.L16:
+  29:Src/memory_access.c **** 		free(fs);
+ 180              		.loc 1 29 0
+ 181 0032 0A48     		ldr	r0, .L17+20
+ 182 0034 FFF7FEFF 		bl	puts
+ 183              	.LVL20:
+  30:Src/memory_access.c **** 		return -1;
+ 184              		.loc 1 30 0
+ 185 0038 034B     		ldr	r3, .L17
+ 186 003a 1868     		ldr	r0, [r3]
+ 187 003c FFF7FEFF 		bl	free
+ 188              	.LVL21:
+  31:Src/memory_access.c **** 	}
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 5
+
+
+ 189              		.loc 1 31 0
+ 190 0040 4FF0FF30 		mov	r0, #-1
+ 191 0044 08BD     		pop	{r3, pc}
+ 192              	.L18:
+ 193 0046 00BF     		.align	2
+ 194              	.L17:
+ 195 0048 00000000 		.word	fs
+ 196 004c 00000000 		.word	.LC2
+ 197 0050 00000000 		.word	current_dir
+ 198 0054 18000000 		.word	.LC4
+ 199 0058 1C000000 		.word	.LC5
+ 200 005c 04000000 		.word	.LC3
+ 201              		.cfi_endproc
+ 202              	.LFE143:
+ 204              		.section	.text.unmount_usb,"ax",%progbits
+ 205              		.align	1
+ 206              		.global	unmount_usb
+ 207              		.syntax unified
+ 208              		.thumb
+ 209              		.thumb_func
+ 210              		.fpu fpv5-sp-d16
+ 212              	unmount_usb:
+ 213              	.LFB144:
+  40:Src/memory_access.c **** 
+  41:Src/memory_access.c **** int unmount_usb() {
+ 214              		.loc 1 41 0
+ 215              		.cfi_startproc
+ 216              		@ args = 0, pretend = 0, frame = 0
+ 217              		@ frame_needed = 0, uses_anonymous_args = 0
+ 218 0000 08B5     		push	{r3, lr}
+ 219              	.LCFI2:
+ 220              		.cfi_def_cfa_offset 8
+ 221              		.cfi_offset 3, -8
+ 222              		.cfi_offset 14, -4
+  42:Src/memory_access.c **** 	if(f_mount(0, "", 0) != FR_OK) {
+ 223              		.loc 1 42 0
+ 224 0002 0022     		movs	r2, #0
+ 225 0004 0B49     		ldr	r1, .L24
+ 226 0006 1046     		mov	r0, r2
+ 227 0008 FFF7FEFF 		bl	f_mount
+ 228              	.LVL22:
+ 229 000c 60B9     		cbnz	r0, .L23
+  43:Src/memory_access.c **** 		printf("usb unmount error\r\n");
+  44:Src/memory_access.c **** 		return -1;
+  45:Src/memory_access.c **** 	}
+  46:Src/memory_access.c **** 	free(current_dir);
+ 230              		.loc 1 46 0
+ 231 000e 0A4B     		ldr	r3, .L24+4
+ 232 0010 1868     		ldr	r0, [r3]
+ 233 0012 FFF7FEFF 		bl	free
+ 234              	.LVL23:
+  47:Src/memory_access.c **** 	free(fs);
+ 235              		.loc 1 47 0
+ 236 0016 094B     		ldr	r3, .L24+8
+ 237 0018 1868     		ldr	r0, [r3]
+ 238 001a FFF7FEFF 		bl	free
+ 239              	.LVL24:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 6
+
+
+  48:Src/memory_access.c **** 
+  49:Src/memory_access.c **** 	printf("Unmounted USB\r\n");
+ 240              		.loc 1 49 0
+ 241 001e 0848     		ldr	r0, .L24+12
+ 242 0020 FFF7FEFF 		bl	puts
+ 243              	.LVL25:
+  50:Src/memory_access.c **** 	return 1;
+ 244              		.loc 1 50 0
+ 245 0024 0120     		movs	r0, #1
+  51:Src/memory_access.c **** }
+ 246              		.loc 1 51 0
+ 247 0026 08BD     		pop	{r3, pc}
+ 248              	.L23:
+  43:Src/memory_access.c **** 		return -1;
+ 249              		.loc 1 43 0
+ 250 0028 0648     		ldr	r0, .L24+16
+ 251 002a FFF7FEFF 		bl	puts
+ 252              	.LVL26:
+  44:Src/memory_access.c **** 	}
+ 253              		.loc 1 44 0
+ 254 002e 4FF0FF30 		mov	r0, #-1
+ 255 0032 08BD     		pop	{r3, pc}
+ 256              	.L25:
+ 257              		.align	2
+ 258              	.L24:
+ 259 0034 00000000 		.word	.LC2
+ 260 0038 00000000 		.word	current_dir
+ 261 003c 00000000 		.word	fs
+ 262 0040 14000000 		.word	.LC7
+ 263 0044 00000000 		.word	.LC6
+ 264              		.cfi_endproc
+ 265              	.LFE144:
+ 267              		.section	.text.get_current_directory,"ax",%progbits
+ 268              		.align	1
+ 269              		.global	get_current_directory
+ 270              		.syntax unified
+ 271              		.thumb
+ 272              		.thumb_func
+ 273              		.fpu fpv5-sp-d16
+ 275              	get_current_directory:
+ 276              	.LFB145:
+  52:Src/memory_access.c **** 
+  53:Src/memory_access.c **** char *get_current_directory() {
+ 277              		.loc 1 53 0
+ 278              		.cfi_startproc
+ 279              		@ args = 0, pretend = 0, frame = 0
+ 280              		@ frame_needed = 0, uses_anonymous_args = 0
+ 281              		@ link register save eliminated.
+  54:Src/memory_access.c **** 	return current_dir;
+  55:Src/memory_access.c **** }
+ 282              		.loc 1 55 0
+ 283 0000 014B     		ldr	r3, .L27
+ 284 0002 1868     		ldr	r0, [r3]
+ 285 0004 7047     		bx	lr
+ 286              	.L28:
+ 287 0006 00BF     		.align	2
+ 288              	.L27:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 7
+
+
+ 289 0008 00000000 		.word	current_dir
+ 290              		.cfi_endproc
+ 291              	.LFE145:
+ 293              		.section	.text.change_directory,"ax",%progbits
+ 294              		.align	1
+ 295              		.global	change_directory
+ 296              		.syntax unified
+ 297              		.thumb
+ 298              		.thumb_func
+ 299              		.fpu fpv5-sp-d16
+ 301              	change_directory:
+ 302              	.LFB146:
+  56:Src/memory_access.c **** 
+  57:Src/memory_access.c **** char *change_directory(char *path) {
+ 303              		.loc 1 57 0
+ 304              		.cfi_startproc
+ 305              		@ args = 0, pretend = 0, frame = 48
+ 306              		@ frame_needed = 0, uses_anonymous_args = 0
+ 307              	.LVL27:
+ 308 0000 30B5     		push	{r4, r5, lr}
+ 309              	.LCFI3:
+ 310              		.cfi_def_cfa_offset 12
+ 311              		.cfi_offset 4, -12
+ 312              		.cfi_offset 5, -8
+ 313              		.cfi_offset 14, -4
+ 314 0002 8DB0     		sub	sp, sp, #52
+ 315              	.LCFI4:
+ 316              		.cfi_def_cfa_offset 64
+  58:Src/memory_access.c **** 	char *full_path = _get_full_path(path);
+ 317              		.loc 1 58 0
+ 318 0004 FFF7FEFF 		bl	_get_full_path
+ 319              	.LVL28:
+ 320 0008 0446     		mov	r4, r0
+ 321              	.LVL29:
+  59:Src/memory_access.c **** 
+  60:Src/memory_access.c **** 	DIR dir;
+  61:Src/memory_access.c **** 	if(f_opendir(&dir, full_path) != FR_OK) {
+ 322              		.loc 1 61 0
+ 323 000a 0146     		mov	r1, r0
+ 324 000c 6846     		mov	r0, sp
+ 325              	.LVL30:
+ 326 000e FFF7FEFF 		bl	f_opendir
+ 327              	.LVL31:
+ 328 0012 50B9     		cbnz	r0, .L33
+  62:Src/memory_access.c **** 		printf("cannot change directory: %s\n", full_path);
+  63:Src/memory_access.c **** 		free(full_path);
+  64:Src/memory_access.c **** 		return NULL;
+  65:Src/memory_access.c **** 	}
+  66:Src/memory_access.c **** 
+  67:Src/memory_access.c **** 	f_closedir(&dir);
+ 329              		.loc 1 67 0
+ 330 0014 6846     		mov	r0, sp
+ 331 0016 FFF7FEFF 		bl	f_closedir
+ 332              	.LVL32:
+  68:Src/memory_access.c **** 	free(current_dir);
+ 333              		.loc 1 68 0
+ 334 001a 084D     		ldr	r5, .L34
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 8
+
+
+ 335 001c 2868     		ldr	r0, [r5]
+ 336 001e FFF7FEFF 		bl	free
+ 337              	.LVL33:
+  69:Src/memory_access.c **** 	current_dir = full_path;
+ 338              		.loc 1 69 0
+ 339 0022 2C60     		str	r4, [r5]
+ 340              	.LVL34:
+ 341              	.L29:
+  70:Src/memory_access.c **** 	return current_dir;
+  71:Src/memory_access.c **** }
+ 342              		.loc 1 71 0
+ 343 0024 2046     		mov	r0, r4
+ 344 0026 0DB0     		add	sp, sp, #52
+ 345              	.LCFI5:
+ 346              		.cfi_remember_state
+ 347              		.cfi_def_cfa_offset 12
+ 348              		@ sp needed
+ 349 0028 30BD     		pop	{r4, r5, pc}
+ 350              	.LVL35:
+ 351              	.L33:
+ 352              	.LCFI6:
+ 353              		.cfi_restore_state
+  62:Src/memory_access.c **** 		free(full_path);
+ 354              		.loc 1 62 0
+ 355 002a 2146     		mov	r1, r4
+ 356 002c 0448     		ldr	r0, .L34+4
+ 357 002e FFF7FEFF 		bl	printf
+ 358              	.LVL36:
+  63:Src/memory_access.c **** 		return NULL;
+ 359              		.loc 1 63 0
+ 360 0032 2046     		mov	r0, r4
+ 361 0034 FFF7FEFF 		bl	free
+ 362              	.LVL37:
+  64:Src/memory_access.c **** 	}
+ 363              		.loc 1 64 0
+ 364 0038 0024     		movs	r4, #0
+ 365              	.LVL38:
+ 366 003a F3E7     		b	.L29
+ 367              	.L35:
+ 368              		.align	2
+ 369              	.L34:
+ 370 003c 00000000 		.word	current_dir
+ 371 0040 00000000 		.word	.LC8
+ 372              		.cfi_endproc
+ 373              	.LFE146:
+ 375              		.section	.text.list_directory,"ax",%progbits
+ 376              		.align	1
+ 377              		.global	list_directory
+ 378              		.syntax unified
+ 379              		.thumb
+ 380              		.thumb_func
+ 381              		.fpu fpv5-sp-d16
+ 383              	list_directory:
+ 384              	.LFB147:
+  72:Src/memory_access.c **** 
+  73:Src/memory_access.c **** char *list_directory() {
+ 385              		.loc 1 73 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 9
+
+
+ 386              		.cfi_startproc
+ 387              		@ args = 0, pretend = 0, frame = 72
+ 388              		@ frame_needed = 0, uses_anonymous_args = 0
+ 389 0000 30B5     		push	{r4, r5, lr}
+ 390              	.LCFI7:
+ 391              		.cfi_def_cfa_offset 12
+ 392              		.cfi_offset 4, -12
+ 393              		.cfi_offset 5, -8
+ 394              		.cfi_offset 14, -4
+ 395 0002 93B0     		sub	sp, sp, #76
+ 396              	.LCFI8:
+ 397              		.cfi_def_cfa_offset 88
+  74:Src/memory_access.c **** 	DIR dir;
+  75:Src/memory_access.c **** 	if(f_opendir(&dir, current_dir) != FR_OK) {
+ 398              		.loc 1 75 0
+ 399 0004 2C4B     		ldr	r3, .L45
+ 400 0006 1968     		ldr	r1, [r3]
+ 401 0008 06A8     		add	r0, sp, #24
+ 402 000a FFF7FEFF 		bl	f_opendir
+ 403              	.LVL39:
+ 404 000e 38B9     		cbnz	r0, .L44
+  76:Src/memory_access.c **** 		printf("cannot open directory %s\r\n", current_dir);
+  77:Src/memory_access.c **** 		return NULL;
+  78:Src/memory_access.c **** 	}
+  79:Src/memory_access.c **** 
+  80:Src/memory_access.c **** 	char *list = malloc(sizeof(char)*MAX_LIST);
+ 405              		.loc 1 80 0
+ 406 0010 4FF48060 		mov	r0, #1024
+ 407 0014 FFF7FEFF 		bl	malloc
+ 408              	.LVL40:
+ 409 0018 0446     		mov	r4, r0
+ 410              	.LVL41:
+  81:Src/memory_access.c **** 	list[0] = 0;
+ 411              		.loc 1 81 0
+ 412 001a 0023     		movs	r3, #0
+ 413 001c 0370     		strb	r3, [r0]
+ 414 001e 2EE0     		b	.L42
+ 415              	.LVL42:
+ 416              	.L44:
+  76:Src/memory_access.c **** 		printf("cannot open directory %s\r\n", current_dir);
+ 417              		.loc 1 76 0
+ 418 0020 254B     		ldr	r3, .L45
+ 419 0022 1968     		ldr	r1, [r3]
+ 420 0024 2548     		ldr	r0, .L45+4
+ 421 0026 FFF7FEFF 		bl	printf
+ 422              	.LVL43:
+  77:Src/memory_access.c **** 	}
+ 423              		.loc 1 77 0
+ 424 002a 0024     		movs	r4, #0
+ 425 002c 41E0     		b	.L36
+ 426              	.LVL44:
+ 427              	.L40:
+  82:Src/memory_access.c **** 	FILINFO finfo;
+  83:Src/memory_access.c **** 	while(1) {
+  84:Src/memory_access.c **** 		if(f_readdir(&dir, &finfo) != FR_OK || finfo.fname[0] == 0)
+  85:Src/memory_access.c **** 			break;
+  86:Src/memory_access.c **** 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 10
+
+
+  87:Src/memory_access.c **** 		if(finfo.fattrib & AM_DIR )
+  88:Src/memory_access.c **** 			strcat(list, "+/");
+  89:Src/memory_access.c **** 		else {
+  90:Src/memory_access.c **** 			strcat(list, "+r,s");
+ 428              		.loc 1 90 0
+ 429 002e 2046     		mov	r0, r4
+ 430 0030 FFF7FEFF 		bl	strlen
+ 431              	.LVL45:
+ 432 0034 0246     		mov	r2, r0
+ 433 0036 2118     		adds	r1, r4, r0
+ 434 0038 214B     		ldr	r3, .L45+8
+ 435 003a 1868     		ldr	r0, [r3]
+ 436 003c A050     		str	r0, [r4, r2]	@ unaligned
+ 437 003e 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 438 0040 0B71     		strb	r3, [r1, #4]
+  91:Src/memory_access.c **** 			sprintf(list + strlen(list), finfo.fsize);
+ 439              		.loc 1 91 0
+ 440 0042 2046     		mov	r0, r4
+ 441 0044 FFF7FEFF 		bl	strlen
+ 442              	.LVL46:
+ 443 0048 0099     		ldr	r1, [sp]
+ 444 004a 2044     		add	r0, r0, r4
+ 445 004c FFF7FEFF 		bl	sprintf
+ 446              	.LVL47:
+ 447              	.L41:
+  92:Src/memory_access.c **** 		}
+  93:Src/memory_access.c **** 		strcat(list,",\t");
+ 448              		.loc 1 93 0
+ 449 0050 2046     		mov	r0, r4
+ 450 0052 FFF7FEFF 		bl	strlen
+ 451              	.LVL48:
+ 452 0056 2218     		adds	r2, r4, r0
+ 453 0058 1A4B     		ldr	r3, .L45+12
+ 454 005a 1988     		ldrh	r1, [r3]	@ unaligned
+ 455 005c 9B78     		ldrb	r3, [r3, #2]	@ zero_extendqisi2
+ 456 005e 2152     		strh	r1, [r4, r0]	@ unaligned
+ 457 0060 9370     		strb	r3, [r2, #2]
+  94:Src/memory_access.c **** 		strcat(list, finfo.fname);
+ 458              		.loc 1 94 0
+ 459 0062 0DF10901 		add	r1, sp, #9
+ 460 0066 2046     		mov	r0, r4
+ 461 0068 FFF7FEFF 		bl	strcat
+ 462              	.LVL49:
+  95:Src/memory_access.c **** 		strcat(list, "\r\n" );
+ 463              		.loc 1 95 0
+ 464 006c 2046     		mov	r0, r4
+ 465 006e FFF7FEFF 		bl	strlen
+ 466              	.LVL50:
+ 467 0072 2218     		adds	r2, r4, r0
+ 468 0074 144B     		ldr	r3, .L45+16
+ 469 0076 1988     		ldrh	r1, [r3]	@ unaligned
+ 470 0078 9B78     		ldrb	r3, [r3, #2]	@ zero_extendqisi2
+ 471 007a 2152     		strh	r1, [r4, r0]	@ unaligned
+ 472 007c 9370     		strb	r3, [r2, #2]
+ 473              	.L42:
+  84:Src/memory_access.c **** 			break;
+ 474              		.loc 1 84 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 11
+
+
+ 475 007e 6946     		mov	r1, sp
+ 476 0080 06A8     		add	r0, sp, #24
+ 477 0082 FFF7FEFF 		bl	f_readdir
+ 478              	.LVL51:
+ 479 0086 88B9     		cbnz	r0, .L39
+  84:Src/memory_access.c **** 			break;
+ 480              		.loc 1 84 0 is_stmt 0 discriminator 1
+ 481 0088 9DF80930 		ldrb	r3, [sp, #9]	@ zero_extendqisi2
+ 482 008c 73B1     		cbz	r3, .L39
+  87:Src/memory_access.c **** 			strcat(list, "+/");
+ 483              		.loc 1 87 0 is_stmt 1
+ 484 008e 9DF80830 		ldrb	r3, [sp, #8]	@ zero_extendqisi2
+ 485 0092 13F0100F 		tst	r3, #16
+ 486 0096 CAD0     		beq	.L40
+  88:Src/memory_access.c **** 		else {
+ 487              		.loc 1 88 0
+ 488 0098 2046     		mov	r0, r4
+ 489 009a FFF7FEFF 		bl	strlen
+ 490              	.LVL52:
+ 491 009e 2218     		adds	r2, r4, r0
+ 492 00a0 0A4B     		ldr	r3, .L45+20
+ 493 00a2 1988     		ldrh	r1, [r3]	@ unaligned
+ 494 00a4 9B78     		ldrb	r3, [r3, #2]	@ zero_extendqisi2
+ 495 00a6 2152     		strh	r1, [r4, r0]	@ unaligned
+ 496 00a8 9370     		strb	r3, [r2, #2]
+ 497 00aa D1E7     		b	.L41
+ 498              	.L39:
+  96:Src/memory_access.c **** 	}
+  97:Src/memory_access.c **** 	f_closedir(&dir);
+ 499              		.loc 1 97 0
+ 500 00ac 06A8     		add	r0, sp, #24
+ 501 00ae FFF7FEFF 		bl	f_closedir
+ 502              	.LVL53:
+ 503              	.L36:
+  98:Src/memory_access.c **** 	return list;
+  99:Src/memory_access.c **** }
+ 504              		.loc 1 99 0
+ 505 00b2 2046     		mov	r0, r4
+ 506 00b4 13B0     		add	sp, sp, #76
+ 507              	.LCFI9:
+ 508              		.cfi_def_cfa_offset 12
+ 509              		@ sp needed
+ 510 00b6 30BD     		pop	{r4, r5, pc}
+ 511              	.L46:
+ 512              		.align	2
+ 513              	.L45:
+ 514 00b8 00000000 		.word	current_dir
+ 515 00bc 00000000 		.word	.LC9
+ 516 00c0 20000000 		.word	.LC11
+ 517 00c4 28000000 		.word	.LC12
+ 518 00c8 2C000000 		.word	.LC13
+ 519 00cc 1C000000 		.word	.LC10
+ 520              		.cfi_endproc
+ 521              	.LFE147:
+ 523              		.section	.text.open_file,"ax",%progbits
+ 524              		.align	1
+ 525              		.global	open_file
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 12
+
+
+ 526              		.syntax unified
+ 527              		.thumb
+ 528              		.thumb_func
+ 529              		.fpu fpv5-sp-d16
+ 531              	open_file:
+ 532              	.LFB148:
+ 100:Src/memory_access.c **** 
+ 101:Src/memory_access.c **** FIL *open_file(char *filename) {
+ 533              		.loc 1 101 0
+ 534              		.cfi_startproc
+ 535              		@ args = 0, pretend = 0, frame = 0
+ 536              		@ frame_needed = 0, uses_anonymous_args = 0
+ 537              	.LVL54:
+ 538 0000 38B5     		push	{r3, r4, r5, lr}
+ 539              	.LCFI10:
+ 540              		.cfi_def_cfa_offset 16
+ 541              		.cfi_offset 3, -16
+ 542              		.cfi_offset 4, -12
+ 543              		.cfi_offset 5, -8
+ 544              		.cfi_offset 14, -4
+ 102:Src/memory_access.c **** 	char *path = _get_full_path(filename);
+ 545              		.loc 1 102 0
+ 546 0002 FFF7FEFF 		bl	_get_full_path
+ 547              	.LVL55:
+ 548 0006 0446     		mov	r4, r0
+ 549              	.LVL56:
+ 103:Src/memory_access.c **** 		FIL *file = malloc(sizeof(FIL));
+ 550              		.loc 1 103 0
+ 551 0008 4FF40C70 		mov	r0, #560
+ 552              	.LVL57:
+ 553 000c FFF7FEFF 		bl	malloc
+ 554              	.LVL58:
+ 555 0010 0546     		mov	r5, r0
+ 556              	.LVL59:
+ 104:Src/memory_access.c **** 
+ 105:Src/memory_access.c **** 		if(f_open(file, path, FA_OPEN_EXISTING | FA_READ) != FR_OK ) {
+ 557              		.loc 1 105 0
+ 558 0012 0122     		movs	r2, #1
+ 559 0014 2146     		mov	r1, r4
+ 560 0016 FFF7FEFF 		bl	f_open
+ 561              	.LVL60:
+ 562 001a 20B9     		cbnz	r0, .L51
+ 106:Src/memory_access.c **** 			printf("cannot open file %s\r\n", path);
+ 107:Src/memory_access.c **** 			free(path);
+ 108:Src/memory_access.c **** 			free(file);
+ 109:Src/memory_access.c **** 			return NULL;
+ 110:Src/memory_access.c **** 		}
+ 111:Src/memory_access.c **** 		free(path);
+ 563              		.loc 1 111 0
+ 564 001c 2046     		mov	r0, r4
+ 565 001e FFF7FEFF 		bl	free
+ 566              	.LVL61:
+ 567              	.L47:
+ 112:Src/memory_access.c **** 		return file;
+ 113:Src/memory_access.c **** }
+ 568              		.loc 1 113 0
+ 569 0022 2846     		mov	r0, r5
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 13
+
+
+ 570 0024 38BD     		pop	{r3, r4, r5, pc}
+ 571              	.LVL62:
+ 572              	.L51:
+ 106:Src/memory_access.c **** 			printf("cannot open file %s\r\n", path);
+ 573              		.loc 1 106 0
+ 574 0026 2146     		mov	r1, r4
+ 575 0028 0548     		ldr	r0, .L52
+ 576 002a FFF7FEFF 		bl	printf
+ 577              	.LVL63:
+ 107:Src/memory_access.c **** 			free(file);
+ 578              		.loc 1 107 0
+ 579 002e 2046     		mov	r0, r4
+ 580 0030 FFF7FEFF 		bl	free
+ 581              	.LVL64:
+ 108:Src/memory_access.c **** 			return NULL;
+ 582              		.loc 1 108 0
+ 583 0034 2846     		mov	r0, r5
+ 584 0036 FFF7FEFF 		bl	free
+ 585              	.LVL65:
+ 109:Src/memory_access.c **** 		}
+ 586              		.loc 1 109 0
+ 587 003a 0025     		movs	r5, #0
+ 588              	.LVL66:
+ 589 003c F1E7     		b	.L47
+ 590              	.L53:
+ 591 003e 00BF     		.align	2
+ 592              	.L52:
+ 593 0040 00000000 		.word	.LC14
+ 594              		.cfi_endproc
+ 595              	.LFE148:
+ 597              		.section	.text.create_file,"ax",%progbits
+ 598              		.align	1
+ 599              		.global	create_file
+ 600              		.syntax unified
+ 601              		.thumb
+ 602              		.thumb_func
+ 603              		.fpu fpv5-sp-d16
+ 605              	create_file:
+ 606              	.LFB149:
+ 114:Src/memory_access.c **** 
+ 115:Src/memory_access.c **** FIL *create_file(char *filename) {
+ 607              		.loc 1 115 0
+ 608              		.cfi_startproc
+ 609              		@ args = 0, pretend = 0, frame = 0
+ 610              		@ frame_needed = 0, uses_anonymous_args = 0
+ 611              	.LVL67:
+ 612 0000 38B5     		push	{r3, r4, r5, lr}
+ 613              	.LCFI11:
+ 614              		.cfi_def_cfa_offset 16
+ 615              		.cfi_offset 3, -16
+ 616              		.cfi_offset 4, -12
+ 617              		.cfi_offset 5, -8
+ 618              		.cfi_offset 14, -4
+ 116:Src/memory_access.c **** 	char *path = _get_full_path(filename);
+ 619              		.loc 1 116 0
+ 620 0002 FFF7FEFF 		bl	_get_full_path
+ 621              	.LVL68:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 14
+
+
+ 622 0006 0446     		mov	r4, r0
+ 623              	.LVL69:
+ 117:Src/memory_access.c **** 	FIL *file = malloc(sizeof(FIL));
+ 624              		.loc 1 117 0
+ 625 0008 4FF40C70 		mov	r0, #560
+ 626              	.LVL70:
+ 627 000c FFF7FEFF 		bl	malloc
+ 628              	.LVL71:
+ 629 0010 0546     		mov	r5, r0
+ 630              	.LVL72:
+ 118:Src/memory_access.c **** 
+ 119:Src/memory_access.c **** 	if(f_open(file, path, FA_CREATE_NEW | FA_WRITE) != FR_OK ) {
+ 631              		.loc 1 119 0
+ 632 0012 0622     		movs	r2, #6
+ 633 0014 2146     		mov	r1, r4
+ 634 0016 FFF7FEFF 		bl	f_open
+ 635              	.LVL73:
+ 636 001a 20B9     		cbnz	r0, .L58
+ 120:Src/memory_access.c **** 		printf("cannot create file %s\r\n", path);
+ 121:Src/memory_access.c **** 		free(path);
+ 122:Src/memory_access.c **** 		free(file);
+ 123:Src/memory_access.c **** 		return NULL;
+ 124:Src/memory_access.c **** 	}
+ 125:Src/memory_access.c **** 	free(path);
+ 637              		.loc 1 125 0
+ 638 001c 2046     		mov	r0, r4
+ 639 001e FFF7FEFF 		bl	free
+ 640              	.LVL74:
+ 641              	.L54:
+ 126:Src/memory_access.c **** 	return file;
+ 127:Src/memory_access.c **** }
+ 642              		.loc 1 127 0
+ 643 0022 2846     		mov	r0, r5
+ 644 0024 38BD     		pop	{r3, r4, r5, pc}
+ 645              	.LVL75:
+ 646              	.L58:
+ 120:Src/memory_access.c **** 		printf("cannot create file %s\r\n", path);
+ 647              		.loc 1 120 0
+ 648 0026 2146     		mov	r1, r4
+ 649 0028 0548     		ldr	r0, .L59
+ 650 002a FFF7FEFF 		bl	printf
+ 651              	.LVL76:
+ 121:Src/memory_access.c **** 		free(file);
+ 652              		.loc 1 121 0
+ 653 002e 2046     		mov	r0, r4
+ 654 0030 FFF7FEFF 		bl	free
+ 655              	.LVL77:
+ 122:Src/memory_access.c **** 		return NULL;
+ 656              		.loc 1 122 0
+ 657 0034 2846     		mov	r0, r5
+ 658 0036 FFF7FEFF 		bl	free
+ 659              	.LVL78:
+ 123:Src/memory_access.c **** 	}
+ 660              		.loc 1 123 0
+ 661 003a 0025     		movs	r5, #0
+ 662              	.LVL79:
+ 663 003c F1E7     		b	.L54
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 15
+
+
+ 664              	.L60:
+ 665 003e 00BF     		.align	2
+ 666              	.L59:
+ 667 0040 00000000 		.word	.LC15
+ 668              		.cfi_endproc
+ 669              	.LFE149:
+ 671              		.section	.text.close_file,"ax",%progbits
+ 672              		.align	1
+ 673              		.global	close_file
+ 674              		.syntax unified
+ 675              		.thumb
+ 676              		.thumb_func
+ 677              		.fpu fpv5-sp-d16
+ 679              	close_file:
+ 680              	.LFB150:
+ 128:Src/memory_access.c **** 
+ 129:Src/memory_access.c **** void close_file(FIL *file) {
+ 681              		.loc 1 129 0
+ 682              		.cfi_startproc
+ 683              		@ args = 0, pretend = 0, frame = 0
+ 684              		@ frame_needed = 0, uses_anonymous_args = 0
+ 685              	.LVL80:
+ 686 0000 10B5     		push	{r4, lr}
+ 687              	.LCFI12:
+ 688              		.cfi_def_cfa_offset 8
+ 689              		.cfi_offset 4, -8
+ 690              		.cfi_offset 14, -4
+ 691 0002 0446     		mov	r4, r0
+ 130:Src/memory_access.c **** 	f_close(file);
+ 692              		.loc 1 130 0
+ 693 0004 FFF7FEFF 		bl	f_close
+ 694              	.LVL81:
+ 131:Src/memory_access.c **** 	free(file);
+ 695              		.loc 1 131 0
+ 696 0008 2046     		mov	r0, r4
+ 697 000a FFF7FEFF 		bl	free
+ 698              	.LVL82:
+ 699 000e 10BD     		pop	{r4, pc}
+ 700              		.cfi_endproc
+ 701              	.LFE150:
+ 703              		.section	.text.write_to_file,"ax",%progbits
+ 704              		.align	1
+ 705              		.global	write_to_file
+ 706              		.syntax unified
+ 707              		.thumb
+ 708              		.thumb_func
+ 709              		.fpu fpv5-sp-d16
+ 711              	write_to_file:
+ 712              	.LFB151:
+ 132:Src/memory_access.c **** }
+ 133:Src/memory_access.c **** 
+ 134:Src/memory_access.c **** uint16_t write_to_file(FIL *file, char *buf, uint16_t size) {
+ 713              		.loc 1 134 0
+ 714              		.cfi_startproc
+ 715              		@ args = 0, pretend = 0, frame = 8
+ 716              		@ frame_needed = 0, uses_anonymous_args = 0
+ 717              	.LVL83:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 16
+
+
+ 718 0000 00B5     		push	{lr}
+ 719              	.LCFI13:
+ 720              		.cfi_def_cfa_offset 4
+ 721              		.cfi_offset 14, -4
+ 722 0002 83B0     		sub	sp, sp, #12
+ 723              	.LCFI14:
+ 724              		.cfi_def_cfa_offset 16
+ 135:Src/memory_access.c **** 	uint16_t bw;
+ 136:Src/memory_access.c **** 	if(f_write(file, buf, size, &bw) != FR_OK) {
+ 725              		.loc 1 136 0
+ 726 0004 0DF10603 		add	r3, sp, #6
+ 727 0008 FFF7FEFF 		bl	f_write
+ 728              	.LVL84:
+ 729 000c 20B9     		cbnz	r0, .L67
+ 137:Src/memory_access.c **** 		printf("write to file error\r\n");
+ 138:Src/memory_access.c **** 		return -1;
+ 139:Src/memory_access.c **** 	}
+ 140:Src/memory_access.c **** 	return bw;
+ 730              		.loc 1 140 0
+ 731 000e BDF80600 		ldrh	r0, [sp, #6]
+ 732              	.L65:
+ 141:Src/memory_access.c **** }
+ 733              		.loc 1 141 0
+ 734 0012 03B0     		add	sp, sp, #12
+ 735              	.LCFI15:
+ 736              		.cfi_remember_state
+ 737              		.cfi_def_cfa_offset 4
+ 738              		@ sp needed
+ 739 0014 5DF804FB 		ldr	pc, [sp], #4
+ 740              	.L67:
+ 741              	.LCFI16:
+ 742              		.cfi_restore_state
+ 137:Src/memory_access.c **** 		printf("write to file error\r\n");
+ 743              		.loc 1 137 0
+ 744 0018 0248     		ldr	r0, .L68
+ 745 001a FFF7FEFF 		bl	puts
+ 746              	.LVL85:
+ 138:Src/memory_access.c **** 	}
+ 747              		.loc 1 138 0
+ 748 001e 4FF6FF70 		movw	r0, #65535
+ 749 0022 F6E7     		b	.L65
+ 750              	.L69:
+ 751              		.align	2
+ 752              	.L68:
+ 753 0024 00000000 		.word	.LC16
+ 754              		.cfi_endproc
+ 755              	.LFE151:
+ 757              		.section	.text.read_file,"ax",%progbits
+ 758              		.align	1
+ 759              		.global	read_file
+ 760              		.syntax unified
+ 761              		.thumb
+ 762              		.thumb_func
+ 763              		.fpu fpv5-sp-d16
+ 765              	read_file:
+ 766              	.LFB152:
+ 142:Src/memory_access.c **** 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 17
+
+
+ 143:Src/memory_access.c **** uint16_t read_file(FIL *file, char *buf, uint16_t size) {
+ 767              		.loc 1 143 0
+ 768              		.cfi_startproc
+ 769              		@ args = 0, pretend = 0, frame = 8
+ 770              		@ frame_needed = 0, uses_anonymous_args = 0
+ 771              	.LVL86:
+ 772 0000 00B5     		push	{lr}
+ 773              	.LCFI17:
+ 774              		.cfi_def_cfa_offset 4
+ 775              		.cfi_offset 14, -4
+ 776 0002 83B0     		sub	sp, sp, #12
+ 777              	.LCFI18:
+ 778              		.cfi_def_cfa_offset 16
+ 144:Src/memory_access.c **** 	uint16_t br;
+ 145:Src/memory_access.c **** 	if(f_read(file, buf, size, &br) != FR_OK) {
+ 779              		.loc 1 145 0
+ 780 0004 0DF10603 		add	r3, sp, #6
+ 781 0008 FFF7FEFF 		bl	f_read
+ 782              	.LVL87:
+ 783 000c 20B9     		cbnz	r0, .L74
+ 146:Src/memory_access.c **** 		printf("read file error\r\n");
+ 147:Src/memory_access.c **** 		return -1;
+ 148:Src/memory_access.c **** 	}
+ 149:Src/memory_access.c **** 	return br;
+ 784              		.loc 1 149 0
+ 785 000e BDF80600 		ldrh	r0, [sp, #6]
+ 786              	.L72:
+ 150:Src/memory_access.c **** }
+ 787              		.loc 1 150 0
+ 788 0012 03B0     		add	sp, sp, #12
+ 789              	.LCFI19:
+ 790              		.cfi_remember_state
+ 791              		.cfi_def_cfa_offset 4
+ 792              		@ sp needed
+ 793 0014 5DF804FB 		ldr	pc, [sp], #4
+ 794              	.L74:
+ 795              	.LCFI20:
+ 796              		.cfi_restore_state
+ 146:Src/memory_access.c **** 		printf("read file error\r\n");
+ 797              		.loc 1 146 0
+ 798 0018 0248     		ldr	r0, .L75
+ 799 001a FFF7FEFF 		bl	puts
+ 800              	.LVL88:
+ 147:Src/memory_access.c **** 	}
+ 801              		.loc 1 147 0
+ 802 001e 4FF6FF70 		movw	r0, #65535
+ 803 0022 F6E7     		b	.L72
+ 804              	.L76:
+ 805              		.align	2
+ 806              	.L75:
+ 807 0024 00000000 		.word	.LC17
+ 808              		.cfi_endproc
+ 809              	.LFE152:
+ 811              		.section	.text.delete_file,"ax",%progbits
+ 812              		.align	1
+ 813              		.global	delete_file
+ 814              		.syntax unified
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 18
+
+
+ 815              		.thumb
+ 816              		.thumb_func
+ 817              		.fpu fpv5-sp-d16
+ 819              	delete_file:
+ 820              	.LFB153:
+ 151:Src/memory_access.c **** 
+ 152:Src/memory_access.c **** int delete_file(char *filename) {
+ 821              		.loc 1 152 0
+ 822              		.cfi_startproc
+ 823              		@ args = 0, pretend = 0, frame = 0
+ 824              		@ frame_needed = 0, uses_anonymous_args = 0
+ 825              	.LVL89:
+ 826 0000 10B5     		push	{r4, lr}
+ 827              	.LCFI21:
+ 828              		.cfi_def_cfa_offset 8
+ 829              		.cfi_offset 4, -8
+ 830              		.cfi_offset 14, -4
+ 153:Src/memory_access.c **** 	char *full_path = _get_full_path(filename);
+ 831              		.loc 1 153 0
+ 832 0002 FFF7FEFF 		bl	_get_full_path
+ 833              	.LVL90:
+ 834 0006 0446     		mov	r4, r0
+ 835              	.LVL91:
+ 154:Src/memory_access.c **** 
+ 155:Src/memory_access.c **** 	if(f_unlink(full_path) != FR_OK) {
+ 836              		.loc 1 155 0
+ 837 0008 FFF7FEFF 		bl	f_unlink
+ 838              	.LVL92:
+ 839 000c 40B9     		cbnz	r0, .L81
+ 156:Src/memory_access.c **** 		printf("cannot delete file: %s\r\n", full_path);
+ 157:Src/memory_access.c **** 		free(full_path);
+ 158:Src/memory_access.c **** 		return -1;
+ 159:Src/memory_access.c **** 	}
+ 160:Src/memory_access.c **** 	
+ 161:Src/memory_access.c **** 	printf("deleted file: %s\r\n", full_path);
+ 840              		.loc 1 161 0
+ 841 000e 2146     		mov	r1, r4
+ 842 0010 0848     		ldr	r0, .L82
+ 843 0012 FFF7FEFF 		bl	printf
+ 844              	.LVL93:
+ 162:Src/memory_access.c **** 	free(full_path);
+ 845              		.loc 1 162 0
+ 846 0016 2046     		mov	r0, r4
+ 847 0018 FFF7FEFF 		bl	free
+ 848              	.LVL94:
+ 163:Src/memory_access.c **** 	return 1;
+ 849              		.loc 1 163 0
+ 850 001c 0120     		movs	r0, #1
+ 164:Src/memory_access.c **** }
+ 851              		.loc 1 164 0
+ 852 001e 10BD     		pop	{r4, pc}
+ 853              	.LVL95:
+ 854              	.L81:
+ 156:Src/memory_access.c **** 		free(full_path);
+ 855              		.loc 1 156 0
+ 856 0020 2146     		mov	r1, r4
+ 857 0022 0548     		ldr	r0, .L82+4
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 19
+
+
+ 858 0024 FFF7FEFF 		bl	printf
+ 859              	.LVL96:
+ 157:Src/memory_access.c **** 		return -1;
+ 860              		.loc 1 157 0
+ 861 0028 2046     		mov	r0, r4
+ 862 002a FFF7FEFF 		bl	free
+ 863              	.LVL97:
+ 158:Src/memory_access.c **** 	}
+ 864              		.loc 1 158 0
+ 865 002e 4FF0FF30 		mov	r0, #-1
+ 866 0032 10BD     		pop	{r4, pc}
+ 867              	.LVL98:
+ 868              	.L83:
+ 869              		.align	2
+ 870              	.L82:
+ 871 0034 1C000000 		.word	.LC19
+ 872 0038 00000000 		.word	.LC18
+ 873              		.cfi_endproc
+ 874              	.LFE153:
+ 876              		.section	.text.USB_Process,"ax",%progbits
+ 877              		.align	1
+ 878              		.global	USB_Process
+ 879              		.syntax unified
+ 880              		.thumb
+ 881              		.thumb_func
+ 882              		.fpu fpv5-sp-d16
+ 884              	USB_Process:
+ 885              	.LFB154:
+ 165:Src/memory_access.c **** 
+ 166:Src/memory_access.c **** void USB_Process(ApplicationTypeDef Appli_state) {
+ 886              		.loc 1 166 0
+ 887              		.cfi_startproc
+ 888              		@ args = 0, pretend = 0, frame = 0
+ 889              		@ frame_needed = 0, uses_anonymous_args = 0
+ 890              	.LVL99:
+ 891 0000 08B5     		push	{r3, lr}
+ 892              	.LCFI22:
+ 893              		.cfi_def_cfa_offset 8
+ 894              		.cfi_offset 3, -8
+ 895              		.cfi_offset 14, -4
+ 167:Src/memory_access.c **** 	 switch(Appli_state) {
+ 896              		.loc 1 167 0
+ 897 0002 0228     		cmp	r0, #2
+ 898 0004 08D0     		beq	.L86
+ 899 0006 0328     		cmp	r0, #3
+ 900 0008 0CD0     		beq	.L87
+ 901 000a 0128     		cmp	r0, #1
+ 902 000c 00D0     		beq	.L90
+ 903              	.LVL100:
+ 904              	.L84:
+ 905 000e 08BD     		pop	{r3, pc}
+ 906              	.LVL101:
+ 907              	.L90:
+ 168:Src/memory_access.c **** 		 case APPLICATION_START:
+ 169:Src/memory_access.c **** 			 printf("Device connected.\r\n");
+ 908              		.loc 1 169 0
+ 909 0010 0748     		ldr	r0, .L91
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 20
+
+
+ 910              	.LVL102:
+ 911 0012 FFF7FEFF 		bl	puts
+ 912              	.LVL103:
+ 170:Src/memory_access.c **** 			 break;
+ 913              		.loc 1 170 0
+ 914 0016 08BD     		pop	{r3, pc}
+ 915              	.LVL104:
+ 916              	.L86:
+ 171:Src/memory_access.c **** 		 case APPLICATION_READY:
+ 172:Src/memory_access.c **** 			 printf("Device ready.\r\n");
+ 917              		.loc 1 172 0
+ 918 0018 0648     		ldr	r0, .L91+4
+ 919              	.LVL105:
+ 920 001a FFF7FEFF 		bl	puts
+ 921              	.LVL106:
+ 173:Src/memory_access.c **** 			 mount_usb();
+ 922              		.loc 1 173 0
+ 923 001e FFF7FEFF 		bl	mount_usb
+ 924              	.LVL107:
+ 174:Src/memory_access.c **** 			 break;
+ 925              		.loc 1 174 0
+ 926 0022 08BD     		pop	{r3, pc}
+ 927              	.LVL108:
+ 928              	.L87:
+ 175:Src/memory_access.c **** 		 case APPLICATION_DISCONNECT:
+ 176:Src/memory_access.c **** 			 printf("Device disconnected.\r\n");
+ 929              		.loc 1 176 0
+ 930 0024 0448     		ldr	r0, .L91+8
+ 931              	.LVL109:
+ 932 0026 FFF7FEFF 		bl	puts
+ 933              	.LVL110:
+ 177:Src/memory_access.c **** 			 unmount_usb();
+ 934              		.loc 1 177 0
+ 935 002a FFF7FEFF 		bl	unmount_usb
+ 936              	.LVL111:
+ 178:Src/memory_access.c **** 			 break;
+ 179:Src/memory_access.c **** 		 default:
+ 180:Src/memory_access.c **** 		 break;
+ 181:Src/memory_access.c **** 	  }
+ 182:Src/memory_access.c **** }
+ 937              		.loc 1 182 0
+ 938 002e EEE7     		b	.L84
+ 939              	.L92:
+ 940              		.align	2
+ 941              	.L91:
+ 942 0030 00000000 		.word	.LC20
+ 943 0034 14000000 		.word	.LC21
+ 944 0038 24000000 		.word	.LC22
+ 945              		.cfi_endproc
+ 946              	.LFE154:
+ 948              		.comm	current_dir,4,4
+ 949              		.comm	fs,4,4
+ 950              		.section	.rodata.USB_Process.str1.4,"aMS",%progbits,1
+ 951              		.align	2
+ 952              	.LC20:
+ 953 0000 44657669 		.ascii	"Device connected.\015\000"
+ 953      63652063 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 21
+
+
+ 953      6F6E6E65 
+ 953      63746564 
+ 953      2E0D00
+ 954 0013 00       		.space	1
+ 955              	.LC21:
+ 956 0014 44657669 		.ascii	"Device ready.\015\000"
+ 956      63652072 
+ 956      65616479 
+ 956      2E0D00
+ 957 0023 00       		.space	1
+ 958              	.LC22:
+ 959 0024 44657669 		.ascii	"Device disconnected.\015\000"
+ 959      63652064 
+ 959      6973636F 
+ 959      6E6E6563 
+ 959      7465642E 
+ 960              		.section	.rodata._get_full_path.str1.4,"aMS",%progbits,1
+ 961              		.align	2
+ 962              	.LC0:
+ 963 0000 25732F00 		.ascii	"%s/\000"
+ 964              	.LC1:
+ 965 0004 25732573 		.ascii	"%s%s/\000"
+ 965      2F00
+ 966              		.section	.rodata.change_directory.str1.4,"aMS",%progbits,1
+ 967              		.align	2
+ 968              	.LC8:
+ 969 0000 63616E6E 		.ascii	"cannot change directory: %s\012\000"
+ 969      6F742063 
+ 969      68616E67 
+ 969      65206469 
+ 969      72656374 
+ 970              		.section	.rodata.create_file.str1.4,"aMS",%progbits,1
+ 971              		.align	2
+ 972              	.LC15:
+ 973 0000 63616E6E 		.ascii	"cannot create file %s\015\012\000"
+ 973      6F742063 
+ 973      72656174 
+ 973      65206669 
+ 973      6C652025 
+ 974              		.section	.rodata.delete_file.str1.4,"aMS",%progbits,1
+ 975              		.align	2
+ 976              	.LC18:
+ 977 0000 63616E6E 		.ascii	"cannot delete file: %s\015\012\000"
+ 977      6F742064 
+ 977      656C6574 
+ 977      65206669 
+ 977      6C653A20 
+ 978 0019 000000   		.space	3
+ 979              	.LC19:
+ 980 001c 64656C65 		.ascii	"deleted file: %s\015\012\000"
+ 980      74656420 
+ 980      66696C65 
+ 980      3A202573 
+ 980      0D0A00
+ 981              		.section	.rodata.list_directory.str1.4,"aMS",%progbits,1
+ 982              		.align	2
+ 983              	.LC9:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 22
+
+
+ 984 0000 63616E6E 		.ascii	"cannot open directory %s\015\012\000"
+ 984      6F74206F 
+ 984      70656E20 
+ 984      64697265 
+ 984      63746F72 
+ 985 001b 00       		.space	1
+ 986              	.LC10:
+ 987 001c 2B2F00   		.ascii	"+/\000"
+ 988 001f 00       		.space	1
+ 989              	.LC11:
+ 990 0020 2B722C73 		.ascii	"+r,s\000"
+ 990      00
+ 991 0025 000000   		.space	3
+ 992              	.LC12:
+ 993 0028 2C0900   		.ascii	",\011\000"
+ 994 002b 00       		.space	1
+ 995              	.LC13:
+ 996 002c 0D0A00   		.ascii	"\015\012\000"
+ 997              		.section	.rodata.mount_usb.str1.4,"aMS",%progbits,1
+ 998              		.align	2
+ 999              	.LC2:
+ 1000 0000 00       		.ascii	"\000"
+ 1001 0001 000000   		.space	3
+ 1002              	.LC3:
+ 1003 0004 75736220 		.ascii	"usb mount error\015\000"
+ 1003      6D6F756E 
+ 1003      74206572 
+ 1003      726F720D 
+ 1003      00
+ 1004 0015 000000   		.space	3
+ 1005              	.LC4:
+ 1006 0018 2F00     		.ascii	"/\000"
+ 1007 001a 0000     		.space	2
+ 1008              	.LC5:
+ 1009 001c 4D6F756E 		.ascii	"Mounted USB\015\000"
+ 1009      74656420 
+ 1009      5553420D 
+ 1009      00
+ 1010              		.section	.rodata.open_file.str1.4,"aMS",%progbits,1
+ 1011              		.align	2
+ 1012              	.LC14:
+ 1013 0000 63616E6E 		.ascii	"cannot open file %s\015\012\000"
+ 1013      6F74206F 
+ 1013      70656E20 
+ 1013      66696C65 
+ 1013      2025730D 
+ 1014              		.section	.rodata.read_file.str1.4,"aMS",%progbits,1
+ 1015              		.align	2
+ 1016              	.LC17:
+ 1017 0000 72656164 		.ascii	"read file error\015\000"
+ 1017      2066696C 
+ 1017      65206572 
+ 1017      726F720D 
+ 1017      00
+ 1018              		.section	.rodata.unmount_usb.str1.4,"aMS",%progbits,1
+ 1019              		.align	2
+ 1020              	.LC6:
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 23
+
+
+ 1021 0000 75736220 		.ascii	"usb unmount error\015\000"
+ 1021      756E6D6F 
+ 1021      756E7420 
+ 1021      6572726F 
+ 1021      720D00
+ 1022 0013 00       		.space	1
+ 1023              	.LC7:
+ 1024 0014 556E6D6F 		.ascii	"Unmounted USB\015\000"
+ 1024      756E7465 
+ 1024      64205553 
+ 1024      420D00
+ 1025              		.section	.rodata.write_to_file.str1.4,"aMS",%progbits,1
+ 1026              		.align	2
+ 1027              	.LC16:
+ 1028 0000 77726974 		.ascii	"write to file error\015\000"
+ 1028      6520746F 
+ 1028      2066696C 
+ 1028      65206572 
+ 1028      726F720D 
+ 1029              		.text
+ 1030              	.Letext0:
+ 1031              		.file 2 "Middlewares/Third_Party/FatFs/src/integer.h"
+ 1032              		.file 3 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1033              		.file 4 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1034              		.file 5 "Drivers/CMSIS/Include/core_cm7.h"
+ 1035              		.file 6 "Drivers/CMSIS/Device/ST/STM32F7xx/Include/system_stm32f7xx.h"
+ 1036              		.file 7 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\lock.h"
+ 1037              		.file 8 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_types.h"
+ 1038              		.file 9 "c:\\gcc_toolchain\\6_2017-q1-update\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1039              		.file 10 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\reent.h"
+ 1040              		.file 11 "Middlewares/Third_Party/FreeRTOS/Source/include/task.h"
+ 1041              		.file 12 "Middlewares/Third_Party/FreeRTOS/Source/include/queue.h"
+ 1042              		.file 13 "Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h"
+ 1043              		.file 14 "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h"
+ 1044              		.file 15 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\stdlib.h"
+ 1045              		.file 16 "Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h"
+ 1046              		.file 17 "Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h"
+ 1047              		.file 18 "Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc.h"
+ 1048              		.file 19 "Middlewares/Third_Party/FatFs/src/ff.h"
+ 1049              		.file 20 "Middlewares/Third_Party/FatFs/src/diskio.h"
+ 1050              		.file 21 "Middlewares/Third_Party/FatFs/src/ff_gen_drv.h"
+ 1051              		.file 22 "Inc/usbh_diskio.h"
+ 1052              		.file 23 "Inc/fatfs.h"
+ 1053              		.file 24 "Inc/usb_host.h"
+ 1054              		.file 25 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\stdio.h"
+ 1055              		.file 26 "<built-in>"
+ 1056              		.file 27 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\string.h"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 24
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 memory_access.c
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:18     .text._is_full_path:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:25     .text._is_full_path:00000000 _is_full_path
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:53     .text._get_full_path:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:60     .text._get_full_path:00000000 _get_full_path
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:124    .text._get_full_path:0000004c $d
+                            *COM*:00000004 current_dir
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:131    .text.mount_usb:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:138    .text.mount_usb:00000000 mount_usb
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:195    .text.mount_usb:00000048 $d
+                            *COM*:00000004 fs
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:205    .text.unmount_usb:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:212    .text.unmount_usb:00000000 unmount_usb
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:259    .text.unmount_usb:00000034 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:268    .text.get_current_directory:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:275    .text.get_current_directory:00000000 get_current_directory
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:289    .text.get_current_directory:00000008 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:294    .text.change_directory:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:301    .text.change_directory:00000000 change_directory
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:370    .text.change_directory:0000003c $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:376    .text.list_directory:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:383    .text.list_directory:00000000 list_directory
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:514    .text.list_directory:000000b8 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:524    .text.open_file:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:531    .text.open_file:00000000 open_file
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:593    .text.open_file:00000040 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:598    .text.create_file:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:605    .text.create_file:00000000 create_file
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:667    .text.create_file:00000040 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:672    .text.close_file:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:679    .text.close_file:00000000 close_file
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:704    .text.write_to_file:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:711    .text.write_to_file:00000000 write_to_file
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:753    .text.write_to_file:00000024 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:758    .text.read_file:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:765    .text.read_file:00000000 read_file
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:807    .text.read_file:00000024 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:812    .text.delete_file:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:819    .text.delete_file:00000000 delete_file
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:871    .text.delete_file:00000034 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:877    .text.USB_Process:00000000 $t
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:884    .text.USB_Process:00000000 USB_Process
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:942    .text.USB_Process:00000030 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:951    .rodata.USB_Process.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:961    .rodata._get_full_path.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:967    .rodata.change_directory.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:971    .rodata.create_file.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:975    .rodata.delete_file.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:982    .rodata.list_directory.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:998    .rodata.mount_usb.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:1011   .rodata.open_file.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:1015   .rodata.read_file.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:1019   .rodata.unmount_usb.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\ccReFvSa.s:1026   .rodata.write_to_file.str1.4:00000000 $d
+                     .debug_frame:00000010 $d
+
+ARM GAS  C:\Users\Student\AppData\Local\Temp\ccReFvSa.s 			page 25
+
+
+UNDEFINED SYMBOLS
+strlen
+malloc
+sprintf
+f_mount
+puts
+free
+f_opendir
+f_closedir
+printf
+strcat
+f_readdir
+f_open
+f_close
+f_write
+f_read
+f_unlink

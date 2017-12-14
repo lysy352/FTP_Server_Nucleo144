@@ -1,0 +1,1671 @@
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"ftp_server.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.send_list_data,"ax",%progbits
+  18              		.align	1
+  19              		.global	send_list_data
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  23              		.fpu fpv5-sp-d16
+  25              	send_list_data:
+  26              	.LFB151:
+  27              		.file 1 "Src/ftp_server.c"
+   1:Src/ftp_server.c **** #define COMMAND_PORT 21
+   2:Src/ftp_server.c **** #define DATA_PORT 10000
+   3:Src/ftp_server.c **** 
+   4:Src/ftp_server.c **** #define MAX_CONNECTION_QUEUE 5
+   5:Src/ftp_server.c **** 
+   6:Src/ftp_server.c **** #define MAX_CWD_SIZE 256
+   7:Src/ftp_server.c **** #define BUFFER_SIZE 1024
+   8:Src/ftp_server.c **** #define MAX_COMMAND_SIZE 5
+   9:Src/ftp_server.c **** #define MAX_REQUEST_ARGS_SIZE 128
+  10:Src/ftp_server.c **** 
+  11:Src/ftp_server.c **** #include "ftp_server.h"
+  12:Src/ftp_server.c **** #include "lwip/tcp.h"
+  13:Src/ftp_server.c **** #include "lwip.h"
+  14:Src/ftp_server.c **** #include <ctype.h>
+  15:Src/ftp_server.c **** #include "memory_access.h"
+  16:Src/ftp_server.c **** #include "lwip/ip_addr.h"
+  17:Src/ftp_server.c **** #include "lwip.h"
+  18:Src/ftp_server.c **** 
+  19:Src/ftp_server.c **** extern struct netif gnetif;
+  20:Src/ftp_server.c **** 
+  21:Src/ftp_server.c **** struct tcp_pcb *command_socket;
+  22:Src/ftp_server.c **** struct tcp_pcb *data_socket;
+  23:Src/ftp_server.c **** 
+  24:Src/ftp_server.c **** Request *init_Request(uint8_t cmd_len, uint16_t args_len) {
+  25:Src/ftp_server.c **** 	Request *req = malloc(sizeof(Request));
+  26:Src/ftp_server.c **** 	req->command = malloc(sizeof(char)*(cmd_len + 1));
+  27:Src/ftp_server.c **** 	req->args = malloc(sizeof(char)*(args_len + 1));
+  28:Src/ftp_server.c **** 	return req;
+  29:Src/ftp_server.c **** }
+  30:Src/ftp_server.c **** 
+  31:Src/ftp_server.c **** void free_Request(Request *req) {
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 2
+
+
+  32:Src/ftp_server.c **** 	free(req->command);
+  33:Src/ftp_server.c **** 	if(req->args != NULL)
+  34:Src/ftp_server.c **** 		free(req->args);
+  35:Src/ftp_server.c **** 	free(req);
+  36:Src/ftp_server.c **** }
+  37:Src/ftp_server.c **** 
+  38:Src/ftp_server.c **** Request *get_request(char *msg) {
+  39:Src/ftp_server.c **** 	uint8_t i = 0;
+  40:Src/ftp_server.c **** 	for(; isspace(msg[i]) && msg[i] != '\0' ; i++);
+  41:Src/ftp_server.c **** 	uint8_t command_start = i;
+  42:Src/ftp_server.c **** 
+  43:Src/ftp_server.c **** 	for(; !isspace(msg[i]) && msg[i] != '\0'; i++);
+  44:Src/ftp_server.c **** 	uint8_t command_len = i - command_start + 1;
+  45:Src/ftp_server.c **** 	if(msg[i] != '\0') {
+  46:Src/ftp_server.c **** 		msg[i++] = '\0';
+  47:Src/ftp_server.c **** 	}
+  48:Src/ftp_server.c **** 
+  49:Src/ftp_server.c **** 	for(; isspace(msg[i]) && msg[i] != '\0' ; i++);
+  50:Src/ftp_server.c **** 	uint8_t args_start = i;
+  51:Src/ftp_server.c **** 
+  52:Src/ftp_server.c **** 	for(; msg[i] != '\r' && msg[i] != '\n' && msg[i] != '\0'; i++);
+  53:Src/ftp_server.c **** 	uint8_t args_len = i - args_start + 1;
+  54:Src/ftp_server.c **** 	msg[i] = '\0';
+  55:Src/ftp_server.c **** 
+  56:Src/ftp_server.c **** 	Request *req = init_Request(command_len, args_len);
+  57:Src/ftp_server.c **** 	strcpy(req->command, &msg[command_start]);
+  58:Src/ftp_server.c **** 	strcpy(req->args, &msg[args_start]);
+  59:Src/ftp_server.c **** 
+  60:Src/ftp_server.c **** 	return req;
+  61:Src/ftp_server.c **** }
+  62:Src/ftp_server.c **** 
+  63:Src/ftp_server.c **** struct tcp_pcb *open_socket(uint16_t port) {
+  64:Src/ftp_server.c **** 	struct tcp_pcb *pcb = tcp_new();
+  65:Src/ftp_server.c **** 	if(pcb == NULL) {
+  66:Src/ftp_server.c **** 		printf("tcp_new error\r\n");
+  67:Src/ftp_server.c **** 		return NULL;
+  68:Src/ftp_server.c **** 	}
+  69:Src/ftp_server.c **** 
+  70:Src/ftp_server.c **** 	if(tcp_bind(pcb, &gnetif.ip_addr, port) != ERR_OK) {
+  71:Src/ftp_server.c **** 		printf("tcp_bind error\r\n");
+  72:Src/ftp_server.c **** 		return NULL;
+  73:Src/ftp_server.c **** 	}
+  74:Src/ftp_server.c **** 
+  75:Src/ftp_server.c **** 	pcb = tcp_listen(pcb);
+  76:Src/ftp_server.c **** 	if(pcb == NULL) {
+  77:Src/ftp_server.c **** 		printf("tcp_listen error");
+  78:Src/ftp_server.c **** 		return NULL;
+  79:Src/ftp_server.c **** 	}
+  80:Src/ftp_server.c **** 	return pcb;
+  81:Src/ftp_server.c **** }
+  82:Src/ftp_server.c **** 
+  83:Src/ftp_server.c **** void accept_command_conn(struct tcp_pcb *pcb) {
+  84:Src/ftp_server.c **** 	tcp_accept(pcb, serve_client);
+  85:Src/ftp_server.c **** 	tcp_accepted(pcb);
+  86:Src/ftp_server.c **** }
+  87:Src/ftp_server.c **** 
+  88:Src/ftp_server.c **** void accept_data_conn(struct tcp_pcb *pcb, err_t (* callback)(void * arg, struct tcp_pcb * newpcb, 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 3
+
+
+  89:Src/ftp_server.c **** 	tcp_accept(pcb, callback);
+  90:Src/ftp_server.c **** 	tcp_accepted(pcb);
+  91:Src/ftp_server.c **** }
+  92:Src/ftp_server.c **** 
+  93:Src/ftp_server.c **** void send_response(uint16_t status, char *text, struct tcp_pcb *pcb) {
+  94:Src/ftp_server.c **** 	uint16_t len = 3 + 1 + strlen(text) + 3;
+  95:Src/ftp_server.c **** 	char *buf = malloc(sizeof(char)*len);
+  96:Src/ftp_server.c **** 	sprintf(buf, "%d %s\r\n", status, text);
+  97:Src/ftp_server.c **** 
+  98:Src/ftp_server.c **** 	while(tcp_write(pcb, buf, len, TCP_WRITE_FLAG_COPY) == ERR_MEM) {
+  99:Src/ftp_server.c **** 		printf("tcp_write error, will try again");
+ 100:Src/ftp_server.c **** 		osDelay(100);
+ 101:Src/ftp_server.c **** 	}
+ 102:Src/ftp_server.c **** 	tcp_output(pcb);
+ 103:Src/ftp_server.c **** 	free(buf);
+ 104:Src/ftp_server.c **** }
+ 105:Src/ftp_server.c **** 
+ 106:Src/ftp_server.c **** err_t serve_client(void *arg, struct tcp_pcb *pcb, err_t err) {
+ 107:Src/ftp_server.c **** 	send_response(220, "Welcome.", pcb);
+ 108:Src/ftp_server.c **** 	printf("client connected\r\n");
+ 109:Src/ftp_server.c **** 
+ 110:Src/ftp_server.c **** 	while(1) {
+ 111:Src/ftp_server.c **** 		tcp_recv(pcb, serve_request);
+ 112:Src/ftp_server.c **** 	}
+ 113:Src/ftp_server.c **** 
+ 114:Src/ftp_server.c **** 	return ERR_OK;
+ 115:Src/ftp_server.c **** }
+ 116:Src/ftp_server.c **** 
+ 117:Src/ftp_server.c **** err_t *serve_request(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err) {
+ 118:Src/ftp_server.c **** 	Request *req = get_request(p->payload);
+ 119:Src/ftp_server.c **** 	tcp_recved(pcb, p->len);
+ 120:Src/ftp_server.c **** 	pbuf_free(p);
+ 121:Src/ftp_server.c **** 
+ 122:Src/ftp_server.c **** 	respond(req, pcb);
+ 123:Src/ftp_server.c **** 	return ERR_OK;
+ 124:Src/ftp_server.c **** }
+ 125:Src/ftp_server.c **** 
+ 126:Src/ftp_server.c **** void pasv_response(struct tcp_pcb *pcb) {
+ 127:Src/ftp_server.c **** 	char *buf = malloc(sizeof(char)*50);
+ 128:Src/ftp_server.c **** 
+ 129:Src/ftp_server.c **** 	sprintf(buf, "Entering Passive Mode (%u,%u,%u,%u,%d,%d)\r\n",
+ 130:Src/ftp_server.c **** 			ip4_addr1(&gnetif.ip_addr),
+ 131:Src/ftp_server.c **** 			ip4_addr2(&gnetif.ip_addr),
+ 132:Src/ftp_server.c **** 			ip4_addr3(&gnetif.ip_addr),
+ 133:Src/ftp_server.c **** 			ip4_addr4(&gnetif.ip_addr),
+ 134:Src/ftp_server.c **** 			DATA_PORT/256, DATA_PORT % 256);
+ 135:Src/ftp_server.c **** 
+ 136:Src/ftp_server.c **** 	send_response(227, buf, pcb);
+ 137:Src/ftp_server.c **** }
+ 138:Src/ftp_server.c **** 
+ 139:Src/ftp_server.c **** err_t send_list_data(void *arg, struct tcp_pcb *pcb, err_t err) {
+  28              		.loc 1 139 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              	.LVL0:
+  33 0000 38B5     		push	{r3, r4, r5, lr}
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 4
+
+
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 16
+  36              		.cfi_offset 3, -16
+  37              		.cfi_offset 4, -12
+  38              		.cfi_offset 5, -8
+  39              		.cfi_offset 14, -4
+  40 0002 0D46     		mov	r5, r1
+ 140:Src/ftp_server.c **** 	char *ls = list_directory();
+  41              		.loc 1 140 0
+  42 0004 FFF7FEFF 		bl	list_directory
+  43              	.LVL1:
+  44 0008 0446     		mov	r4, r0
+  45              	.LVL2:
+ 141:Src/ftp_server.c **** 	while(tcp_write(pcb, ls, strlen(ls), TCP_WRITE_FLAG_COPY) == ERR_MEM) {
+  46              		.loc 1 141 0
+  47 000a 05E0     		b	.L2
+  48              	.LVL3:
+  49              	.L3:
+ 142:Src/ftp_server.c **** 		printf("tcp_write error, list directory, will try again");
+  50              		.loc 1 142 0
+  51 000c 0C48     		ldr	r0, .L5
+  52 000e FFF7FEFF 		bl	printf
+  53              	.LVL4:
+ 143:Src/ftp_server.c **** 		osDelay(100);
+  54              		.loc 1 143 0
+  55 0012 6420     		movs	r0, #100
+  56 0014 FFF7FEFF 		bl	osDelay
+  57              	.LVL5:
+  58              	.L2:
+ 141:Src/ftp_server.c **** 	while(tcp_write(pcb, ls, strlen(ls), TCP_WRITE_FLAG_COPY) == ERR_MEM) {
+  59              		.loc 1 141 0
+  60 0018 2046     		mov	r0, r4
+  61 001a FFF7FEFF 		bl	strlen
+  62              	.LVL6:
+  63 001e 0123     		movs	r3, #1
+  64 0020 82B2     		uxth	r2, r0
+  65 0022 2146     		mov	r1, r4
+  66 0024 2846     		mov	r0, r5
+  67 0026 FFF7FEFF 		bl	tcp_write
+  68              	.LVL7:
+  69 002a B0F1FF3F 		cmp	r0, #-1
+  70 002e EDD0     		beq	.L3
+ 144:Src/ftp_server.c **** 	}
+ 145:Src/ftp_server.c **** 	free(ls);
+  71              		.loc 1 145 0
+  72 0030 2046     		mov	r0, r4
+  73 0032 FFF7FEFF 		bl	free
+  74              	.LVL8:
+ 146:Src/ftp_server.c **** 	tcp_output(pcb);
+  75              		.loc 1 146 0
+  76 0036 2846     		mov	r0, r5
+  77 0038 FFF7FEFF 		bl	tcp_output
+  78              	.LVL9:
+ 147:Src/ftp_server.c **** 	return ERR_OK;
+ 148:Src/ftp_server.c **** }
+  79              		.loc 1 148 0
+  80 003c 0020     		movs	r0, #0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 5
+
+
+  81 003e 38BD     		pop	{r3, r4, r5, pc}
+  82              	.LVL10:
+  83              	.L6:
+  84              		.align	2
+  85              	.L5:
+  86 0040 00000000 		.word	.LC0
+  87              		.cfi_endproc
+  88              	.LFE151:
+  90              		.section	.text.init_Request,"ax",%progbits
+  91              		.align	1
+  92              		.global	init_Request
+  93              		.syntax unified
+  94              		.thumb
+  95              		.thumb_func
+  96              		.fpu fpv5-sp-d16
+  98              	init_Request:
+  99              	.LFB141:
+  24:Src/ftp_server.c **** 	Request *req = malloc(sizeof(Request));
+ 100              		.loc 1 24 0
+ 101              		.cfi_startproc
+ 102              		@ args = 0, pretend = 0, frame = 0
+ 103              		@ frame_needed = 0, uses_anonymous_args = 0
+ 104              	.LVL11:
+ 105 0000 70B5     		push	{r4, r5, r6, lr}
+ 106              	.LCFI1:
+ 107              		.cfi_def_cfa_offset 16
+ 108              		.cfi_offset 4, -16
+ 109              		.cfi_offset 5, -12
+ 110              		.cfi_offset 6, -8
+ 111              		.cfi_offset 14, -4
+ 112 0002 0646     		mov	r6, r0
+ 113 0004 0D46     		mov	r5, r1
+  25:Src/ftp_server.c **** 	req->command = malloc(sizeof(char)*(cmd_len + 1));
+ 114              		.loc 1 25 0
+ 115 0006 0820     		movs	r0, #8
+ 116              	.LVL12:
+ 117 0008 FFF7FEFF 		bl	malloc
+ 118              	.LVL13:
+ 119 000c 0446     		mov	r4, r0
+ 120              	.LVL14:
+  26:Src/ftp_server.c **** 	req->args = malloc(sizeof(char)*(args_len + 1));
+ 121              		.loc 1 26 0
+ 122 000e 701C     		adds	r0, r6, #1
+ 123              	.LVL15:
+ 124 0010 FFF7FEFF 		bl	malloc
+ 125              	.LVL16:
+ 126 0014 2060     		str	r0, [r4]
+  27:Src/ftp_server.c **** 	return req;
+ 127              		.loc 1 27 0
+ 128 0016 681C     		adds	r0, r5, #1
+ 129 0018 FFF7FEFF 		bl	malloc
+ 130              	.LVL17:
+ 131 001c 6060     		str	r0, [r4, #4]
+  29:Src/ftp_server.c **** 
+ 132              		.loc 1 29 0
+ 133 001e 2046     		mov	r0, r4
+ 134 0020 70BD     		pop	{r4, r5, r6, pc}
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 6
+
+
+ 135              		.cfi_endproc
+ 136              	.LFE141:
+ 138              		.section	.text.free_Request,"ax",%progbits
+ 139              		.align	1
+ 140              		.global	free_Request
+ 141              		.syntax unified
+ 142              		.thumb
+ 143              		.thumb_func
+ 144              		.fpu fpv5-sp-d16
+ 146              	free_Request:
+ 147              	.LFB142:
+  31:Src/ftp_server.c **** 	free(req->command);
+ 148              		.loc 1 31 0
+ 149              		.cfi_startproc
+ 150              		@ args = 0, pretend = 0, frame = 0
+ 151              		@ frame_needed = 0, uses_anonymous_args = 0
+ 152              	.LVL18:
+ 153 0000 10B5     		push	{r4, lr}
+ 154              	.LCFI2:
+ 155              		.cfi_def_cfa_offset 8
+ 156              		.cfi_offset 4, -8
+ 157              		.cfi_offset 14, -4
+ 158 0002 0446     		mov	r4, r0
+  32:Src/ftp_server.c **** 	if(req->args != NULL)
+ 159              		.loc 1 32 0
+ 160 0004 0068     		ldr	r0, [r0]
+ 161              	.LVL19:
+ 162 0006 FFF7FEFF 		bl	free
+ 163              	.LVL20:
+  33:Src/ftp_server.c **** 		free(req->args);
+ 164              		.loc 1 33 0
+ 165 000a 6068     		ldr	r0, [r4, #4]
+ 166 000c 08B1     		cbz	r0, .L10
+  34:Src/ftp_server.c **** 	free(req);
+ 167              		.loc 1 34 0
+ 168 000e FFF7FEFF 		bl	free
+ 169              	.LVL21:
+ 170              	.L10:
+  35:Src/ftp_server.c **** }
+ 171              		.loc 1 35 0
+ 172 0012 2046     		mov	r0, r4
+ 173 0014 FFF7FEFF 		bl	free
+ 174              	.LVL22:
+ 175 0018 10BD     		pop	{r4, pc}
+ 176              		.cfi_endproc
+ 177              	.LFE142:
+ 179              		.section	.text.get_request,"ax",%progbits
+ 180              		.align	1
+ 181              		.global	get_request
+ 182              		.syntax unified
+ 183              		.thumb
+ 184              		.thumb_func
+ 185              		.fpu fpv5-sp-d16
+ 187              	get_request:
+ 188              	.LFB143:
+  38:Src/ftp_server.c **** 	uint8_t i = 0;
+ 189              		.loc 1 38 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 7
+
+
+ 190              		.cfi_startproc
+ 191              		@ args = 0, pretend = 0, frame = 0
+ 192              		@ frame_needed = 0, uses_anonymous_args = 0
+ 193              	.LVL23:
+ 194 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 195              	.LCFI3:
+ 196              		.cfi_def_cfa_offset 24
+ 197              		.cfi_offset 4, -24
+ 198              		.cfi_offset 5, -20
+ 199              		.cfi_offset 6, -16
+ 200              		.cfi_offset 7, -12
+ 201              		.cfi_offset 8, -8
+ 202              		.cfi_offset 14, -4
+ 203 0004 0546     		mov	r5, r0
+ 204              	.LVL24:
+  39:Src/ftp_server.c **** 	for(; isspace(msg[i]) && msg[i] != '\0' ; i++);
+ 205              		.loc 1 39 0
+ 206 0006 0026     		movs	r6, #0
+  40:Src/ftp_server.c **** 	uint8_t command_start = i;
+ 207              		.loc 1 40 0
+ 208 0008 01E0     		b	.L13
+ 209              	.LVL25:
+ 210              	.L15:
+  40:Src/ftp_server.c **** 	uint8_t command_start = i;
+ 211              		.loc 1 40 0 is_stmt 0 discriminator 3
+ 212 000a 0136     		adds	r6, r6, #1
+ 213              	.LVL26:
+ 214 000c F6B2     		uxtb	r6, r6
+ 215              	.LVL27:
+ 216              	.L13:
+  40:Src/ftp_server.c **** 	uint8_t command_start = i;
+ 217              		.loc 1 40 0 discriminator 1
+ 218 000e FFF7FEFF 		bl	__locale_ctype_ptr
+ 219              	.LVL28:
+ 220 0012 AF19     		adds	r7, r5, r6
+ 221 0014 AB5D     		ldrb	r3, [r5, r6]	@ zero_extendqisi2
+ 222 0016 1844     		add	r0, r0, r3
+ 223 0018 4278     		ldrb	r2, [r0, #1]	@ zero_extendqisi2
+ 224 001a 12F0080F 		tst	r2, #8
+ 225 001e 1AD0     		beq	.L24
+  40:Src/ftp_server.c **** 	uint8_t command_start = i;
+ 226              		.loc 1 40 0 discriminator 2
+ 227 0020 002B     		cmp	r3, #0
+ 228 0022 F2D1     		bne	.L15
+ 229 0024 3446     		mov	r4, r6
+ 230 0026 01E0     		b	.L14
+ 231              	.LVL29:
+ 232              	.L17:
+  43:Src/ftp_server.c **** 	uint8_t command_len = i - command_start + 1;
+ 233              		.loc 1 43 0 is_stmt 1 discriminator 3
+ 234 0028 0134     		adds	r4, r4, #1
+ 235              	.LVL30:
+ 236 002a E4B2     		uxtb	r4, r4
+ 237              	.LVL31:
+ 238              	.L14:
+  43:Src/ftp_server.c **** 	uint8_t command_len = i - command_start + 1;
+ 239              		.loc 1 43 0 is_stmt 0 discriminator 1
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 8
+
+
+ 240 002c FFF7FEFF 		bl	__locale_ctype_ptr
+ 241              	.LVL32:
+ 242 0030 2919     		adds	r1, r5, r4
+ 243 0032 2B5D     		ldrb	r3, [r5, r4]	@ zero_extendqisi2
+ 244 0034 1844     		add	r0, r0, r3
+ 245 0036 4278     		ldrb	r2, [r0, #1]	@ zero_extendqisi2
+ 246 0038 12F0080F 		tst	r2, #8
+ 247 003c 01D1     		bne	.L16
+  43:Src/ftp_server.c **** 	uint8_t command_len = i - command_start + 1;
+ 248              		.loc 1 43 0 discriminator 2
+ 249 003e 002B     		cmp	r3, #0
+ 250 0040 F2D1     		bne	.L17
+ 251              	.L16:
+  44:Src/ftp_server.c **** 	if(msg[i] != '\0') {
+ 252              		.loc 1 44 0 is_stmt 1
+ 253 0042 A61B     		subs	r6, r4, r6
+ 254 0044 F6B2     		uxtb	r6, r6
+ 255 0046 0136     		adds	r6, r6, #1
+ 256 0048 F6B2     		uxtb	r6, r6
+ 257              	.LVL33:
+  45:Src/ftp_server.c **** 		msg[i++] = '\0';
+ 258              		.loc 1 45 0
+ 259 004a 43B1     		cbz	r3, .L19
+  46:Src/ftp_server.c **** 	}
+ 260              		.loc 1 46 0
+ 261 004c 0134     		adds	r4, r4, #1
+ 262              	.LVL34:
+ 263 004e E4B2     		uxtb	r4, r4
+ 264              	.LVL35:
+ 265 0050 0023     		movs	r3, #0
+ 266 0052 0B70     		strb	r3, [r1]
+ 267 0054 03E0     		b	.L19
+ 268              	.LVL36:
+ 269              	.L24:
+ 270 0056 3446     		mov	r4, r6
+ 271 0058 E8E7     		b	.L14
+ 272              	.LVL37:
+ 273              	.L21:
+  49:Src/ftp_server.c **** 	uint8_t args_start = i;
+ 274              		.loc 1 49 0 discriminator 3
+ 275 005a 0134     		adds	r4, r4, #1
+ 276              	.LVL38:
+ 277 005c E4B2     		uxtb	r4, r4
+ 278              	.LVL39:
+ 279              	.L19:
+  49:Src/ftp_server.c **** 	uint8_t args_start = i;
+ 280              		.loc 1 49 0 is_stmt 0 discriminator 1
+ 281 005e FFF7FEFF 		bl	__locale_ctype_ptr
+ 282              	.LVL40:
+ 283 0062 05EB0408 		add	r8, r5, r4
+ 284 0066 2B5D     		ldrb	r3, [r5, r4]	@ zero_extendqisi2
+ 285 0068 1844     		add	r0, r0, r3
+ 286 006a 4278     		ldrb	r2, [r0, #1]	@ zero_extendqisi2
+ 287 006c 12F0080F 		tst	r2, #8
+ 288 0070 22D0     		beq	.L25
+  49:Src/ftp_server.c **** 	uint8_t args_start = i;
+ 289              		.loc 1 49 0 discriminator 2
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 9
+
+
+ 290 0072 002B     		cmp	r3, #0
+ 291 0074 F1D1     		bne	.L21
+ 292 0076 2346     		mov	r3, r4
+ 293 0078 01E0     		b	.L20
+ 294              	.LVL41:
+ 295              	.L23:
+  52:Src/ftp_server.c **** 	uint8_t args_len = i - args_start + 1;
+ 296              		.loc 1 52 0 is_stmt 1 discriminator 3
+ 297 007a 0133     		adds	r3, r3, #1
+ 298              	.LVL42:
+ 299 007c DBB2     		uxtb	r3, r3
+ 300              	.LVL43:
+ 301              	.L20:
+  52:Src/ftp_server.c **** 	uint8_t args_len = i - args_start + 1;
+ 302              		.loc 1 52 0 is_stmt 0 discriminator 1
+ 303 007e E818     		adds	r0, r5, r3
+ 304 0080 EA5C     		ldrb	r2, [r5, r3]	@ zero_extendqisi2
+ 305 0082 0D2A     		cmp	r2, #13
+ 306 0084 18BF     		it	ne
+ 307 0086 0A2A     		cmpne	r2, #10
+ 308 0088 01D0     		beq	.L22
+  52:Src/ftp_server.c **** 	uint8_t args_len = i - args_start + 1;
+ 309              		.loc 1 52 0 discriminator 2
+ 310 008a 002A     		cmp	r2, #0
+ 311 008c F5D1     		bne	.L23
+ 312              	.L22:
+  53:Src/ftp_server.c **** 	msg[i] = '\0';
+ 313              		.loc 1 53 0 is_stmt 1
+ 314 008e 191B     		subs	r1, r3, r4
+ 315 0090 C9B2     		uxtb	r1, r1
+ 316 0092 0131     		adds	r1, r1, #1
+ 317              	.LVL44:
+  54:Src/ftp_server.c **** 
+ 318              		.loc 1 54 0
+ 319 0094 0023     		movs	r3, #0
+ 320              	.LVL45:
+ 321 0096 0370     		strb	r3, [r0]
+  56:Src/ftp_server.c **** 	strcpy(req->command, &msg[command_start]);
+ 322              		.loc 1 56 0
+ 323 0098 C9B2     		uxtb	r1, r1
+ 324 009a 3046     		mov	r0, r6
+ 325 009c FFF7FEFF 		bl	init_Request
+ 326              	.LVL46:
+ 327 00a0 0446     		mov	r4, r0
+ 328              	.LVL47:
+  57:Src/ftp_server.c **** 	strcpy(req->args, &msg[args_start]);
+ 329              		.loc 1 57 0
+ 330 00a2 3946     		mov	r1, r7
+ 331 00a4 0068     		ldr	r0, [r0]
+ 332              	.LVL48:
+ 333 00a6 FFF7FEFF 		bl	strcpy
+ 334              	.LVL49:
+  58:Src/ftp_server.c **** 
+ 335              		.loc 1 58 0
+ 336 00aa 4146     		mov	r1, r8
+ 337 00ac 6068     		ldr	r0, [r4, #4]
+ 338 00ae FFF7FEFF 		bl	strcpy
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 10
+
+
+ 339              	.LVL50:
+  61:Src/ftp_server.c **** 
+ 340              		.loc 1 61 0
+ 341 00b2 2046     		mov	r0, r4
+ 342 00b4 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 343              	.LVL51:
+ 344              	.L25:
+ 345 00b8 2346     		mov	r3, r4
+ 346 00ba E0E7     		b	.L20
+ 347              		.cfi_endproc
+ 348              	.LFE143:
+ 350              		.section	.text.open_socket,"ax",%progbits
+ 351              		.align	1
+ 352              		.global	open_socket
+ 353              		.syntax unified
+ 354              		.thumb
+ 355              		.thumb_func
+ 356              		.fpu fpv5-sp-d16
+ 358              	open_socket:
+ 359              	.LFB144:
+  63:Src/ftp_server.c **** 	struct tcp_pcb *pcb = tcp_new();
+ 360              		.loc 1 63 0
+ 361              		.cfi_startproc
+ 362              		@ args = 0, pretend = 0, frame = 0
+ 363              		@ frame_needed = 0, uses_anonymous_args = 0
+ 364              	.LVL52:
+ 365 0000 38B5     		push	{r3, r4, r5, lr}
+ 366              	.LCFI4:
+ 367              		.cfi_def_cfa_offset 16
+ 368              		.cfi_offset 3, -16
+ 369              		.cfi_offset 4, -12
+ 370              		.cfi_offset 5, -8
+ 371              		.cfi_offset 14, -4
+ 372 0002 0546     		mov	r5, r0
+  64:Src/ftp_server.c **** 	if(pcb == NULL) {
+ 373              		.loc 1 64 0
+ 374 0004 FFF7FEFF 		bl	tcp_new
+ 375              	.LVL53:
+  65:Src/ftp_server.c **** 		printf("tcp_new error\r\n");
+ 376              		.loc 1 65 0
+ 377 0008 0446     		mov	r4, r0
+ 378 000a 60B1     		cbz	r0, .L32
+  70:Src/ftp_server.c **** 		printf("tcp_bind error\r\n");
+ 379              		.loc 1 70 0
+ 380 000c 2A46     		mov	r2, r5
+ 381 000e 0C49     		ldr	r1, .L35
+ 382 0010 FFF7FEFF 		bl	tcp_bind
+ 383              	.LVL54:
+ 384 0014 58B9     		cbnz	r0, .L33
+  75:Src/ftp_server.c **** 	if(pcb == NULL) {
+ 385              		.loc 1 75 0
+ 386 0016 FF21     		movs	r1, #255
+ 387 0018 2046     		mov	r0, r4
+ 388 001a FFF7FEFF 		bl	tcp_listen_with_backlog
+ 389              	.LVL55:
+  76:Src/ftp_server.c **** 		printf("tcp_listen error");
+ 390              		.loc 1 76 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 11
+
+
+ 391 001e 0446     		mov	r4, r0
+ 392 0020 50B1     		cbz	r0, .L34
+ 393              	.LVL56:
+ 394              	.L27:
+  81:Src/ftp_server.c **** 
+ 395              		.loc 1 81 0
+ 396 0022 2046     		mov	r0, r4
+ 397 0024 38BD     		pop	{r3, r4, r5, pc}
+ 398              	.LVL57:
+ 399              	.L32:
+  66:Src/ftp_server.c **** 		return NULL;
+ 400              		.loc 1 66 0
+ 401 0026 0748     		ldr	r0, .L35+4
+ 402              	.LVL58:
+ 403 0028 FFF7FEFF 		bl	puts
+ 404              	.LVL59:
+  67:Src/ftp_server.c **** 	}
+ 405              		.loc 1 67 0
+ 406 002c F9E7     		b	.L27
+ 407              	.L33:
+  71:Src/ftp_server.c **** 		return NULL;
+ 408              		.loc 1 71 0
+ 409 002e 0648     		ldr	r0, .L35+8
+ 410 0030 FFF7FEFF 		bl	puts
+ 411              	.LVL60:
+  72:Src/ftp_server.c **** 	}
+ 412              		.loc 1 72 0
+ 413 0034 0024     		movs	r4, #0
+ 414              	.LVL61:
+ 415 0036 F4E7     		b	.L27
+ 416              	.LVL62:
+ 417              	.L34:
+  77:Src/ftp_server.c **** 		return NULL;
+ 418              		.loc 1 77 0
+ 419 0038 0448     		ldr	r0, .L35+12
+ 420              	.LVL63:
+ 421 003a FFF7FEFF 		bl	printf
+ 422              	.LVL64:
+  78:Src/ftp_server.c **** 	}
+ 423              		.loc 1 78 0
+ 424 003e F0E7     		b	.L27
+ 425              	.L36:
+ 426              		.align	2
+ 427              	.L35:
+ 428 0040 04000000 		.word	gnetif+4
+ 429 0044 00000000 		.word	.LC1
+ 430 0048 10000000 		.word	.LC2
+ 431 004c 20000000 		.word	.LC3
+ 432              		.cfi_endproc
+ 433              	.LFE144:
+ 435              		.section	.text.accept_command_conn,"ax",%progbits
+ 436              		.align	1
+ 437              		.global	accept_command_conn
+ 438              		.syntax unified
+ 439              		.thumb
+ 440              		.thumb_func
+ 441              		.fpu fpv5-sp-d16
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 12
+
+
+ 443              	accept_command_conn:
+ 444              	.LFB145:
+  83:Src/ftp_server.c **** 	tcp_accept(pcb, serve_client);
+ 445              		.loc 1 83 0
+ 446              		.cfi_startproc
+ 447              		@ args = 0, pretend = 0, frame = 0
+ 448              		@ frame_needed = 0, uses_anonymous_args = 0
+ 449              	.LVL65:
+ 450 0000 08B5     		push	{r3, lr}
+ 451              	.LCFI5:
+ 452              		.cfi_def_cfa_offset 8
+ 453              		.cfi_offset 3, -8
+ 454              		.cfi_offset 14, -4
+  84:Src/ftp_server.c **** 	tcp_accepted(pcb);
+ 455              		.loc 1 84 0
+ 456 0002 0249     		ldr	r1, .L39
+ 457 0004 FFF7FEFF 		bl	tcp_accept
+ 458              	.LVL66:
+ 459 0008 08BD     		pop	{r3, pc}
+ 460              	.L40:
+ 461 000a 00BF     		.align	2
+ 462              	.L39:
+ 463 000c 00000000 		.word	serve_client
+ 464              		.cfi_endproc
+ 465              	.LFE145:
+ 467              		.section	.text.accept_data_conn,"ax",%progbits
+ 468              		.align	1
+ 469              		.global	accept_data_conn
+ 470              		.syntax unified
+ 471              		.thumb
+ 472              		.thumb_func
+ 473              		.fpu fpv5-sp-d16
+ 475              	accept_data_conn:
+ 476              	.LFB146:
+  88:Src/ftp_server.c **** 	tcp_accept(pcb, callback);
+ 477              		.loc 1 88 0
+ 478              		.cfi_startproc
+ 479              		@ args = 0, pretend = 0, frame = 0
+ 480              		@ frame_needed = 0, uses_anonymous_args = 0
+ 481              	.LVL67:
+ 482 0000 08B5     		push	{r3, lr}
+ 483              	.LCFI6:
+ 484              		.cfi_def_cfa_offset 8
+ 485              		.cfi_offset 3, -8
+ 486              		.cfi_offset 14, -4
+  89:Src/ftp_server.c **** 	tcp_accepted(pcb);
+ 487              		.loc 1 89 0
+ 488 0002 FFF7FEFF 		bl	tcp_accept
+ 489              	.LVL68:
+ 490 0006 08BD     		pop	{r3, pc}
+ 491              		.cfi_endproc
+ 492              	.LFE146:
+ 494              		.section	.text.send_response,"ax",%progbits
+ 495              		.align	1
+ 496              		.global	send_response
+ 497              		.syntax unified
+ 498              		.thumb
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 13
+
+
+ 499              		.thumb_func
+ 500              		.fpu fpv5-sp-d16
+ 502              	send_response:
+ 503              	.LFB147:
+  93:Src/ftp_server.c **** 	uint16_t len = 3 + 1 + strlen(text) + 3;
+ 504              		.loc 1 93 0
+ 505              		.cfi_startproc
+ 506              		@ args = 0, pretend = 0, frame = 0
+ 507              		@ frame_needed = 0, uses_anonymous_args = 0
+ 508              	.LVL69:
+ 509 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 510              	.LCFI7:
+ 511              		.cfi_def_cfa_offset 24
+ 512              		.cfi_offset 4, -24
+ 513              		.cfi_offset 5, -20
+ 514              		.cfi_offset 6, -16
+ 515              		.cfi_offset 7, -12
+ 516              		.cfi_offset 8, -8
+ 517              		.cfi_offset 14, -4
+ 518 0004 8046     		mov	r8, r0
+ 519 0006 0F46     		mov	r7, r1
+ 520 0008 1646     		mov	r6, r2
+  94:Src/ftp_server.c **** 	char *buf = malloc(sizeof(char)*len);
+ 521              		.loc 1 94 0
+ 522 000a 0846     		mov	r0, r1
+ 523              	.LVL70:
+ 524 000c FFF7FEFF 		bl	strlen
+ 525              	.LVL71:
+ 526 0010 84B2     		uxth	r4, r0
+ 527 0012 0734     		adds	r4, r4, #7
+ 528 0014 A4B2     		uxth	r4, r4
+ 529              	.LVL72:
+  95:Src/ftp_server.c **** 	sprintf(buf, "%d %s\r\n", status, text);
+ 530              		.loc 1 95 0
+ 531 0016 2046     		mov	r0, r4
+ 532 0018 FFF7FEFF 		bl	malloc
+ 533              	.LVL73:
+ 534 001c 0546     		mov	r5, r0
+ 535              	.LVL74:
+  96:Src/ftp_server.c **** 
+ 536              		.loc 1 96 0
+ 537 001e 3B46     		mov	r3, r7
+ 538 0020 4246     		mov	r2, r8
+ 539 0022 0D49     		ldr	r1, .L47
+ 540 0024 FFF7FEFF 		bl	sprintf
+ 541              	.LVL75:
+  98:Src/ftp_server.c **** 		printf("tcp_write error, will try again");
+ 542              		.loc 1 98 0
+ 543 0028 05E0     		b	.L44
+ 544              	.L45:
+  99:Src/ftp_server.c **** 		osDelay(100);
+ 545              		.loc 1 99 0
+ 546 002a 0C48     		ldr	r0, .L47+4
+ 547 002c FFF7FEFF 		bl	printf
+ 548              	.LVL76:
+ 100:Src/ftp_server.c **** 	}
+ 549              		.loc 1 100 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 14
+
+
+ 550 0030 6420     		movs	r0, #100
+ 551 0032 FFF7FEFF 		bl	osDelay
+ 552              	.LVL77:
+ 553              	.L44:
+  98:Src/ftp_server.c **** 		printf("tcp_write error, will try again");
+ 554              		.loc 1 98 0
+ 555 0036 0123     		movs	r3, #1
+ 556 0038 2246     		mov	r2, r4
+ 557 003a 2946     		mov	r1, r5
+ 558 003c 3046     		mov	r0, r6
+ 559 003e FFF7FEFF 		bl	tcp_write
+ 560              	.LVL78:
+ 561 0042 B0F1FF3F 		cmp	r0, #-1
+ 562 0046 F0D0     		beq	.L45
+ 102:Src/ftp_server.c **** 	free(buf);
+ 563              		.loc 1 102 0
+ 564 0048 3046     		mov	r0, r6
+ 565 004a FFF7FEFF 		bl	tcp_output
+ 566              	.LVL79:
+ 103:Src/ftp_server.c **** }
+ 567              		.loc 1 103 0
+ 568 004e 2846     		mov	r0, r5
+ 569 0050 FFF7FEFF 		bl	free
+ 570              	.LVL80:
+ 571 0054 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 572              	.LVL81:
+ 573              	.L48:
+ 574              		.align	2
+ 575              	.L47:
+ 576 0058 00000000 		.word	.LC4
+ 577 005c 08000000 		.word	.LC5
+ 578              		.cfi_endproc
+ 579              	.LFE147:
+ 581              		.section	.text.serve_client,"ax",%progbits
+ 582              		.align	1
+ 583              		.global	serve_client
+ 584              		.syntax unified
+ 585              		.thumb
+ 586              		.thumb_func
+ 587              		.fpu fpv5-sp-d16
+ 589              	serve_client:
+ 590              	.LFB148:
+ 106:Src/ftp_server.c **** 	send_response(220, "Welcome.", pcb);
+ 591              		.loc 1 106 0
+ 592              		.cfi_startproc
+ 593              		@ Volatile: function does not return.
+ 594              		@ args = 0, pretend = 0, frame = 0
+ 595              		@ frame_needed = 0, uses_anonymous_args = 0
+ 596              	.LVL82:
+ 597 0000 08B5     		push	{r3, lr}
+ 598              	.LCFI8:
+ 599              		.cfi_def_cfa_offset 8
+ 600              		.cfi_offset 3, -8
+ 601              		.cfi_offset 14, -4
+ 602 0002 0C46     		mov	r4, r1
+ 107:Src/ftp_server.c **** 	printf("client connected\r\n");
+ 603              		.loc 1 107 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 15
+
+
+ 604 0004 0A46     		mov	r2, r1
+ 605              	.LVL83:
+ 606 0006 0649     		ldr	r1, .L52
+ 607              	.LVL84:
+ 608 0008 DC20     		movs	r0, #220
+ 609              	.LVL85:
+ 610 000a FFF7FEFF 		bl	send_response
+ 611              	.LVL86:
+ 108:Src/ftp_server.c **** 
+ 612              		.loc 1 108 0
+ 613 000e 0548     		ldr	r0, .L52+4
+ 614 0010 FFF7FEFF 		bl	puts
+ 615              	.LVL87:
+ 616              	.L50:
+ 111:Src/ftp_server.c **** 	}
+ 617              		.loc 1 111 0 discriminator 1
+ 618 0014 0449     		ldr	r1, .L52+8
+ 619 0016 2046     		mov	r0, r4
+ 620 0018 FFF7FEFF 		bl	tcp_recv
+ 621              	.LVL88:
+ 622 001c FAE7     		b	.L50
+ 623              	.L53:
+ 624 001e 00BF     		.align	2
+ 625              	.L52:
+ 626 0020 00000000 		.word	.LC6
+ 627 0024 0C000000 		.word	.LC7
+ 628 0028 00000000 		.word	serve_request
+ 629              		.cfi_endproc
+ 630              	.LFE148:
+ 632              		.section	.text.pasv_response,"ax",%progbits
+ 633              		.align	1
+ 634              		.global	pasv_response
+ 635              		.syntax unified
+ 636              		.thumb
+ 637              		.thumb_func
+ 638              		.fpu fpv5-sp-d16
+ 640              	pasv_response:
+ 641              	.LFB150:
+ 126:Src/ftp_server.c **** 	char *buf = malloc(sizeof(char)*50);
+ 642              		.loc 1 126 0
+ 643              		.cfi_startproc
+ 644              		@ args = 0, pretend = 0, frame = 0
+ 645              		@ frame_needed = 0, uses_anonymous_args = 0
+ 646              	.LVL89:
+ 647 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 648              	.LCFI9:
+ 649              		.cfi_def_cfa_offset 20
+ 650              		.cfi_offset 4, -20
+ 651              		.cfi_offset 5, -16
+ 652              		.cfi_offset 6, -12
+ 653              		.cfi_offset 7, -8
+ 654              		.cfi_offset 14, -4
+ 655 0002 85B0     		sub	sp, sp, #20
+ 656              	.LCFI10:
+ 657              		.cfi_def_cfa_offset 40
+ 658 0004 0546     		mov	r5, r0
+ 127:Src/ftp_server.c **** 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 16
+
+
+ 659              		.loc 1 127 0
+ 660 0006 3220     		movs	r0, #50
+ 661              	.LVL90:
+ 662 0008 FFF7FEFF 		bl	malloc
+ 663              	.LVL91:
+ 664 000c 0446     		mov	r4, r0
+ 665              	.LVL92:
+ 130:Src/ftp_server.c **** 			ip4_addr2(&gnetif.ip_addr),
+ 666              		.loc 1 130 0
+ 667 000e 0A49     		ldr	r1, .L56
+ 668 0010 0A79     		ldrb	r2, [r1, #4]	@ zero_extendqisi2
+ 131:Src/ftp_server.c **** 			ip4_addr3(&gnetif.ip_addr),
+ 669              		.loc 1 131 0
+ 670 0012 4B79     		ldrb	r3, [r1, #5]	@ zero_extendqisi2
+ 132:Src/ftp_server.c **** 			ip4_addr4(&gnetif.ip_addr),
+ 671              		.loc 1 132 0
+ 672 0014 8E79     		ldrb	r6, [r1, #6]	@ zero_extendqisi2
+ 133:Src/ftp_server.c **** 			DATA_PORT/256, DATA_PORT % 256);
+ 673              		.loc 1 133 0
+ 674 0016 C979     		ldrb	r1, [r1, #7]	@ zero_extendqisi2
+ 129:Src/ftp_server.c **** 			ip4_addr1(&gnetif.ip_addr),
+ 675              		.loc 1 129 0
+ 676 0018 1027     		movs	r7, #16
+ 677 001a 0397     		str	r7, [sp, #12]
+ 678 001c 2727     		movs	r7, #39
+ 679 001e 0297     		str	r7, [sp, #8]
+ 680 0020 0191     		str	r1, [sp, #4]
+ 681 0022 0096     		str	r6, [sp]
+ 682 0024 0549     		ldr	r1, .L56+4
+ 683 0026 FFF7FEFF 		bl	sprintf
+ 684              	.LVL93:
+ 136:Src/ftp_server.c **** }
+ 685              		.loc 1 136 0
+ 686 002a 2A46     		mov	r2, r5
+ 687 002c 2146     		mov	r1, r4
+ 688 002e E320     		movs	r0, #227
+ 689 0030 FFF7FEFF 		bl	send_response
+ 690              	.LVL94:
+ 137:Src/ftp_server.c **** 
+ 691              		.loc 1 137 0
+ 692 0034 05B0     		add	sp, sp, #20
+ 693              	.LCFI11:
+ 694              		.cfi_def_cfa_offset 20
+ 695              		@ sp needed
+ 696 0036 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 697              	.LVL95:
+ 698              	.L57:
+ 699              		.align	2
+ 700              	.L56:
+ 701 0038 00000000 		.word	gnetif
+ 702 003c 00000000 		.word	.LC8
+ 703              		.cfi_endproc
+ 704              	.LFE150:
+ 706              		.section	.text.list_response,"ax",%progbits
+ 707              		.align	1
+ 708              		.global	list_response
+ 709              		.syntax unified
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 17
+
+
+ 710              		.thumb
+ 711              		.thumb_func
+ 712              		.fpu fpv5-sp-d16
+ 714              	list_response:
+ 715              	.LFB152:
+ 149:Src/ftp_server.c **** 
+ 150:Src/ftp_server.c **** void list_response(struct tcp_pcb *pcb) {
+ 716              		.loc 1 150 0
+ 717              		.cfi_startproc
+ 718              		@ args = 0, pretend = 0, frame = 0
+ 719              		@ frame_needed = 0, uses_anonymous_args = 0
+ 720              	.LVL96:
+ 721 0000 10B5     		push	{r4, lr}
+ 722              	.LCFI12:
+ 723              		.cfi_def_cfa_offset 8
+ 724              		.cfi_offset 4, -8
+ 725              		.cfi_offset 14, -4
+ 726 0002 0446     		mov	r4, r0
+ 151:Src/ftp_server.c **** 	send_response(150, "Directory listing.", pcb);
+ 727              		.loc 1 151 0
+ 728 0004 0246     		mov	r2, r0
+ 729 0006 0749     		ldr	r1, .L60
+ 730 0008 9620     		movs	r0, #150
+ 731              	.LVL97:
+ 732 000a FFF7FEFF 		bl	send_response
+ 733              	.LVL98:
+ 152:Src/ftp_server.c **** 	accept_data_conn(data_socket, send_list_data);
+ 734              		.loc 1 152 0
+ 735 000e 0649     		ldr	r1, .L60+4
+ 736 0010 064B     		ldr	r3, .L60+8
+ 737 0012 1868     		ldr	r0, [r3]
+ 738 0014 FFF7FEFF 		bl	accept_data_conn
+ 739              	.LVL99:
+ 153:Src/ftp_server.c **** 	send_response(226, "Directory send OK.", pcb);
+ 740              		.loc 1 153 0
+ 741 0018 2246     		mov	r2, r4
+ 742 001a 0549     		ldr	r1, .L60+12
+ 743 001c E220     		movs	r0, #226
+ 744 001e FFF7FEFF 		bl	send_response
+ 745              	.LVL100:
+ 746 0022 10BD     		pop	{r4, pc}
+ 747              	.LVL101:
+ 748              	.L61:
+ 749              		.align	2
+ 750              	.L60:
+ 751 0024 00000000 		.word	.LC9
+ 752 0028 00000000 		.word	send_list_data
+ 753 002c 00000000 		.word	data_socket
+ 754 0030 14000000 		.word	.LC10
+ 755              		.cfi_endproc
+ 756              	.LFE152:
+ 758              		.section	.text.respond,"ax",%progbits
+ 759              		.align	1
+ 760              		.global	respond
+ 761              		.syntax unified
+ 762              		.thumb
+ 763              		.thumb_func
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 18
+
+
+ 764              		.fpu fpv5-sp-d16
+ 766              	respond:
+ 767              	.LFB153:
+ 154:Src/ftp_server.c **** }
+ 155:Src/ftp_server.c **** 
+ 156:Src/ftp_server.c **** void respond(Request *req, struct tcp_pcb *pcb) {
+ 768              		.loc 1 156 0
+ 769              		.cfi_startproc
+ 770              		@ args = 0, pretend = 0, frame = 0
+ 771              		@ frame_needed = 0, uses_anonymous_args = 0
+ 772              	.LVL102:
+ 773 0000 70B5     		push	{r4, r5, r6, lr}
+ 774              	.LCFI13:
+ 775              		.cfi_def_cfa_offset 16
+ 776              		.cfi_offset 4, -16
+ 777              		.cfi_offset 5, -12
+ 778              		.cfi_offset 6, -8
+ 779              		.cfi_offset 14, -4
+ 780 0002 0546     		mov	r5, r0
+ 781 0004 0E46     		mov	r6, r1
+ 157:Src/ftp_server.c **** 	char *command = req->command;
+ 782              		.loc 1 157 0
+ 783 0006 0468     		ldr	r4, [r0]
+ 784              	.LVL103:
+ 158:Src/ftp_server.c **** 
+ 159:Src/ftp_server.c **** 	if(strcmp(command, "USER") == 0) {
+ 785              		.loc 1 159 0
+ 786 0008 3049     		ldr	r1, .L79
+ 787              	.LVL104:
+ 788 000a 2046     		mov	r0, r4
+ 789              	.LVL105:
+ 790 000c FFF7FEFF 		bl	strcmp
+ 791              	.LVL106:
+ 792 0010 C8B1     		cbz	r0, .L73
+ 160:Src/ftp_server.c **** 		send_response(230, "Success.", pcb);
+ 161:Src/ftp_server.c **** 	}
+ 162:Src/ftp_server.c **** 	else if(strcmp(command, "SYST") == 0) {
+ 793              		.loc 1 162 0
+ 794 0012 2F49     		ldr	r1, .L79+4
+ 795 0014 2046     		mov	r0, r4
+ 796 0016 FFF7FEFF 		bl	strcmp
+ 797              	.LVL107:
+ 798 001a D0B1     		cbz	r0, .L74
+ 163:Src/ftp_server.c **** 		send_response(215, "EMBOS", pcb);
+ 164:Src/ftp_server.c **** 	}
+ 165:Src/ftp_server.c **** 	else if(strcmp(command, "PWD") == 0) {
+ 799              		.loc 1 165 0
+ 800 001c 2D49     		ldr	r1, .L79+8
+ 801 001e 2046     		mov	r0, r4
+ 802 0020 FFF7FEFF 		bl	strcmp
+ 803              	.LVL108:
+ 804 0024 D8B1     		cbz	r0, .L75
+ 166:Src/ftp_server.c **** 		send_response(257, get_current_directory(), pcb);
+ 167:Src/ftp_server.c **** 	}
+ 168:Src/ftp_server.c **** 	else if((strcmp(command, "TYPE") == 0))	{
+ 805              		.loc 1 168 0
+ 806 0026 2C49     		ldr	r1, .L79+12
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 19
+
+
+ 807 0028 2046     		mov	r0, r4
+ 808 002a FFF7FEFF 		bl	strcmp
+ 809              	.LVL109:
+ 810 002e 30BB     		cbnz	r0, .L67
+ 169:Src/ftp_server.c **** 		if(strcmp(req->args, "I") == 0)
+ 811              		.loc 1 169 0
+ 812 0030 2A49     		ldr	r1, .L79+16
+ 813 0032 6868     		ldr	r0, [r5, #4]
+ 814 0034 FFF7FEFF 		bl	strcmp
+ 815              	.LVL110:
+ 816 0038 D0B9     		cbnz	r0, .L68
+ 170:Src/ftp_server.c **** 			send_response(200, "Binary mode accepted.", pcb);
+ 817              		.loc 1 170 0
+ 818 003a 3246     		mov	r2, r6
+ 819 003c 2849     		ldr	r1, .L79+20
+ 820 003e C820     		movs	r0, #200
+ 821 0040 FFF7FEFF 		bl	send_response
+ 822              	.LVL111:
+ 823 0044 70BD     		pop	{r4, r5, r6, pc}
+ 824              	.LVL112:
+ 825              	.L73:
+ 160:Src/ftp_server.c **** 	}
+ 826              		.loc 1 160 0
+ 827 0046 3246     		mov	r2, r6
+ 828 0048 2649     		ldr	r1, .L79+24
+ 829 004a E620     		movs	r0, #230
+ 830 004c FFF7FEFF 		bl	send_response
+ 831              	.LVL113:
+ 832 0050 70BD     		pop	{r4, r5, r6, pc}
+ 833              	.LVL114:
+ 834              	.L74:
+ 163:Src/ftp_server.c **** 	}
+ 835              		.loc 1 163 0
+ 836 0052 3246     		mov	r2, r6
+ 837 0054 2449     		ldr	r1, .L79+28
+ 838 0056 D720     		movs	r0, #215
+ 839 0058 FFF7FEFF 		bl	send_response
+ 840              	.LVL115:
+ 841 005c 70BD     		pop	{r4, r5, r6, pc}
+ 842              	.LVL116:
+ 843              	.L75:
+ 166:Src/ftp_server.c **** 	}
+ 844              		.loc 1 166 0
+ 845 005e FFF7FEFF 		bl	get_current_directory
+ 846              	.LVL117:
+ 847 0062 3246     		mov	r2, r6
+ 848 0064 0146     		mov	r1, r0
+ 849 0066 40F20110 		movw	r0, #257
+ 850 006a FFF7FEFF 		bl	send_response
+ 851              	.LVL118:
+ 852 006e 70BD     		pop	{r4, r5, r6, pc}
+ 853              	.LVL119:
+ 854              	.L68:
+ 171:Src/ftp_server.c **** 		else
+ 172:Src/ftp_server.c **** 			send_response(502, "Command not implemented.", pcb);
+ 855              		.loc 1 172 0
+ 856 0070 3246     		mov	r2, r6
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 20
+
+
+ 857 0072 1E49     		ldr	r1, .L79+32
+ 858 0074 4FF4FB70 		mov	r0, #502
+ 859 0078 FFF7FEFF 		bl	send_response
+ 860              	.LVL120:
+ 861 007c 70BD     		pop	{r4, r5, r6, pc}
+ 862              	.LVL121:
+ 863              	.L67:
+ 173:Src/ftp_server.c **** 	}
+ 174:Src/ftp_server.c **** 	else if(strcmp(command, "PASV") == 0) {
+ 864              		.loc 1 174 0
+ 865 007e 1C49     		ldr	r1, .L79+36
+ 866 0080 2046     		mov	r0, r4
+ 867 0082 FFF7FEFF 		bl	strcmp
+ 868              	.LVL122:
+ 869 0086 80B1     		cbz	r0, .L76
+ 175:Src/ftp_server.c **** 		pasv_response(pcb);
+ 176:Src/ftp_server.c **** 	}
+ 177:Src/ftp_server.c **** 	else if(strcmp(command, "LIST") == 0) {
+ 870              		.loc 1 177 0
+ 871 0088 1A49     		ldr	r1, .L79+40
+ 872 008a 2046     		mov	r0, r4
+ 873 008c FFF7FEFF 		bl	strcmp
+ 874              	.LVL123:
+ 875 0090 78B1     		cbz	r0, .L77
+ 178:Src/ftp_server.c **** 		list_response(pcb);
+ 179:Src/ftp_server.c **** 	}
+ 180:Src/ftp_server.c **** 	else if(strcmp(command, "CWD") == 0) {
+ 876              		.loc 1 180 0
+ 877 0092 1949     		ldr	r1, .L79+44
+ 878 0094 2046     		mov	r0, r4
+ 879 0096 FFF7FEFF 		bl	strcmp
+ 880              	.LVL124:
+ 881 009a 70B1     		cbz	r0, .L78
+ 181:Src/ftp_server.c **** 		change_directory(req->args);
+ 182:Src/ftp_server.c **** 		send_response(250, "OK.", pcb);
+ 183:Src/ftp_server.c **** 	}
+ 184:Src/ftp_server.c **** 	else {
+ 185:Src/ftp_server.c **** 		send_response(502, "Command not implemented.", pcb);
+ 882              		.loc 1 185 0
+ 883 009c 3246     		mov	r2, r6
+ 884 009e 1349     		ldr	r1, .L79+32
+ 885 00a0 4FF4FB70 		mov	r0, #502
+ 886 00a4 FFF7FEFF 		bl	send_response
+ 887              	.LVL125:
+ 888 00a8 70BD     		pop	{r4, r5, r6, pc}
+ 889              	.LVL126:
+ 890              	.L76:
+ 175:Src/ftp_server.c **** 	}
+ 891              		.loc 1 175 0
+ 892 00aa 3046     		mov	r0, r6
+ 893 00ac FFF7FEFF 		bl	pasv_response
+ 894              	.LVL127:
+ 895 00b0 70BD     		pop	{r4, r5, r6, pc}
+ 896              	.LVL128:
+ 897              	.L77:
+ 178:Src/ftp_server.c **** 		list_response(pcb);
+ 898              		.loc 1 178 0
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 21
+
+
+ 899 00b2 3046     		mov	r0, r6
+ 900 00b4 FFF7FEFF 		bl	list_response
+ 901              	.LVL129:
+ 902 00b8 70BD     		pop	{r4, r5, r6, pc}
+ 903              	.LVL130:
+ 904              	.L78:
+ 181:Src/ftp_server.c **** 		change_directory(req->args);
+ 905              		.loc 1 181 0
+ 906 00ba 6868     		ldr	r0, [r5, #4]
+ 907 00bc FFF7FEFF 		bl	change_directory
+ 908              	.LVL131:
+ 182:Src/ftp_server.c **** 	}
+ 909              		.loc 1 182 0
+ 910 00c0 3246     		mov	r2, r6
+ 911 00c2 0E49     		ldr	r1, .L79+48
+ 912 00c4 FA20     		movs	r0, #250
+ 913 00c6 FFF7FEFF 		bl	send_response
+ 914              	.LVL132:
+ 915 00ca 70BD     		pop	{r4, r5, r6, pc}
+ 916              	.LVL133:
+ 917              	.L80:
+ 918              		.align	2
+ 919              	.L79:
+ 920 00cc 00000000 		.word	.LC11
+ 921 00d0 14000000 		.word	.LC13
+ 922 00d4 24000000 		.word	.LC15
+ 923 00d8 28000000 		.word	.LC16
+ 924 00dc 30000000 		.word	.LC17
+ 925 00e0 34000000 		.word	.LC18
+ 926 00e4 08000000 		.word	.LC12
+ 927 00e8 1C000000 		.word	.LC14
+ 928 00ec 4C000000 		.word	.LC19
+ 929 00f0 68000000 		.word	.LC20
+ 930 00f4 70000000 		.word	.LC21
+ 931 00f8 78000000 		.word	.LC22
+ 932 00fc 7C000000 		.word	.LC23
+ 933              		.cfi_endproc
+ 934              	.LFE153:
+ 936              		.section	.text.serve_request,"ax",%progbits
+ 937              		.align	1
+ 938              		.global	serve_request
+ 939              		.syntax unified
+ 940              		.thumb
+ 941              		.thumb_func
+ 942              		.fpu fpv5-sp-d16
+ 944              	serve_request:
+ 945              	.LFB149:
+ 117:Src/ftp_server.c **** 	Request *req = get_request(p->payload);
+ 946              		.loc 1 117 0
+ 947              		.cfi_startproc
+ 948              		@ args = 0, pretend = 0, frame = 0
+ 949              		@ frame_needed = 0, uses_anonymous_args = 0
+ 950              	.LVL134:
+ 951 0000 70B5     		push	{r4, r5, r6, lr}
+ 952              	.LCFI14:
+ 953              		.cfi_def_cfa_offset 16
+ 954              		.cfi_offset 4, -16
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 22
+
+
+ 955              		.cfi_offset 5, -12
+ 956              		.cfi_offset 6, -8
+ 957              		.cfi_offset 14, -4
+ 958 0002 0D46     		mov	r5, r1
+ 959 0004 1446     		mov	r4, r2
+ 118:Src/ftp_server.c **** 	tcp_recved(pcb, p->len);
+ 960              		.loc 1 118 0
+ 961 0006 5068     		ldr	r0, [r2, #4]
+ 962              	.LVL135:
+ 963 0008 FFF7FEFF 		bl	get_request
+ 964              	.LVL136:
+ 965 000c 0646     		mov	r6, r0
+ 966              	.LVL137:
+ 119:Src/ftp_server.c **** 	pbuf_free(p);
+ 967              		.loc 1 119 0
+ 968 000e 6189     		ldrh	r1, [r4, #10]
+ 969 0010 2846     		mov	r0, r5
+ 970              	.LVL138:
+ 971 0012 FFF7FEFF 		bl	tcp_recved
+ 972              	.LVL139:
+ 120:Src/ftp_server.c **** 
+ 973              		.loc 1 120 0
+ 974 0016 2046     		mov	r0, r4
+ 975 0018 FFF7FEFF 		bl	pbuf_free
+ 976              	.LVL140:
+ 122:Src/ftp_server.c **** 	return ERR_OK;
+ 977              		.loc 1 122 0
+ 978 001c 2946     		mov	r1, r5
+ 979 001e 3046     		mov	r0, r6
+ 980 0020 FFF7FEFF 		bl	respond
+ 981              	.LVL141:
+ 124:Src/ftp_server.c **** 
+ 982              		.loc 1 124 0
+ 983 0024 0020     		movs	r0, #0
+ 984 0026 70BD     		pop	{r4, r5, r6, pc}
+ 985              		.cfi_endproc
+ 986              	.LFE149:
+ 988              		.section	.text.start_server,"ax",%progbits
+ 989              		.align	1
+ 990              		.global	start_server
+ 991              		.syntax unified
+ 992              		.thumb
+ 993              		.thumb_func
+ 994              		.fpu fpv5-sp-d16
+ 996              	start_server:
+ 997              	.LFB154:
+ 186:Src/ftp_server.c **** 	}
+ 187:Src/ftp_server.c **** }
+ 188:Src/ftp_server.c **** 
+ 189:Src/ftp_server.c **** void start_server() {
+ 998              		.loc 1 189 0
+ 999              		.cfi_startproc
+ 1000              		@ args = 0, pretend = 0, frame = 0
+ 1001              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1002 0000 30B5     		push	{r4, r5, lr}
+ 1003              	.LCFI15:
+ 1004              		.cfi_def_cfa_offset 12
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 23
+
+
+ 1005              		.cfi_offset 4, -12
+ 1006              		.cfi_offset 5, -8
+ 1007              		.cfi_offset 14, -4
+ 1008 0002 83B0     		sub	sp, sp, #12
+ 1009              	.LCFI16:
+ 1010              		.cfi_def_cfa_offset 24
+ 190:Src/ftp_server.c **** 	printf("IP: %u.%u.%u.%u\r\nPORT: %d\r\n",
+ 191:Src/ftp_server.c **** 				ip4_addr1(&gnetif.ip_addr),
+ 1011              		.loc 1 191 0
+ 1012 0004 0D48     		ldr	r0, .L85
+ 1013 0006 0179     		ldrb	r1, [r0, #4]	@ zero_extendqisi2
+ 192:Src/ftp_server.c **** 				ip4_addr2(&gnetif.ip_addr),
+ 1014              		.loc 1 192 0
+ 1015 0008 4279     		ldrb	r2, [r0, #5]	@ zero_extendqisi2
+ 193:Src/ftp_server.c **** 				ip4_addr3(&gnetif.ip_addr),
+ 1016              		.loc 1 193 0
+ 1017 000a 8379     		ldrb	r3, [r0, #6]	@ zero_extendqisi2
+ 194:Src/ftp_server.c **** 				ip4_addr4(&gnetif.ip_addr),
+ 1018              		.loc 1 194 0
+ 1019 000c C079     		ldrb	r0, [r0, #7]	@ zero_extendqisi2
+ 190:Src/ftp_server.c **** 				ip4_addr1(&gnetif.ip_addr),
+ 1020              		.loc 1 190 0
+ 1021 000e 42F21075 		movw	r5, #10000
+ 1022 0012 0195     		str	r5, [sp, #4]
+ 1023 0014 0090     		str	r0, [sp]
+ 1024 0016 0A48     		ldr	r0, .L85+4
+ 1025 0018 FFF7FEFF 		bl	printf
+ 1026              	.LVL142:
+ 195:Src/ftp_server.c **** 				DATA_PORT);
+ 196:Src/ftp_server.c **** 
+ 197:Src/ftp_server.c **** 	command_socket = open_socket(COMMAND_PORT);
+ 1027              		.loc 1 197 0
+ 1028 001c 1520     		movs	r0, #21
+ 1029 001e FFF7FEFF 		bl	open_socket
+ 1030              	.LVL143:
+ 1031 0022 084C     		ldr	r4, .L85+8
+ 1032 0024 2060     		str	r0, [r4]
+ 198:Src/ftp_server.c **** 	data_socket = open_socket(DATA_PORT);
+ 1033              		.loc 1 198 0
+ 1034 0026 2846     		mov	r0, r5
+ 1035 0028 FFF7FEFF 		bl	open_socket
+ 1036              	.LVL144:
+ 1037 002c 064B     		ldr	r3, .L85+12
+ 1038 002e 1860     		str	r0, [r3]
+ 199:Src/ftp_server.c **** 
+ 200:Src/ftp_server.c **** 	accept_command_conn(command_socket);
+ 1039              		.loc 1 200 0
+ 1040 0030 2068     		ldr	r0, [r4]
+ 1041 0032 FFF7FEFF 		bl	accept_command_conn
+ 1042              	.LVL145:
+ 201:Src/ftp_server.c **** }
+ 1043              		.loc 1 201 0
+ 1044 0036 03B0     		add	sp, sp, #12
+ 1045              	.LCFI17:
+ 1046              		.cfi_def_cfa_offset 12
+ 1047              		@ sp needed
+ 1048 0038 30BD     		pop	{r4, r5, pc}
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 24
+
+
+ 1049              	.L86:
+ 1050 003a 00BF     		.align	2
+ 1051              	.L85:
+ 1052 003c 00000000 		.word	gnetif
+ 1053 0040 00000000 		.word	.LC24
+ 1054 0044 00000000 		.word	command_socket
+ 1055 0048 00000000 		.word	data_socket
+ 1056              		.cfi_endproc
+ 1057              	.LFE154:
+ 1059              		.comm	data_socket,4,4
+ 1060              		.comm	command_socket,4,4
+ 1061              		.section	.rodata.list_response.str1.4,"aMS",%progbits,1
+ 1062              		.align	2
+ 1063              	.LC9:
+ 1064 0000 44697265 		.ascii	"Directory listing.\000"
+ 1064      63746F72 
+ 1064      79206C69 
+ 1064      7374696E 
+ 1064      672E00
+ 1065 0013 00       		.space	1
+ 1066              	.LC10:
+ 1067 0014 44697265 		.ascii	"Directory send OK.\000"
+ 1067      63746F72 
+ 1067      79207365 
+ 1067      6E64204F 
+ 1067      4B2E00
+ 1068              		.section	.rodata.open_socket.str1.4,"aMS",%progbits,1
+ 1069              		.align	2
+ 1070              	.LC1:
+ 1071 0000 7463705F 		.ascii	"tcp_new error\015\000"
+ 1071      6E657720 
+ 1071      6572726F 
+ 1071      720D00
+ 1072 000f 00       		.space	1
+ 1073              	.LC2:
+ 1074 0010 7463705F 		.ascii	"tcp_bind error\015\000"
+ 1074      62696E64 
+ 1074      20657272 
+ 1074      6F720D00 
+ 1075              	.LC3:
+ 1076 0020 7463705F 		.ascii	"tcp_listen error\000"
+ 1076      6C697374 
+ 1076      656E2065 
+ 1076      72726F72 
+ 1076      00
+ 1077              		.section	.rodata.pasv_response.str1.4,"aMS",%progbits,1
+ 1078              		.align	2
+ 1079              	.LC8:
+ 1080 0000 456E7465 		.ascii	"Entering Passive Mode (%u,%u,%u,%u,%d,%d)\015\012\000"
+ 1080      72696E67 
+ 1080      20506173 
+ 1080      73697665 
+ 1080      204D6F64 
+ 1081              		.section	.rodata.respond.str1.4,"aMS",%progbits,1
+ 1082              		.align	2
+ 1083              	.LC11:
+ 1084 0000 55534552 		.ascii	"USER\000"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 25
+
+
+ 1084      00
+ 1085 0005 000000   		.space	3
+ 1086              	.LC12:
+ 1087 0008 53756363 		.ascii	"Success.\000"
+ 1087      6573732E 
+ 1087      00
+ 1088 0011 000000   		.space	3
+ 1089              	.LC13:
+ 1090 0014 53595354 		.ascii	"SYST\000"
+ 1090      00
+ 1091 0019 000000   		.space	3
+ 1092              	.LC14:
+ 1093 001c 454D424F 		.ascii	"EMBOS\000"
+ 1093      5300
+ 1094 0022 0000     		.space	2
+ 1095              	.LC15:
+ 1096 0024 50574400 		.ascii	"PWD\000"
+ 1097              	.LC16:
+ 1098 0028 54595045 		.ascii	"TYPE\000"
+ 1098      00
+ 1099 002d 000000   		.space	3
+ 1100              	.LC17:
+ 1101 0030 4900     		.ascii	"I\000"
+ 1102 0032 0000     		.space	2
+ 1103              	.LC18:
+ 1104 0034 42696E61 		.ascii	"Binary mode accepted.\000"
+ 1104      7279206D 
+ 1104      6F646520 
+ 1104      61636365 
+ 1104      70746564 
+ 1105 004a 0000     		.space	2
+ 1106              	.LC19:
+ 1107 004c 436F6D6D 		.ascii	"Command not implemented.\000"
+ 1107      616E6420 
+ 1107      6E6F7420 
+ 1107      696D706C 
+ 1107      656D656E 
+ 1108 0065 000000   		.space	3
+ 1109              	.LC20:
+ 1110 0068 50415356 		.ascii	"PASV\000"
+ 1110      00
+ 1111 006d 000000   		.space	3
+ 1112              	.LC21:
+ 1113 0070 4C495354 		.ascii	"LIST\000"
+ 1113      00
+ 1114 0075 000000   		.space	3
+ 1115              	.LC22:
+ 1116 0078 43574400 		.ascii	"CWD\000"
+ 1117              	.LC23:
+ 1118 007c 4F4B2E00 		.ascii	"OK.\000"
+ 1119              		.section	.rodata.send_list_data.str1.4,"aMS",%progbits,1
+ 1120              		.align	2
+ 1121              	.LC0:
+ 1122 0000 7463705F 		.ascii	"tcp_write error, list directory, will try again\000"
+ 1122      77726974 
+ 1122      65206572 
+ 1122      726F722C 
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 26
+
+
+ 1122      206C6973 
+ 1123              		.section	.rodata.send_response.str1.4,"aMS",%progbits,1
+ 1124              		.align	2
+ 1125              	.LC4:
+ 1126 0000 25642025 		.ascii	"%d %s\015\012\000"
+ 1126      730D0A00 
+ 1127              	.LC5:
+ 1128 0008 7463705F 		.ascii	"tcp_write error, will try again\000"
+ 1128      77726974 
+ 1128      65206572 
+ 1128      726F722C 
+ 1128      2077696C 
+ 1129              		.section	.rodata.serve_client.str1.4,"aMS",%progbits,1
+ 1130              		.align	2
+ 1131              	.LC6:
+ 1132 0000 57656C63 		.ascii	"Welcome.\000"
+ 1132      6F6D652E 
+ 1132      00
+ 1133 0009 000000   		.space	3
+ 1134              	.LC7:
+ 1135 000c 636C6965 		.ascii	"client connected\015\000"
+ 1135      6E742063 
+ 1135      6F6E6E65 
+ 1135      63746564 
+ 1135      0D00
+ 1136              		.section	.rodata.start_server.str1.4,"aMS",%progbits,1
+ 1137              		.align	2
+ 1138              	.LC24:
+ 1139 0000 49503A20 		.ascii	"IP: %u.%u.%u.%u\015\012PORT: %d\015\012\000"
+ 1139      25752E25 
+ 1139      752E2575 
+ 1139      2E25750D 
+ 1139      0A504F52 
+ 1140              		.text
+ 1141              	.Letext0:
+ 1142              		.file 2 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1143              		.file 3 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1144              		.file 4 "Drivers/CMSIS/Include/core_cm7.h"
+ 1145              		.file 5 "Drivers/CMSIS/Device/ST/STM32F7xx/Include/system_stm32f7xx.h"
+ 1146              		.file 6 "Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f746xx.h"
+ 1147              		.file 7 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\lock.h"
+ 1148              		.file 8 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\_types.h"
+ 1149              		.file 9 "c:\\gcc_toolchain\\6_2017-q1-update\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1150              		.file 10 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\sys\\reent.h"
+ 1151              		.file 11 "Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_def.h"
+ 1152              		.file 12 "Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_eth.h"
+ 1153              		.file 13 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\stdlib.h"
+ 1154              		.file 14 "Middlewares/Third_Party/LwIP/src/include/lwip/arch.h"
+ 1155              		.file 15 "Middlewares/Third_Party/LwIP/src/include/lwip/memp.h"
+ 1156              		.file 16 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/memp_priv.h"
+ 1157              		.file 17 "Middlewares/Third_Party/LwIP/src/include/lwip/err.h"
+ 1158              		.file 18 "Middlewares/Third_Party/LwIP/src/include/lwip/pbuf.h"
+ 1159              		.file 19 "Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h"
+ 1160              		.file 20 "Middlewares/Third_Party/LwIP/src/include/lwip/ip_addr.h"
+ 1161              		.file 21 "Middlewares/Third_Party/LwIP/src/include/lwip/netif.h"
+ 1162              		.file 22 "Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip4.h"
+ 1163              		.file 23 "Middlewares/Third_Party/LwIP/src/include/lwip/prot/ethernet.h"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 27
+
+
+ 1164              		.file 24 "Middlewares/Third_Party/LwIP/src/include/netif/ethernet.h"
+ 1165              		.file 25 "Middlewares/Third_Party/LwIP/src/include/lwip/ip.h"
+ 1166              		.file 26 "Middlewares/Third_Party/LwIP/src/include/lwip/udp.h"
+ 1167              		.file 27 "Middlewares/Third_Party/FreeRTOS/Source/include/task.h"
+ 1168              		.file 28 "Middlewares/Third_Party/FreeRTOS/Source/include/queue.h"
+ 1169              		.file 29 "Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h"
+ 1170              		.file 30 "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h"
+ 1171              		.file 31 "Middlewares/Third_Party/LwIP/system/arch/sys_arch.h"
+ 1172              		.file 32 "Middlewares/Third_Party/LwIP/src/include/lwip/timeouts.h"
+ 1173              		.file 33 "Middlewares/Third_Party/LwIP/src/include/lwip/tcpip.h"
+ 1174              		.file 34 "Inc/lwip.h"
+ 1175              		.file 35 "Inc/ftp_server.h"
+ 1176              		.file 36 "Middlewares/Third_Party/LwIP/src/include/lwip/tcp.h"
+ 1177              		.file 37 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\ctype.h"
+ 1178              		.file 38 "Middlewares/Third_Party/FatFs/src/integer.h"
+ 1179              		.file 39 "Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h"
+ 1180              		.file 40 "Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h"
+ 1181              		.file 41 "Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc.h"
+ 1182              		.file 42 "Middlewares/Third_Party/FatFs/src/ff.h"
+ 1183              		.file 43 "Middlewares/Third_Party/FatFs/src/diskio.h"
+ 1184              		.file 44 "Middlewares/Third_Party/FatFs/src/ff_gen_drv.h"
+ 1185              		.file 45 "Inc/usbh_diskio.h"
+ 1186              		.file 46 "Inc/fatfs.h"
+ 1187              		.file 47 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\stdio.h"
+ 1188              		.file 48 "c:\\gcc_toolchain\\6_2017-q1-update\\arm-none-eabi\\include\\string.h"
+ 1189              		.file 49 "Inc/memory_access.h"
+ 1190              		.file 50 "<built-in>"
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 28
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 ftp_server.c
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:18     .text.send_list_data:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:25     .text.send_list_data:00000000 send_list_data
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:86     .text.send_list_data:00000040 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:91     .text.init_Request:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:98     .text.init_Request:00000000 init_Request
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:139    .text.free_Request:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:146    .text.free_Request:00000000 free_Request
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:180    .text.get_request:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:187    .text.get_request:00000000 get_request
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:351    .text.open_socket:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:358    .text.open_socket:00000000 open_socket
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:428    .text.open_socket:00000040 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:436    .text.accept_command_conn:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:443    .text.accept_command_conn:00000000 accept_command_conn
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:463    .text.accept_command_conn:0000000c $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:589    .text.serve_client:00000000 serve_client
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:468    .text.accept_data_conn:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:475    .text.accept_data_conn:00000000 accept_data_conn
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:495    .text.send_response:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:502    .text.send_response:00000000 send_response
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:576    .text.send_response:00000058 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:582    .text.serve_client:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:626    .text.serve_client:00000020 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:944    .text.serve_request:00000000 serve_request
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:633    .text.pasv_response:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:640    .text.pasv_response:00000000 pasv_response
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:701    .text.pasv_response:00000038 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:707    .text.list_response:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:714    .text.list_response:00000000 list_response
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:751    .text.list_response:00000024 $d
+                            *COM*:00000004 data_socket
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:759    .text.respond:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:766    .text.respond:00000000 respond
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:920    .text.respond:000000cc $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:937    .text.serve_request:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:989    .text.start_server:00000000 $t
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:996    .text.start_server:00000000 start_server
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1052   .text.start_server:0000003c $d
+                            *COM*:00000004 command_socket
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1062   .rodata.list_response.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1069   .rodata.open_socket.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1078   .rodata.pasv_response.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1082   .rodata.respond.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1120   .rodata.send_list_data.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1124   .rodata.send_response.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1130   .rodata.serve_client.str1.4:00000000 $d
+C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s:1137   .rodata.start_server.str1.4:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+list_directory
+printf
+osDelay
+strlen
+tcp_write
+ARM GAS  C:\Users\Student\AppData\Local\Temp\cc54Nz8q.s 			page 29
+
+
+free
+tcp_output
+malloc
+__locale_ctype_ptr
+strcpy
+tcp_new
+tcp_bind
+tcp_listen_with_backlog
+puts
+gnetif
+tcp_accept
+sprintf
+tcp_recv
+strcmp
+get_current_directory
+change_directory
+tcp_recved
+pbuf_free
